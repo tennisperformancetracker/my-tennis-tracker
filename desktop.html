@@ -781,10 +781,15 @@ async function loadAll() {
   }
 }
 
-// ── Mobile detection ───────────────────────────────────────
-const isMobile = () => window.innerWidth <= 768;
+// ── Always desktop on this page ────────────────────────────
+// navigateTo uses sidebar for in-page nav on desktop.
+// Mobile users who land here via Dashboard link stay here —
+// they use the sidebar's explicit Mobile links to go back.
+function navigateTo(page) {
+  showPage(page);
+}
 
-// ── Sidebar (mobile) ───────────────────────────────────────
+// ── Sidebar open/close (hamburger on small screens) ─────────
 function openSidebar() {
   document.getElementById('sidebar').classList.add('mobile-open');
   document.getElementById('sidebar-overlay').classList.add('visible');
@@ -792,12 +797,6 @@ function openSidebar() {
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('mobile-open');
   document.getElementById('sidebar-overlay').classList.remove('visible');
-}
-
-function navigateTo(page) {
-  if (isMobile() && page === 'history') { window.location.href = 'match-history.html'; return; }
-  if (isMobile() && page === 'entry')   { window.location.href = 'index.html'; return; }
-  showPage(page);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -808,9 +807,9 @@ function showPage(page) {
   closeSidebar();
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2 };
-  document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
+  if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
   const titles = { dashboard: 'Tennis Performance Tracker Dashboard', history: 'Match History', entry: 'Match Entry' };
-  document.getElementById('topbar-title').textContent = titles[page];
+  document.getElementById('topbar-title').textContent = titles[page] || page;
 
   if (page === 'dashboard') renderDashboard();
   else if (page === 'history') renderHistory();
@@ -835,7 +834,7 @@ function showSetup() {
 
 function connectFromSetup() {
   const url = document.getElementById('setup-url-input').value.trim();
-  if (!url.startsWith('https://script.google.com')) { showToast('Please enter a valid Apps Script URL', true); return; }
+  if (!url || !url.includes('script.google.com')) { showToast('Please enter a valid Apps Script URL', true); return; }
   webAppUrl = url;
   localStorage.setItem('webAppUrl', webAppUrl);
   updateUrlDisplay();

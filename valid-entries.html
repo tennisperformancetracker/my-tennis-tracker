@@ -407,7 +407,7 @@ function showSetup() {
 
 function connectFromSetup() {
   const url = document.getElementById('setup-url').value.trim();
-  if (!url.startsWith('https://script.google.com')) { showToast('Please enter a valid Apps Script URL', true); return; }
+  if (!url || !url.includes('script.google.com')) { showToast('Please enter a valid Apps Script URL', true); return; }
   webAppUrl = url;
   localStorage.setItem('webAppUrl', webAppUrl);
   loadData();

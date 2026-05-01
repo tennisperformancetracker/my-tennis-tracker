@@ -660,7 +660,11 @@ function toggleDarkMode() {
 // ── Setup ──────────────────────────────────────────────────
 function saveSetup() {
   const url = document.getElementById('setup-url').value.trim();
-  if (!url.startsWith('https://script.google.com')) return;
+  if (!url) { alert('Please paste your Web App URL.'); return; }
+  if (!url.includes('script.google.com')) {
+    alert('That doesn\'t look like a Google Apps Script URL. Make sure you\'re copying the URL from Deploy → Manage Deployments and it ends in /exec');
+    return;
+  }
   localStorage.setItem('webAppUrl', url);
   showScreen('screen-loading');
   loadHistory(url);
@@ -710,6 +714,17 @@ async function loadHistory(url) {
   } catch(err) {
     showScreen('screen-setup');
     console.error(err);
+    // Show the error so the user knows what went wrong
+    setTimeout(() => {
+      const input = document.getElementById('setup-url');
+      if (input) {
+        input.style.borderColor = 'var(--danger)';
+        const errMsg = document.createElement('div');
+        errMsg.style.cssText = 'color:var(--danger);font-size:12px;margin-top:8px;text-align:left';
+        errMsg.textContent = 'Connection failed: ' + (err.message || 'Unknown error. Check your URL and try again.');
+        input.parentNode.insertBefore(errMsg, input.nextSibling);
+      }
+    }, 100);
   }
 }
 
