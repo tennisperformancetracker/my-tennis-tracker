@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Match Entry</title>
+<title>Match History</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -18,12 +18,15 @@
     --accent2:   #6385a2;
     --warn:      #d97706;
     --danger:    #b31412;
+    --win:       #1e6b3a;
+    --win-bg:    #e6f4ea;
+    --loss:      #b31412;
+    --loss-bg:   #fce8e6;
     --text:      #2f4157;
     --muted:     #6385a2;
     --label:     #4a6278;
     --radius:    6px;
-    --font-head: 'Poppins', sans-serif;
-    --font-body: 'Poppins', sans-serif;
+    --font:      'Poppins', sans-serif;
   }
 
   body.dark {
@@ -33,6 +36,8 @@
     --border:    #2e3f54;
     --accent:    #1e2d3d;
     --accent2:   #6385a2;
+    --win-bg:    #0d2e1a;
+    --loss-bg:   #2e0f0f;
     --text:      #dde6f0;
     --muted:     #7a97b0;
     --label:     #9ab0c4;
@@ -43,7 +48,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--font-body);
+    font-family: var(--font);
     font-size: 14.5px;
     min-height: 100vh;
     padding-bottom: env(safe-area-inset-bottom);
@@ -52,7 +57,6 @@
   /* ── Header ── */
   .app-header {
     background: var(--accent);
-    border-bottom: 1px solid var(--accent);
     padding: 14px 16px 12px;
     display: flex;
     align-items: center;
@@ -62,386 +66,229 @@
     z-index: 100;
   }
   .app-title {
-    font-family: var(--font-head);
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 1.5px;
-    color: #ffffff;
+    color: #fff;
     line-height: 1;
   }
-  .settings-btn {
+  .header-right { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
     background: rgba(255,255,255,0.15);
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 6px;
     color: #fff;
     padding: 6px 10px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .settings-btn:active { background: rgba(255,255,255,0.25); }
-
-  /* ── Screens ── */
-  .screen { display: none; padding: 16px; max-width: 520px; margin: 0 auto; }
-  .screen.active { display: block; }
-
-  /* ── Setup Screen ── */
-  .setup-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 24px 20px;
-    margin-top: 24px;
-  }
-  .setup-icon { font-size: 40px; text-align: center; margin-bottom: 16px; }
-  .setup-title {
-    font-family: var(--font-head);
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0px;
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  .setup-desc {
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.6;
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  .setup-steps {
-    background: var(--surface2);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-  .setup-steps p {
-    font-size: 13px;
-    color: var(--label);
-    line-height: 1.7;
-  }
-  .setup-steps strong { color: var(--text); }
-  .step-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px; height: 20px;
-    background: var(--accent);
-    color: var(--bg);
-    border-radius: 50%;
-    font-size: 11px;
-    font-weight: 600;
-    margin-right: 6px;
-    flex-shrink: 0;
-  }
-  .step-row { display: flex; align-items: flex-start; margin-bottom: 10px; }
-  .step-row:last-child { margin-bottom: 0; }
-
-  /* ── Form Sections ── */
-  .form-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 12px;
-  }
-  .section-title {
-    font-family: var(--font-head);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.09em;
-    color: var(--muted);
-    margin-bottom: 14px;
-    text-transform: uppercase;
-  }
-
-  /* ── Field ── */
-  .field { margin-bottom: 14px; }
-  .field:last-child { margin-bottom: 0; }
-  .field-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--label);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 6px;
-  }
-  .required-dot {
-    width: 5px; height: 5px;
-    background: var(--danger);
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .field input,
-  .field select,
-  .field textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 15px;
-    padding: 11px 12px;
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .field input:focus,
-  .field select:focus,
-  .field textarea:focus {
-    border-color: var(--accent);
-  }
-  .field input.error,
-  .field select.error {
-    border-color: var(--danger);
-  }
-  .field select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 36px;
-  }
-  .field input[type="date"] { color-scheme: light; }
-  .field-error {
-    font-size: 12px;
-    color: var(--danger);
-    margin-top: 4px;
-    display: none;
-  }
-  .field-error.visible { display: block; }
-
-  /* ── Score Row ── */
-  .score-row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 8px;
-    align-items: center;
-  }
-  .score-divider {
-    color: var(--muted);
-    font-size: 20px;
-    font-weight: 300;
-    text-align: center;
-  }
-  .score-label {
-    font-size: 11px;
-    color: var(--muted);
-    text-align: center;
-    margin-bottom: 4px;
-  }
-
-  /* ── Toggle (checkbox replacement) ── */
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 0;
-    margin-bottom: 14px;
-  }
-  .toggle-row:last-child { margin-bottom: 0; }
-  .toggle-label {
-    font-size: 14px;
-    color: var(--text);
-    font-weight: 400;
-  }
-  .toggle {
-    position: relative;
-    width: 44px;
-    height: 26px;
-    flex-shrink: 0;
-  }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider {
-    position: absolute;
-    inset: 0;
-    background: var(--border);
-    border-radius: 13px;
+    font-size: 17px;
     cursor: pointer;
     transition: background 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
   }
-  .toggle-slider::before {
-    content: '';
-    position: absolute;
-    width: 20px; height: 20px;
-    left: 3px; top: 3px;
-    background: var(--muted);
-    border-radius: 50%;
-    transition: transform 0.2s, background 0.2s;
-  }
-  .toggle input:checked + .toggle-slider { background: var(--accent); }
-  .toggle input:checked + .toggle-slider::before {
-    transform: translateX(18px);
-    background: white;
-  }
+  .icon-btn:active { background: rgba(255,255,255,0.25); }
 
-  /* ── Two-col grid ── */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* ── Setup screen ── */
+  .screen { display: none; padding: 16px; max-width: 520px; margin: 0 auto; }
+  .screen.active { display: block; }
+  .setup-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 24px 20px; margin-top: 24px; text-align: center;
+  }
+  .setup-icon { font-size: 40px; margin-bottom: 14px; }
+  .setup-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .setup-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+  .field-label {
+    font-size: 12px; font-weight: 500; color: var(--label);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; text-align: left;
+  }
+  .field input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: var(--font);
+    font-size: 13px; padding: 11px 12px; outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field { margin-bottom: 14px; text-align: left; }
 
-  /* ── Submit ── */
-  .submit-btn {
-    width: 100%;
-    background: var(--accent2);
-    color: #fff;
-    border: 2px solid var(--accent);
-    border-radius: var(--radius);
-    font-family: var(--font-head);
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 13px 16px;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    margin-top: 8px;
+  /* ── Buttons ── */
+  .btn-primary {
+    width: 100%; background: var(--accent2); color: #fff;
+    border: 2px solid var(--accent); border-radius: var(--radius);
+    font-family: var(--font); font-size: 15px; font-weight: 600;
+    padding: 13px 16px; cursor: pointer; transition: background 0.15s;
   }
-  .submit-btn:hover { background: var(--accent); }
-  .submit-btn:active { transform: scale(0.98); background: var(--accent); }
-  .submit-btn:disabled { background: var(--border); color: var(--muted); border-color: var(--border); cursor: not-allowed; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-primary:active { background: var(--accent); }
 
-  /* ── Toast / Modal ── */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 16px;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
-  }
-  .overlay.visible { opacity: 1; pointer-events: all; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 24px 20px;
-    width: 100%;
-    max-width: 480px;
-    transform: translateY(30px);
-    transition: transform 0.25s;
-  }
-  .overlay.visible .modal { transform: translateY(0); }
-  .modal-title {
-    font-family: var(--font-head);
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: 0;
-    margin-bottom: 10px;
-    color: var(--warn);
-  }
-  .modal-title.success { color: var(--accent); }
-  .modal-body {
-    font-size: 14px;
-    color: var(--label);
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
-  .modal-body strong { color: var(--text); }
-  .modal-actions { display: flex; gap: 10px; }
-  .btn-cancel {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 600;
-    padding: 10px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-cancel:hover { background: var(--border); }
-  .btn-ok {
-    flex: 1;
-    background: var(--accent2);
-    border: 2px solid var(--accent);
-    border-radius: var(--radius);
-    color: #fff;
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 600;
-    padding: 10px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-ok:hover { background: var(--accent); }
-  .btn-ok.warn { background: #d97706; border-color: #92400e; }
-  .btn-ok.warn:hover { background: #92400e; }
-  .btn-ok.danger { background: var(--danger); border-color: #7f1d1d; }
-  .btn-ok.danger:hover { background: #7f1d1d; }
-
-  /* ── Loading spinner ── */
+  /* ── Loading ── */
+  .loading-wrap { text-align: center; padding: 48px 16px; color: var(--muted); }
   .spinner {
-    display: inline-block;
-    width: 18px; height: 18px;
-    border: 2px solid rgba(47,65,87,0.2);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
+    display: inline-block; width: 28px; height: 28px;
+    border: 3px solid var(--border); border-top-color: var(--accent2);
+    border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 14px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .hidden { display: none !important; }
+  /* ── Insights bar ── */
+  .insights-wrap { background: var(--accent); padding: 14px 16px 16px; }
+  .insights-top-row {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 520px; margin: 0 auto 10px;
+  }
+  .insights-top-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: rgba(255,255,255,0.55);
+  }
+  .threshold-inline { display: flex; align-items: center; gap: 7px; }
+  .threshold-inline label { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
+  .threshold-select {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 5px; color: #fff; font-family: var(--font);
+    font-size: 13px; font-weight: 600; padding: 4px 8px;
+    outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  }
+  .threshold-select option { background: var(--accent); color: #fff; }
+  .insights-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; max-width: 520px; margin: 0 auto;
+  }
+  .insight-card { background: rgba(255,255,255,0.12); border-radius: 6px; padding: 11px 13px; }
+  .insight-card.full { grid-column: 1 / -1; }
+  .insight-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: rgba(255,255,255,0.55); margin-bottom: 4px;
+  }
+  .insight-value { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .insight-value.small { font-size: 13px; font-weight: 500; line-height: 1.5; }
 
-  /* ── Info bar ── */
-  .info-bar {
+  /* ── Filters — collapsible ── */
+  .filters-wrap {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 52px; z-index: 90;
+  }
+  .filters-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px; cursor: pointer; user-select: none;
+  }
+  .filters-toggle-left {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: var(--label);
+  }
+  .active-badge {
+    background: var(--accent2); color: #fff;
+    border-radius: 10px; padding: 1px 7px;
+    font-size: 11px; font-weight: 700;
+  }
+  .filters-toggle-right { display: flex; align-items: center; gap: 10px; }
+  .results-count-inline { font-size: 13px; color: var(--muted); }
+  .filters-chevron { font-size: 11px; color: var(--muted); transition: transform 0.2s; }
+  .filters-chevron.open { transform: rotate(180deg); }
+  .filters-body { display: none; padding: 0 16px 12px; }
+  .filters-body.open { display: block; }
+  .filters-inner { max-width: 520px; margin: 0 auto; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .filter-row:last-child { margin-bottom: 0; }
+  .filter-select, .filter-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: var(--font);
+    font-size: 14px; padding: 9px 10px; outline: none;
+    appearance: none; -webkit-appearance: none; transition: border-color 0.2s;
+  }
+  .filter-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+  }
+  .filter-select:focus, .filter-input:focus { border-color: var(--accent); }
+  .sort-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .sort-btn {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--label); font-family: var(--font);
+    font-size: 13px; font-weight: 500; padding: 9px 10px;
+    cursor: pointer; text-align: center; transition: all 0.15s;
+  }
+  .sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Match list ── */
+  .matches-wrap { padding: 14px 16px; max-width: 520px; margin: 0 auto; }
+  .match-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 14px; margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .match-result {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+  }
+  .match-result.W { background: var(--win-bg); color: var(--win); }
+  .match-result.L { background: var(--loss-bg); color: var(--loss); }
+  .match-result.unknown { background: var(--surface2); color: var(--muted); font-size: 11px; }
+  .match-body { flex: 1; min-width: 0; }
+  .match-opponent {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
+  }
+  .match-meta { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .match-scores { display: flex; gap: 6px; flex-wrap: wrap; }
+  .set-score {
     background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 12px;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 16px;
-    line-height: 1.5;
-  }
-  .info-bar strong { color: var(--label); }
-
-  /* ── Success screen ── */
-  .success-wrap {
-    text-align: center;
-    padding: 48px 16px;
-  }
-  .success-icon { font-size: 64px; margin-bottom: 16px; }
-  .success-title {
-    font-family: var(--font-head);
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: 0;
-    color: var(--accent);
-    margin-bottom: 10px;
-  }
-  .success-sub { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 32px; }
-  .another-btn {
-    background: var(--accent2);
-    border: 2px solid var(--accent);
-    border-radius: var(--radius);
-    color: #fff;
-    font-family: var(--font-head);
-    font-size: 15px;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 12px 32px;
-    cursor: pointer;
+    color: var(--label);
+    white-space: nowrap;
+  }
+  .set-score.set-win  { background: var(--surface2); color: var(--win); }
+  .set-score.set-loss { background: var(--surface2); color: var(--loss); }
+  .retired-tag {
+    background: #fef3c7; color: #92400e;
+    border-radius: 4px; padding: 3px 8px; font-size: 12px; font-weight: 500;
+  }
+  .match-date {
+    flex-shrink: 0; font-size: 12px; color: var(--muted);
+    text-align: right; white-space: nowrap; padding-top: 2px;
+  }
+
+  /* ── Empty state ── */
+  .empty-state { text-align: center; padding: 48px 16px; color: var(--muted); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--label); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; line-height: 1.6; }
+
+  /* ── Overlay / Modal ── */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; display: flex; align-items: flex-end; justify-content: center;
+    padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom));
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .overlay.visible { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 24px 20px; width: 100%; max-width: 480px;
+    transform: translateY(30px); transition: transform 0.25s;
+  }
+  .overlay.visible .modal { transform: translateY(0); }
+  .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-cancel {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: var(--font);
+    font-size: 14px; font-weight: 600; padding: 10px; cursor: pointer;
     transition: background 0.15s;
   }
-  .another-btn:hover { background: var(--accent); }
-  .another-btn:active { background: var(--accent); }
+  .btn-cancel:hover { background: var(--border); }
 
-  /* ── Conditional visibility ── */
-  .cond { transition: opacity 0.2s; }
-  .cond.cond-hidden { opacity: 0.3; pointer-events: none; }
+  .hidden { display: none !important; }
 
+  /* ── Nav link to Match Entry ── */
+  .nav-link {
+    display: block; text-align: center; padding: 12px 16px;
+    font-size: 13px; color: var(--muted);
+    text-decoration: none;
+  }
+  .nav-link span { color: var(--accent2); font-weight: 600; }
   /* ── Hamburger ── */
   .hamburger {
     background: rgba(255,255,255,0.15);
@@ -468,7 +315,9 @@
     background: var(--accent); padding: 20px 16px 16px;
     display: flex; align-items: center; justify-content: space-between;
   }
-  .slide-menu-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+  .slide-menu-title {
+    font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px;
+  }
   .slide-close {
     background: none; border: none; color: rgba(255,255,255,0.7);
     font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1;
@@ -485,6 +334,8 @@
   .slide-item:last-child { border-bottom: none; }
   .slide-item-label { font-size: 15px; font-weight: 500; color: var(--text); }
   .slide-item-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* Toggle switch */
   .toggle { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
   .toggle-slider {
@@ -497,7 +348,94 @@
     border-radius: 50%; transition: transform 0.2s, background 0.2s;
   }
   .toggle input:checked + .toggle-slider { background: var(--accent2); }
-  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: white; }
+  .toggle input:checked + .toggle-slider::before {
+    transform: translateX(18px); background: white;
+  }
+
+  .slide-menu-footer {
+    padding: 16px; border-top: 1px solid var(--border);
+  }
+  .slide-url-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+  .slide-url-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: var(--font);
+    font-size: 12px; padding: 8px 10px; outline: none; margin-bottom: 8px;
+  }
+  .slide-url-input:focus { border-color: var(--accent2); }
+  .slide-save-btn {
+    width: 100%; background: var(--accent2); border: 2px solid var(--accent);
+    border-radius: var(--radius); color: #fff; font-family: var(--font);
+    font-size: 14px; font-weight: 600; padding: 10px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .slide-save-btn:hover { background: var(--accent); }
+
+  /* ── Detail Modal ── */
+  .detail-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 400; display: flex; align-items: flex-end; justify-content: center;
+    padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom));
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .detail-overlay.visible { opacity: 1; pointer-events: all; }
+  .detail-modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; width: 100%; max-width: 480px;
+    max-height: 85vh; overflow-y: auto;
+    transform: translateY(40px); transition: transform 0.25s;
+  }
+  .detail-overlay.visible .detail-modal { transform: translateY(0); }
+  .detail-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .detail-result-badge {
+    width: 40px; height: 40px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+  }
+  .detail-result-badge.W { background: var(--win-bg); color: var(--win); }
+  .detail-result-badge.L { background: var(--loss-bg); color: var(--loss); }
+  .detail-title-wrap { flex: 1; padding: 0 12px; min-width: 0; }
+  .detail-opponent { font-size: 15px; font-weight: 700; color: var(--text); }
+  .detail-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .detail-close {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--muted); font-size: 18px;
+    width: 32px; height: 32px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; flex-shrink: 0;
+  }
+  .detail-scores-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  .detail-set {
+    background: var(--surface2); border-radius: 6px; padding: 6px 12px;
+    text-align: center;
+  }
+  .detail-set-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-set-score { font-size: 16px; font-weight: 700; color: var(--text); margin-top: 2px; }
+  .detail-set.set-win .detail-set-score  { color: var(--win); }
+  .detail-set.set-loss .detail-set-score { color: var(--loss); }
+  .detail-body { padding: 12px 16px; }
+  .detail-section { margin-bottom: 14px; }
+  .detail-section-title {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px;
+  }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .detail-field { background: var(--surface2); border-radius: 6px; padding: 8px 10px; }
+  .detail-field-label { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .detail-field-value { font-size: 13px; font-weight: 600; color: var(--text); }
+  .detail-field.full { grid-column: 1 / -1; }
+  .detail-pill {
+    display: inline-block; border-radius: 4px; padding: 2px 8px;
+    font-size: 12px; font-weight: 600;
+  }
+  .pill-yes { background: var(--win-bg); color: var(--win); }
+  .pill-no  { background: var(--surface2); color: var(--muted); }
+  .pill-ret { background: #fef3c7; color: #92400e; }
 </style>
 </head>
 <body>
@@ -532,340 +470,142 @@
     <div class="slide-item" style="cursor:pointer" onclick="window.location='desktop.html'">
       <div class="slide-item-label">📊 Dashboard</div>
     </div>
+    <div class="slide-item" style="cursor:pointer" onclick="window.location='valid-entries.html'">
+      <div class="slide-item-label">⚙️ Valid Entries</div>
+    </div>
+  </div>
+  <div class="slide-menu-footer">
+    <div class="slide-url-label">Web App URL</div>
+    <input type="url" class="slide-url-input" id="slide-url-input" placeholder="https://script.google.com/macros/s/...">
+    <button class="slide-save-btn" onclick="saveSlideUrl()">Save &amp; Reconnect</button>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════ HEADER -->
 <div class="app-header">
   <button class="hamburger" onclick="openMenu()">☰</button>
-  <span class="app-title">MATCH ENTRY</span>
+  <span class="app-title">MATCH HISTORY</span>
   <div style="width:42px"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ DETAIL MODAL -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+  <div class="detail-modal" id="detail-modal">
+    <div class="detail-header">
+      <div class="detail-result-badge" id="detail-badge"></div>
+      <div class="detail-title-wrap">
+        <div class="detail-opponent" id="detail-opponent"></div>
+        <div class="detail-date" id="detail-date"></div>
+      </div>
+      <div class="detail-close" onclick="closeDetailDirect()">✕</div>
+    </div>
+    <div class="detail-scores-row" id="detail-scores"></div>
+    <div class="detail-body" id="detail-body"></div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════ SETUP SCREEN -->
 <div id="screen-setup" class="screen active">
   <div class="setup-card">
-    <div class="setup-icon">🎾</div>
-    <div class="setup-title">Welcome to Match Entry</div>
-    <div class="setup-desc">Connect this app to your Google Sheet tracker in 4 quick steps. You only need to do this once.</div>
-    <div class="setup-steps">
-      <div class="step-row"><span class="step-num">1</span><p>Open your copied Google Sheet and click <strong>Extensions → Apps Script</strong></p></div>
-      <div class="step-row"><span class="step-num">2</span><p>Click <strong>Deploy → New Deployment</strong>. Click the <strong>⚙ gear icon</strong> and select <strong>Web app</strong></p></div>
-      <div class="step-row"><span class="step-num">3</span><p>Set <strong>Description</strong> to "Match Entry". Set <strong>Execute as</strong> to "Me". Set <strong>Who has access</strong> to "Anyone". Click <strong>Deploy</strong> and authorize when prompted. Copy the URL.</p></div>
-      <div class="step-row"><span class="step-num">4</span><p>Paste that URL in the box below and tap <strong>Connect</strong></p></div>
-    </div>
+    <div class="setup-icon">📋</div>
+    <div class="setup-title">Connect to your Sheet</div>
+    <div class="setup-desc">Paste your Google Apps Script Web App URL to load your match history. This is the same URL you used in Match Entry.</div>
     <div class="field">
       <div class="field-label">Web App URL</div>
-      <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/..." style="font-size:13px;">
-      <div class="field-error" id="setup-url-error">Please enter a valid Apps Script URL</div>
+      <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/...">
     </div>
-    <button class="submit-btn" onclick="saveSetup()">CONNECT</button>
+    <button class="btn-primary" onclick="saveSetup()">CONNECT</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ FORM SCREEN -->
-<div id="screen-form" class="screen">
-  <div class="info-bar" id="loading-bar">
-    <span class="spinner"></span> Loading your valid entries…
-  </div>
-
-  <!-- MATCH DETAILS -->
-  <div class="form-section">
-    <div class="section-title">Match Details</div>
-
-    <div class="two-col">
-      <div class="field">
-        <div class="field-label">Date</div>
-        <input type="date" id="f-date">
-      </div>
-      <div class="field">
-        <div class="field-label">Type <span class="required-dot"></span></div>
-        <select id="f-type" onchange="onTypeChange()">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-        <div class="field-error" id="err-type">Required</div>
-      </div>
-    </div>
-    <div class="field hidden" id="field-type-new">
-      <div class="field-label">New Type Name</div>
-      <input type="text" id="f-type-new" placeholder="Enter type name">
-    </div>
-
-    <div class="two-col">
-      <div class="field">
-        <div class="field-label">Season</div>
-        <select id="f-season" onchange="onNewEntrySelect('season')">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-      </div>
-      <div class="field">
-        <div class="field-label">League</div>
-        <select id="f-league" onchange="onNewEntrySelect('league')">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-      </div>
-    </div>
-    <div class="field hidden" id="field-season-new">
-      <div class="field-label">New Season Name</div>
-      <input type="text" id="f-season-new" placeholder="Enter season name">
-    </div>
-    <div class="field hidden" id="field-league-new">
-      <div class="field-label">New League Name</div>
-      <input type="text" id="f-league-new" placeholder="Enter league name">
-    </div>
-
-    <div class="two-col">
-      <div class="field">
-        <div class="field-label">Level</div>
-        <select id="f-level" onchange="onNewEntrySelect('level')">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-      </div>
-      <div class="field">
-        <div class="field-label">Line</div>
-        <select id="f-line" onchange="onNewEntrySelect('line')">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-      </div>
-    </div>
-    <div class="field hidden" id="field-level-new">
-      <div class="field-label">New Level Name</div>
-      <input type="text" id="f-level-new" placeholder="Enter level name">
-    </div>
-    <div class="field hidden" id="field-line-new">
-      <div class="field-label">New Line Name</div>
-      <input type="text" id="f-line-new" placeholder="Enter line name">
-    </div>
-
-    <div class="two-col">
-      <div class="field">
-        <div class="field-label">Home / Away</div>
-        <select id="f-homeaway" onchange="onNewEntrySelect('homeaway')">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-      </div>
-      <div class="field">
-        <div class="field-label">Surface</div>
-        <select id="f-surface" onchange="onNewEntrySelect('surface')">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-      </div>
-    </div>
-    <div class="field hidden" id="field-homeaway-new">
-      <div class="field-label">New Home/Away Value</div>
-      <input type="text" id="f-homeaway-new" placeholder="Enter value">
-    </div>
-    <div class="field hidden" id="field-surface-new">
-      <div class="field-label">New Surface Name</div>
-      <input type="text" id="f-surface-new" placeholder="Enter surface name">
-    </div>
-
-    <div class="two-col">
-      <div class="field">
-        <div class="field-label">Time</div>
-        <select id="f-time" onchange="onNewEntrySelect('time')">
-          <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
-        </select>
-      </div>
-      <div class="field">
-        <div class="field-label">Location</div>
-        <input type="text" id="f-location" placeholder="e.g. Piedmont Park">
-      </div>
-    </div>
-    <div class="field hidden" id="field-time-new">
-      <div class="field-label">New Time Value</div>
-      <input type="text" id="f-time-new" placeholder="Enter value">
-    </div>
-  </div>
-
-  <!-- PLAYOFF -->
-  <div class="form-section">
-    <div class="section-title">Playoff</div>
-    <div class="toggle-row">
-      <span class="toggle-label">Playoff Match</span>
-      <label class="toggle"><input type="checkbox" id="f-playoff" onchange="onPlayoffChange()"><span class="toggle-slider"></span></label>
-    </div>
-    <div class="field cond" id="cond-playoffround">
-      <div class="field-label">Playoff Round</div>
-      <select id="f-playoffround" onchange="onNewEntrySelect('playoffround')">
-        <option value="">— Select —</option>
-        <option value="__new__">+ Add new…</option>
-      </select>
-    </div>
-    <div class="field cond hidden" id="field-playoffround-new">
-      <div class="field-label">New Playoff Round</div>
-      <input type="text" id="f-playoffround-new" placeholder="Enter round name">
-    </div>
-  </div>
-
-  <!-- PLAYERS -->
-  <div class="form-section">
-    <div class="section-title">Players</div>
-    <div class="field">
-      <div class="field-label">Opponent 1 <span class="required-dot"></span></div>
-      <input type="text" id="f-opp1" placeholder="First Last">
-      <div class="field-error" id="err-opp1">Required</div>
-    </div>
-    <div class="field cond" id="cond-opp2">
-      <div class="field-label">Opponent 2 <span class="required-dot"></span></div>
-      <input type="text" id="f-opp2" placeholder="First Last (doubles only)">
-      <div class="field-error" id="err-opp2">Required for doubles</div>
-    </div>
-    <div class="field cond" id="cond-partner">
-      <div class="field-label">Partner <span class="required-dot"></span></div>
-      <select id="f-partner">
-        <option value="">— Select —</option>
-        <option value="__new__">+ Add new partner…</option>
-      </select>
-      <div class="field-error" id="err-partner">Required for doubles</div>
-    </div>
-    <div class="field hidden" id="field-partner-new">
-      <div class="field-label">New Partner Name</div>
-      <input type="text" id="f-partner-new" placeholder="First Last">
-    </div>
-  </div>
-
-  <!-- SCORES -->
-  <div class="form-section">
-    <div class="section-title">Scores</div>
-
-    <div class="toggle-row">
-      <span class="toggle-label">Opponent Retired</span>
-      <label class="toggle"><input type="checkbox" id="f-opp-retired" onchange="onRetiredChange()"><span class="toggle-slider"></span></label>
-    </div>
-    <div class="toggle-row" style="margin-bottom:16px">
-      <span class="toggle-label">I / We Retired</span>
-      <label class="toggle"><input type="checkbox" id="f-we-retired" onchange="onRetiredChange()"><span class="toggle-slider"></span></label>
-    </div>
-
-    <!-- Set 1 -->
-    <div class="field" id="cond-set1">
-      <div class="field-label">Set 1 <span class="required-dot" id="req-set1"></span></div>
-      <div class="score-row">
-        <div>
-          <div class="score-label">My / Our Score</div>
-          <input type="number" id="f-s1w" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onScoreChange()">
-        </div>
-        <div class="score-divider">—</div>
-        <div>
-          <div class="score-label">Opponent Score</div>
-          <input type="number" id="f-s1l" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onScoreChange()">
-        </div>
-      </div>
-      <div class="field-error" id="err-s1">Required</div>
-    </div>
-
-    <!-- Set 2 -->
-    <div class="field" id="cond-set2">
-      <div class="field-label">Set 2 <span class="required-dot" id="req-set2"></span></div>
-      <div class="score-row">
-        <div>
-          <div class="score-label">My / Our Score</div>
-          <input type="number" id="f-s2w" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onScoreChange()">
-        </div>
-        <div class="score-divider">—</div>
-        <div>
-          <div class="score-label">Opponent Score</div>
-          <input type="number" id="f-s2l" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onScoreChange()">
-        </div>
-      </div>
-      <div class="field-error" id="err-s2">Required</div>
-    </div>
-
-    <!-- Set 3 -->
-    <div class="field cond" id="cond-set3">
-      <div class="field-label">Set 3 <span class="required-dot" id="req-set3"></span></div>
-      <div class="score-row">
-        <div>
-          <div class="score-label">My / Our Score</div>
-          <input type="number" id="f-s3w" min="0" max="99" placeholder="0" inputmode="numeric">
-        </div>
-        <div class="score-divider">—</div>
-        <div>
-          <div class="score-label">Opponent Score</div>
-          <input type="number" id="f-s3l" min="0" max="99" placeholder="0" inputmode="numeric">
-        </div>
-      </div>
-      <div class="field-error" id="err-s3">Required — sets were split</div>
-    </div>
-  </div>
-
-  <button class="submit-btn" id="submit-btn" onclick="submitMatch()">LOG MATCH</button>
-  <div style="height:32px"></div>
-</div>
-
-<!-- ═══════════════════════════════════════════ SUCCESS SCREEN -->
-<div id="screen-success" class="screen">
-  <div class="success-wrap">
-    <div class="success-icon">✅</div>
-    <div class="success-title">MATCH LOGGED</div>
-    <div class="success-sub">Your match has been added to the tracker.</div>
-    <button class="another-btn" onclick="logAnother()">LOG ANOTHER MATCH</button>
+<!-- ═══════════════════════════════════════════ LOADING SCREEN -->
+<div id="screen-loading" class="screen">
+  <div class="loading-wrap">
+    <div class="spinner"></div>
+    <div>Loading your matches…</div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ MODALS -->
+<!-- ═══════════════════════════════════════════ HISTORY SCREEN -->
+<div id="screen-history" class="screen" style="padding:0;">
 
-<!-- New entries warning modal -->
-<div class="overlay" id="overlay-newentries">
-  <div class="modal">
-    <div class="modal-title">⚠️ New Entries Detected</div>
-    <div class="modal-body" id="newentries-body">Some values you entered aren't in your Valid Entries list yet.</div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('overlay-newentries')">Cancel</button>
-      <button class="btn-ok warn" onclick="confirmNewEntries()">Add &amp; Submit</button>
-    </div>
-  </div>
-</div>
-
-<!-- Submitting modal -->
-<div class="overlay" id="overlay-submitting">
-  <div class="modal">
-    <div class="modal-title" style="color:var(--accent)">Logging Match…</div>
-    <div class="modal-body"><span class="spinner"></span> Sending to your Google Sheet. Please wait.</div>
-  </div>
-</div>
-
-<!-- Error modal -->
-<div class="overlay" id="overlay-error">
-  <div class="modal">
-    <div class="modal-title" style="color:var(--danger)">❌ Submission Failed</div>
-    <div class="modal-body" id="error-body">Something went wrong. Please check your connection and try again.</div>
-    <div class="modal-actions">
-      <button class="btn-ok" onclick="closeModal('overlay-error')">OK</button>
-    </div>
-  </div>
-</div>
-
-<!-- Settings modal -->
-<div class="overlay" id="overlay-settings">
-  <div class="modal">
-    <div class="modal-title" style="color:var(--text)">⚙️ Settings</div>
-    <div class="modal-body">
-      <div class="field" style="margin-bottom:0">
-        <div class="field-label">Web App URL</div>
-        <input type="url" id="settings-url" style="font-size:13px; margin-top:6px;">
+  <!-- Insights -->
+  <div class="insights-wrap" id="insights-wrap">
+    <div class="insights-top-row">
+      <span class="insights-top-label">Insights</span>
+      <div class="threshold-inline">
+        <label for="f-threshold">Min matches:</label>
+        <select class="threshold-select" id="f-threshold" onchange="applyFilters()">
+          <option value="1">1</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="25">25</option>
+        </select>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('overlay-settings')">Cancel</button>
-      <button class="btn-ok" onclick="saveSettingsUrl()">Save</button>
+    <div class="insights-grid" id="insights-grid">
+      <!-- populated by JS -->
     </div>
   </div>
+
+  <!-- Filters — collapsible -->
+  <div class="filters-wrap">
+    <div class="filters-toggle" onclick="toggleFilters()">
+      <div class="filters-toggle-left">
+        <span>🔍 Filters &amp; Sort</span>
+        <span class="active-badge hidden" id="active-badge">0</span>
+      </div>
+      <div class="filters-toggle-right">
+        <span class="results-count-inline" id="results-count"></span>
+        <span class="filters-chevron" id="filters-chevron">▼</span>
+      </div>
+    </div>
+    <div class="filters-body" id="filters-body">
+      <div class="filters-inner">
+        <div class="sort-row">
+          <button class="sort-btn active" id="sort-newest" onclick="setSort('newest')">↓ Newest First</button>
+          <button class="sort-btn" id="sort-oldest" onclick="setSort('oldest')">↑ Oldest First</button>
+        </div>
+        <div class="filter-row">
+          <select class="filter-select" id="f-year" onchange="applyFilters()">
+            <option value="">All Years</option>
+          </select>
+          <select class="filter-select" id="f-season" onchange="applyFilters()">
+            <option value="">All Seasons</option>
+          </select>
+        </div>
+        <div class="filter-row">
+          <select class="filter-select" id="f-level" onchange="applyFilters()">
+            <option value="">All Levels</option>
+          </select>
+          <select class="filter-select" id="f-type" onchange="applyFilters()">
+            <option value="">All Types</option>
+          </select>
+        </div>
+        <div class="filter-row">
+          <input class="filter-input" id="f-partner" type="text" placeholder="Filter by partner…" oninput="applyFilters()">
+        </div>
+        <div class="filter-row">
+          <input class="filter-input" id="f-opponent" type="text" placeholder="Filter by opponent…" oninput="applyFilters()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match list -->
+  <div class="matches-wrap" id="matches-wrap">
+    <!-- populated by JS -->
+  </div>
+
+  <div style="height:16px"></div>
 </div>
 
 <script>
 // ── State ──────────────────────────────────────────────────
-let validEntries = {};
-let pendingSubmitData = null;
+let allMatches = [];
+let filteredMatches = [];
+let sortOrder = 'newest';
 
 // ── Init ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -876,29 +616,38 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   const url = localStorage.getItem('webAppUrl');
   if (url) {
-    showScreen('screen-form');
-    setTodayDate();
-    loadValidEntries(url);
+    showScreen('screen-loading');
+    loadHistory(url);
   } else {
     showScreen('screen-setup');
   }
-  // Hide playoff round initially
-  document.getElementById('cond-playoffround').classList.add('cond-hidden');
-  // Doubles fields hidden initially
-  document.getElementById('cond-opp2').classList.add('cond-hidden');
-  document.getElementById('cond-partner').classList.add('cond-hidden');
-  // Set3 hidden initially
-  document.getElementById('cond-set3').classList.add('cond-hidden');
 });
 
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
 // ── Slide Menu ─────────────────────────────────────────────
-function openMenu()  {
+function openMenu() {
+  const url = localStorage.getItem('webAppUrl') || '';
+  document.getElementById('slide-url-input').value = url;
   document.getElementById('slide-menu').classList.add('open');
   document.getElementById('slide-overlay').classList.add('open');
 }
 function closeMenu() {
   document.getElementById('slide-menu').classList.remove('open');
   document.getElementById('slide-overlay').classList.remove('open');
+}
+function saveSlideUrl() {
+  const url = document.getElementById('slide-url-input').value.trim();
+  if (url) {
+    localStorage.setItem('webAppUrl', url);
+    closeMenu();
+    showScreen('screen-loading');
+    loadHistory(url);
+  }
 }
 
 // ── Dark Mode ──────────────────────────────────────────────
@@ -908,394 +657,408 @@ function toggleDarkMode() {
   localStorage.setItem('darkMode', isDark);
 }
 
-function setTodayDate() {
-  const today = new Date();
-  const y = today.getFullYear();
-  const m = String(today.getMonth()+1).padStart(2,'0');
-  const d = String(today.getDate()).padStart(2,'0');
-  document.getElementById('f-date').value = `${y}-${m}-${d}`;
-}
-
-// ── Screens ────────────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-
 // ── Setup ──────────────────────────────────────────────────
 function saveSetup() {
   const url = document.getElementById('setup-url').value.trim();
-  if (!url.startsWith('https://script.google.com')) {
-    document.getElementById('setup-url-error').classList.add('visible');
-    return;
-  }
-  document.getElementById('setup-url-error').classList.remove('visible');
+  if (!url.startsWith('https://script.google.com')) return;
   localStorage.setItem('webAppUrl', url);
-  showScreen('screen-form');
-  setTodayDate();
-  loadValidEntries(url);
+  showScreen('screen-loading');
+  loadHistory(url);
 }
 
 function showSettings() {
-  const url = localStorage.getItem('webAppUrl') || '';
-  document.getElementById('settings-url').value = url;
+  document.getElementById('settings-url').value = localStorage.getItem('webAppUrl') || '';
   openModal('overlay-settings');
 }
 
 function saveSettingsUrl() {
   const url = document.getElementById('settings-url').value.trim();
-  if (url) localStorage.setItem('webAppUrl', url);
-  closeModal('overlay-settings');
+  if (url) {
+    localStorage.setItem('webAppUrl', url);
+    closeModal('overlay-settings');
+    showScreen('screen-loading');
+    loadHistory(url);
+  } else {
+    closeModal('overlay-settings');
+  }
 }
 
-// ── Load valid entries from sheet ──────────────────────────
-async function loadValidEntries(url) {
-  document.getElementById('loading-bar').style.display = '';
+// ── Load data ──────────────────────────────────────────────
+async function loadHistory(url) {
   try {
-    const res = await fetch(url, { method: 'GET' });
+    const res = await fetch(`${url}?action=getMatchHistory`);
     const data = await res.json();
-    if (data.success) {
-      validEntries = data.validEntries;
-      populateDropdowns();
-    }
-  } catch(e) {
-    console.warn('Could not load valid entries:', e);
-  }
-  document.getElementById('loading-bar').style.display = 'none';
-}
+    if (!data.success) throw new Error(data.error || 'Unknown error');
 
-function populateDropdowns() {
-  // All dropdowns now support __new__ — insert values before the last "Add new…" option
-  const allFields = {
-    'f-season':       validEntries.season      || [],
-    'f-league':       validEntries.league      || [],
-    'f-level':        validEntries.level       || [],
-    'f-type':         validEntries.type        || [],
-    'f-line':         validEntries.line        || [],
-    'f-homeaway':     validEntries.homeaway    || [],
-    'f-surface':      validEntries.surface     || [],
-    'f-time':         validEntries.time        || [],
-    'f-playoffround': validEntries.playoffround|| [],
-    'f-partner':      validEntries.partner     || []
-  };
-  for (const [id, values] of Object.entries(allFields)) {
-    const sel = document.getElementById(id);
-    // Remove everything except blank (index 0) and __new__ (last)
-    while (sel.options.length > 2) sel.remove(1);
-    values.forEach(v => {
+    allMatches = data.matches;
+
+    // Populate year dropdown from actual data
+    const yearSel = document.getElementById('f-year');
+    data.years.forEach(y => {
       const opt = document.createElement('option');
-      opt.value = v; opt.textContent = v;
-      sel.insertBefore(opt, sel.options[sel.options.length - 1]);
+      opt.value = y; opt.textContent = y;
+      yearSel.appendChild(opt);
     });
+
+    // Populate season, level, type from distinct values in data
+    populateFilterFromData('f-season', 'season');
+    populateFilterFromData('f-level',  'level');
+    populateFilterFromData('f-type',   'type');
+
+    applyFilters();
+    showScreen('screen-history');
+  } catch(err) {
+    showScreen('screen-setup');
+    console.error(err);
   }
 }
 
-// ── Conditional field logic ────────────────────────────────
-function onTypeChange() {
-  const type = document.getElementById('f-type').value;
-  // Show/hide the new type input
-  document.getElementById('field-type-new').classList.toggle('hidden', type !== '__new__');
-  if (type !== '__new__') document.getElementById('f-type-new').value = '';
-  // Doubles logic — treat __new__ as non-doubles until confirmed
-  const isDoubles = type.toLowerCase().includes('doubles');
-  document.getElementById('cond-opp2').classList.toggle('cond-hidden', !isDoubles);
-  document.getElementById('cond-partner').classList.toggle('cond-hidden', !isDoubles);
-  if (!isDoubles) {
-    document.getElementById('f-opp2').value = '';
-    document.getElementById('f-partner').value = '';
-    onNewEntrySelect('partner');
-  }
+function populateFilterFromData(selectId, field) {
+  const sel = document.getElementById(selectId);
+  const values = [...new Set(allMatches.map(m => m[field]).filter(v => v && v !== ''))].sort();
+  while (sel.options.length > 1) sel.remove(1);
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
 }
 
-function onPlayoffChange() {
-  const checked = document.getElementById('f-playoff').checked;
-  document.getElementById('cond-playoffround').classList.toggle('cond-hidden', !checked);
-  if (!checked) document.getElementById('f-playoffround').value = '';
+// ── Filtering ──────────────────────────────────────────────
+function toggleFilters() {
+  const body    = document.getElementById('filters-body');
+  const chevron = document.getElementById('filters-chevron');
+  const isOpen  = body.classList.toggle('open');
+  chevron.classList.toggle('open', isOpen);
 }
 
-function onRetiredChange() {
-  onScoreChange();
+function setSort(order) {
+  sortOrder = order;
+  document.getElementById('sort-newest').classList.toggle('active', order === 'newest');
+  document.getElementById('sort-oldest').classList.toggle('active', order === 'oldest');
+  applyFilters();
 }
 
-function onScoreChange() {
-  const retired = document.getElementById('f-opp-retired').checked || document.getElementById('f-we-retired').checked;
-  const s1w = document.getElementById('f-s1w').value;
-  const s1l = document.getElementById('f-s1l').value;
-  const s2w = document.getElementById('f-s2w').value;
-  const s2l = document.getElementById('f-s2l').value;
+function applyFilters() {
+  const year     = document.getElementById('f-year').value;
+  const season   = document.getElementById('f-season').value;
+  const level    = document.getElementById('f-level').value;
+  const type     = document.getElementById('f-type').value;
+  const partner  = document.getElementById('f-partner').value.trim().toLowerCase();
+  const opponent = document.getElementById('f-opponent').value.trim().toLowerCase();
 
-  // Determine if set 3 is needed: sets 1 and 2 were split (different winners)
-  let needSet3 = false;
-  if (!retired && s1w !== '' && s1l !== '' && s2w !== '' && s2l !== '') {
-    const p1winsS1 = parseInt(s1w) > parseInt(s1l);
-    const p1winsS2 = parseInt(s2w) > parseInt(s2l);
-    needSet3 = (p1winsS1 !== p1winsS2); // split sets
-  }
-
-  document.getElementById('cond-set3').classList.toggle('cond-hidden', !needSet3);
-  if (!needSet3) {
-    document.getElementById('f-s3w').value = '';
-    document.getElementById('f-s3l').value = '';
-  }
-}
-
-// New entry toggle — handles league, level, line, and partner
-function onNewEntrySelect(field) {
-  const isNew = document.getElementById('f-' + field).value === '__new__';
-  document.getElementById('field-' + field + '-new').classList.toggle('hidden', !isNew);
-  if (!isNew) document.getElementById('f-' + field + '-new').value = '';
-}
-
-// Partner uses the same function, wired via onchange in HTML — also keep legacy listener
-document.getElementById('f-partner').addEventListener('change', function() {
-  onNewEntrySelect('partner');
-});
-
-// ── Validation ─────────────────────────────────────────────
-function clearErrors() {
-  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('visible'));
-  document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
-}
-
-function showError(id, fieldId) {
-  document.getElementById(id).classList.add('visible');
-  if (fieldId) document.getElementById(fieldId).classList.add('error');
-}
-
-function validateForm() {
-  clearErrors();
-  let valid = true;
-
-  const type = document.getElementById('f-type').value;
-  const typeResolved = type === '__new__' ? (document.getElementById('f-type-new').value.trim() || '') : type;
-  if (!type) { showError('err-type', 'f-type'); valid = false; }
-
-  const opp1 = document.getElementById('f-opp1').value.trim();
-  if (!opp1) { showError('err-opp1', 'f-opp1'); valid = false; }
-
-  const isDoubles = typeResolved.toLowerCase().includes('doubles');
-  if (isDoubles) {
-    const opp2 = document.getElementById('f-opp2').value.trim();
-    if (!opp2) { showError('err-opp2', 'f-opp2'); valid = false; }
-    const partner = document.getElementById('f-partner').value;
-    const partnerNew = document.getElementById('f-partner-new').value.trim();
-    if (!partner || (partner === '__new__' && !partnerNew)) {
-      showError('err-partner', 'f-partner'); valid = false;
+  filteredMatches = allMatches.filter(m => {
+    if (year     && String(m.year) !== year) return false;
+    if (season   && m.season !== season)     return false;
+    if (level    && m.level  !== level)      return false;
+    if (type     && m.type   !== type)       return false;
+    if (partner  && !m.partner.toLowerCase().includes(partner)) return false;
+    if (opponent) {
+      const both = (m.opp1 + ' ' + m.opp2).toLowerCase();
+      if (!both.includes(opponent)) return false;
     }
+    return true;
+  });
+
+  // Sort
+  filteredMatches.sort((a, b) => {
+    const da = parseDate(a.date);
+    const db = parseDate(b.date);
+    return sortOrder === 'newest' ? db - da : da - db;
+  });
+
+  // Active filter badge
+  const activeCount = [year, season, level, type, partner, opponent].filter(v => v).length;
+  const badge = document.getElementById('active-badge');
+  if (activeCount > 0) {
+    badge.textContent = activeCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
   }
 
-  const retired = document.getElementById('f-opp-retired').checked || document.getElementById('f-we-retired').checked;
+  // Results count
+  document.getElementById('results-count').textContent =
+    `${filteredMatches.length} match${filteredMatches.length !== 1 ? 'es' : ''}`;
 
-  if (!retired) {
-    const s1w = document.getElementById('f-s1w').value;
-    const s1l = document.getElementById('f-s1l').value;
-    if (s1w === '' || s1l === '') { showError('err-s1'); valid = false; }
+  renderInsights();
+  renderMatches();
+}
 
-    const s2w = document.getElementById('f-s2w').value;
-    const s2l = document.getElementById('f-s2l').value;
-    if (s2w === '' || s2l === '') { showError('err-s2'); valid = false; }
+function parseDate(str) {
+  if (!str) return 0;
+  const parts = str.split('/');
+  if (parts.length === 3) return new Date(parts[2], parts[0]-1, parts[1]).getTime();
+  return new Date(str).getTime();
+}
 
-    // Check if set 3 is required
-    if (s1w !== '' && s1l !== '' && s2w !== '' && s2l !== '') {
-      const p1winsS1 = parseInt(s1w) > parseInt(s1l);
-      const p1winsS2 = parseInt(s2w) > parseInt(s2l);
-      if (p1winsS1 !== p1winsS2) {
-        const s3w = document.getElementById('f-s3w').value;
-        const s3l = document.getElementById('f-s3l').value;
-        if (s3w === '' || s3l === '') { showError('err-s3'); valid = false; }
+// ── Insights ───────────────────────────────────────────────
+function renderInsights() {
+  const matches = filteredMatches;
+  const threshold = parseInt(document.getElementById('f-threshold').value) || 5;
+
+  // Overall
+  const wins   = matches.filter(m => m.result === 'W').length;
+  const losses = matches.filter(m => m.result === 'L').length;
+  const overall = wins + losses === 0 ? 'No matches' : `${wins} – ${losses}`;
+
+  // Singles
+  const singles = matches.filter(m => !m.partner || m.partner === '' || m.partner === 'None');
+  const sW = singles.filter(m => m.result === 'W').length;
+  const sL = singles.filter(m => m.result === 'L').length;
+
+  // Doubles
+  const doubles = matches.filter(m => m.partner && m.partner !== '' && m.partner !== 'None');
+  const dW = doubles.filter(m => m.result === 'W').length;
+  const dL = doubles.filter(m => m.result === 'L').length;
+
+  // Tiebreaks
+  let tbW = 0, tbL = 0;
+  matches.forEach(m => {
+    const sets = [
+      [num(m.s1w), num(m.s1l)],
+      [num(m.s2w), num(m.s2l)],
+      [num(m.s3w), num(m.s3l)]
+    ];
+    sets.forEach(([w, l]) => {
+      if (w === null || l === null) return;
+      if (w === 7 && l === 6) tbW++;
+      if (w === 6 && l === 7) tbL++;
+      if (!m.oppRet && !m.weRet) {
+        if (w === 1 && l === 0) tbW++;
+        if (w === 0 && l === 1) tbL++;
+      }
+    });
+  });
+
+  // Partner insight
+  const partnerFilter = document.getElementById('f-partner').value.trim();
+  const typeFilter    = document.getElementById('f-type').value;
+  let partnerInsight  = '';
+
+  if (typeFilter !== 'Singles') {
+    if (partnerFilter) {
+      // Specific partner stats
+      const pm = doubles.filter(m => m.partner.toLowerCase().includes(partnerFilter.toLowerCase()));
+      const pmW = pm.filter(m => m.result === 'W').length;
+      const pmL = pm.filter(m => m.result === 'L').length;
+      if (pm.length > 0) {
+        const pct = Math.round(pmW / pm.length * 100);
+        partnerInsight = `You are ${pmW}-${pmL} with ${pm[0].partner} (${pct}% win rate)`;
+      } else {
+        partnerInsight = `No matches found with "${partnerFilter}"`;
+      }
+    } else {
+      // Best partner by win % (min threshold)
+      const partnerMap = {};
+      doubles.forEach(m => {
+        if (!m.partner || m.partner === 'None') return;
+        if (!partnerMap[m.partner]) partnerMap[m.partner] = { w: 0, l: 0 };
+        if (m.result === 'W') partnerMap[m.partner].w++;
+        else partnerMap[m.partner].l++;
+      });
+      const qualified = Object.entries(partnerMap)
+        .filter(([, v]) => v.w + v.l >= threshold)
+        .map(([name, v]) => ({ name, w: v.w, l: v.l, total: v.w + v.l, pct: v.w / (v.w + v.l) }));
+
+      if (qualified.length === 0 && doubles.length > 0) {
+        partnerInsight = `No partners with ${threshold}+ matches yet`;
+      } else if (qualified.length > 0) {
+        const mostWins = [...qualified].sort((a,b) => b.w - a.w)[0];
+        const bestPct  = [...qualified].sort((a,b) => b.pct - a.pct)[0];
+        if (mostWins.name === bestPct.name) {
+          partnerInsight = `Most wins & best % with ${mostWins.name} (${mostWins.w}-${mostWins.l}, ${Math.round(mostWins.pct*100)}%)`;
+        } else {
+          partnerInsight = `Most wins: ${mostWins.name} (${mostWins.w}-${mostWins.l}). Best %: ${bestPct.name} (${Math.round(bestPct.pct*100)}%, ${bestPct.w}-${bestPct.l})`;
+        }
       }
     }
   }
 
-  return valid;
+  const grid = document.getElementById('insights-grid');
+  grid.innerHTML = `
+    <div class="insight-card">
+      <div class="insight-label">Overall</div>
+      <div class="insight-value">${overall}</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Tiebreaks</div>
+      <div class="insight-value">${tbW + tbL === 0 ? '—' : tbW + ' – ' + tbL}</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Singles</div>
+      <div class="insight-value">${sW + sL === 0 ? '—' : sW + ' – ' + sL}</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Doubles</div>
+      <div class="insight-value">${dW + dL === 0 ? '—' : dW + ' – ' + dL}</div>
+    </div>
+    ${partnerInsight ? `
+    <div class="insight-card full">
+      <div class="insight-label">Partner Insight</div>
+      <div class="insight-value small">${partnerInsight}</div>
+    </div>` : ''}
+  `;
 }
 
-// ── Check for new entries ──────────────────────────────────
-function detectNewEntries() {
-  const newOnes = {};
-  const allFields = ['season','league','level','type','line','homeaway','surface','time','playoffround','partner'];
-  for (const key of allFields) {
-    const sel = document.getElementById('f-' + key);
-    if (sel && sel.value === '__new__') {
-      const newVal = document.getElementById('f-' + key + '-new').value.trim();
-      if (newVal) newOnes[key] = newVal;
-    }
-  }
-  return newOnes;
-}
-
-// ── Submit flow ────────────────────────────────────────────
-function submitMatch() {
-  if (!validateForm()) {
-    // Scroll to first error
-    const firstErr = document.querySelector('.field-error.visible');
-    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+// ── Render matches ─────────────────────────────────────────
+function renderMatches() {
+  const wrap = document.getElementById('matches-wrap');
+  if (filteredMatches.length === 0) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎾</div>
+        <div class="empty-title">No matches found</div>
+        <div class="empty-sub">Try adjusting your filters, or log a match using the tab above.</div>
+      </div>`;
     return;
   }
 
-  const newEntries = detectNewEntries();
+  wrap.innerHTML = filteredMatches.map((m, idx) => {
+    const isDoubles = m.opp2 && m.opp2 !== '';
+    const opponent  = isDoubles ? `${m.opp1} / ${m.opp2}` : m.opp1;
+    const partner   = m.partner && m.partner !== '' && m.partner !== 'None'
+      ? `w/ ${m.partner}` : '';
+    const sets = buildSetScores(m);
+    const retired = m.oppRet
+      ? '<span class="retired-tag">Opp. Ret.</span>'
+      : m.weRet ? '<span class="retired-tag">Ret.</span>' : '';
+    const resultClass = m.result || 'unknown';
+    const resultText  = m.result || '—';
 
-  // Build match data
-  const type = document.getElementById('f-type').value;
-  const isDoubles = type.toLowerCase().includes('doubles');
-
-  // Resolve any __new__ values to their typed text
-  function resolveField(key) {
-    const val = document.getElementById('f-' + key).value;
-    return val === '__new__'
-      ? document.getElementById('f-' + key + '-new').value.trim()
-      : val;
-  }
-
-  const partnerFinal      = resolveField('partner');
-  const leagueFinal       = resolveField('league');
-  const levelFinal        = resolveField('level');
-  const lineFinal         = resolveField('line');
-  const seasonFinal       = resolveField('season');
-  const typeFinal         = resolveField('type');
-  const homewayFinal      = resolveField('homeaway');
-  const surfaceFinal      = resolveField('surface');
-  const timeFinal         = resolveField('time');
-  const playoffroundFinal = resolveField('playoffround');
-
-  const dateRaw = document.getElementById('f-date').value;
-  const dateFormatted = dateRaw ? formatDate(dateRaw) : '';
-
-  pendingSubmitData = {
-    newEntries,
-    match: {
-      date:            dateFormatted,
-      season:          seasonFinal,
-      league:          leagueFinal,
-      level:           levelFinal,
-      type:            typeFinal,
-      line:            lineFinal,
-      location:        document.getElementById('f-location').value.trim(),
-      homeaway:        homewayFinal,
-      surface:         surfaceFinal,
-      time:            timeFinal,
-      playoff:         document.getElementById('f-playoff').checked,
-      playoffround:    playoffroundFinal,
-      opponent1:       document.getElementById('f-opp1').value.trim(),
-      opponent2:       isDoubles ? document.getElementById('f-opp2').value.trim() : '',
-      partner:         isDoubles ? partnerFinal : '',
-      set1wins:        document.getElementById('f-s1w').value !== '' ? parseInt(document.getElementById('f-s1w').value) : '',
-      set1losses:      document.getElementById('f-s1l').value !== '' ? parseInt(document.getElementById('f-s1l').value) : '',
-      set2wins:        document.getElementById('f-s2w').value !== '' ? parseInt(document.getElementById('f-s2w').value) : '',
-      set2losses:      document.getElementById('f-s2l').value !== '' ? parseInt(document.getElementById('f-s2l').value) : '',
-      set3wins:        document.getElementById('f-s3w').value !== '' ? parseInt(document.getElementById('f-s3w').value) : '',
-      set3losses:      document.getElementById('f-s3l').value !== '' ? parseInt(document.getElementById('f-s3l').value) : '',
-      opponentretired: document.getElementById('f-opp-retired').checked,
-      weretired:       document.getElementById('f-we-retired').checked
-    }
-  };
-
-  if (Object.keys(newEntries).length > 0) {
-    // Show warning modal
-    const list = Object.entries(newEntries)
-      .map(([k,v]) => `<strong>${capitalize(k)}:</strong> ${v}`)
-      .join('<br>');
-    document.getElementById('newentries-body').innerHTML =
-      `The following values aren't in your Valid Entries list yet. They will be added automatically:<br><br>${list}`;
-    openModal('overlay-newentries');
-  } else {
-    doSubmit();
-  }
+    return `
+      <div class="match-card" onclick="openDetail(${idx})" style="cursor:pointer;">
+        <div class="match-result ${resultClass}">${resultText}</div>
+        <div class="match-body">
+          <div class="match-opponent">${escHtml(opponent)}</div>
+          <div class="match-meta">${partner ? escHtml(partner) + ' &middot; ' : ''}${escHtml(m.type || '')}${m.level ? ' &middot; ' + escHtml(m.level) : ''}</div>
+          <div class="match-scores">${sets}${retired}</div>
+        </div>
+        <div class="match-date">${m.date || ''}</div>
+      </div>`;
+  }).join('');
 }
 
-function confirmNewEntries() {
-  closeModal('overlay-newentries');
-  doSubmit();
-}
+// ── Detail Modal ───────────────────────────────────────────
+function openDetail(idx) {
+  const m = filteredMatches[idx];
+  if (!m) return;
 
-async function doSubmit() {
-  const url = localStorage.getItem('webAppUrl');
-  if (!url) { showError('overlay-error'); return; }
+  const isDoubles = m.opp2 && m.opp2 !== '';
+  const opponent  = isDoubles ? `${m.opp1} / ${m.opp2}` : m.opp1;
 
-  openModal('overlay-submitting');
+  // Badge
+  const badge = document.getElementById('detail-badge');
+  badge.className = 'detail-result-badge ' + (m.result || 'unknown');
+  badge.textContent = m.result || '—';
 
-  try {
-    // Step 1: if new entries, add them first
-    if (Object.keys(pendingSubmitData.newEntries).length > 0) {
-      await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'addValidEntries', newEntries: pendingSubmitData.newEntries })
-      });
-      // Update local cache
-      for (const [key, val] of Object.entries(pendingSubmitData.newEntries)) {
-        if (!validEntries[key]) validEntries[key] = [];
-        validEntries[key].push(val);
-      }
-      populateDropdowns();
-    }
+  // Header
+  document.getElementById('detail-opponent').textContent = opponent;
+  document.getElementById('detail-date').textContent = m.date || '';
 
-    // Step 2: log the match
-    const res = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({ match: pendingSubmitData.match })
-    });
-    const data = await res.json();
-
-    closeModal('overlay-submitting');
-
-    if (data.success) {
-      showScreen('screen-success');
-    } else {
-      document.getElementById('error-body').textContent = data.error || 'Unknown error occurred.';
-      openModal('overlay-error');
-    }
-  } catch(e) {
-    closeModal('overlay-submitting');
-    document.getElementById('error-body').textContent = 'Network error: ' + e.message;
-    openModal('overlay-error');
-  }
-}
-
-function logAnother() {
-  resetForm();
-  showScreen('screen-form');
-}
-
-function resetForm() {
-  // Reset all inputs
-  document.querySelectorAll('#screen-form input, #screen-form select').forEach(el => {
-    if (el.type === 'checkbox') el.checked = false;
-    else el.value = '';
+  // Scores
+  const scoresEl = document.getElementById('detail-scores');
+  let scoresHtml = '';
+  const sets = [[m.s1w, m.s1l, 'Set 1'], [m.s2w, m.s2l, 'Set 2'], [m.s3w, m.s3l, 'Set 3']];
+  sets.forEach(([w, l, label]) => {
+    if (w === '' && l === '') return;
+    const nw = num(w), nl = num(l);
+    let cls = '';
+    if (nw !== null && nl !== null) cls = nw > nl ? 'set-win' : 'set-loss';
+    scoresHtml += `
+      <div class="detail-set ${cls}">
+        <div class="detail-set-label">${label}</div>
+        <div class="detail-set-score">${w} – ${l}</div>
+      </div>`;
   });
-  setTodayDate();
-  // Reset conditional visibility
-  document.getElementById('cond-playoffround').classList.add('cond-hidden');
-  document.getElementById('cond-opp2').classList.add('cond-hidden');
-  document.getElementById('cond-partner').classList.add('cond-hidden');
-  document.getElementById('cond-set3').classList.add('cond-hidden');
-  // Hide all new-entry text inputs
-  ['season','league','level','type','line','homeaway','surface','time','playoffround','partner'].forEach(key => {
-    const el = document.getElementById('field-' + key + '-new');
-    if (el) el.classList.add('hidden');
-    const inp = document.getElementById('f-' + key + '-new');
-    if (inp) inp.value = '';
+  if (m.oppRet) scoresHtml += `<div class="detail-set"><div class="detail-set-label">Status</div><div class="detail-set-score" style="font-size:12px;color:#92400e;">Opp. Retired</div></div>`;
+  if (m.weRet)  scoresHtml += `<div class="detail-set"><div class="detail-set-label">Status</div><div class="detail-set-score" style="font-size:12px;color:#92400e;">We Retired</div></div>`;
+  scoresEl.innerHTML = scoresHtml;
+
+  // Body
+  const body = document.getElementById('detail-body');
+
+  function field(label, value, full) {
+    if (!value || value === '') return '';
+    return `<div class="detail-field${full ? ' full' : ''}">
+      <div class="detail-field-label">${label}</div>
+      <div class="detail-field-value">${escHtml(String(value))}</div>
+    </div>`;
+  }
+  function pill(label, value, yesLabel, noLabel) {
+    const isYes = value === true || value === 'true';
+    return `<div class="detail-field">
+      <div class="detail-field-label">${label}</div>
+      <div class="detail-field-value"><span class="detail-pill ${isYes ? 'pill-yes' : 'pill-no'}">${isYes ? yesLabel : noLabel}</span></div>
+    </div>`;
+  }
+
+  let html = '';
+
+  // Players section
+  html += `<div class="detail-section"><div class="detail-section-title">Players</div><div class="detail-grid">`;
+  html += field('Opponent 1', m.opp1);
+  if (isDoubles) html += field('Opponent 2', m.opp2);
+  if (m.partner && m.partner !== '' && m.partner !== 'None') html += field('Partner', m.partner);
+  html += `</div></div>`;
+
+  // Match details section
+  html += `<div class="detail-section"><div class="detail-section-title">Match Details</div><div class="detail-grid">`;
+  html += field('Season', m.season);
+  html += field('League', m.league);
+  html += field('Level', m.level);
+  html += field('Type', m.type);
+  html += field('Line', m.line);
+  html += field('Home / Away', m.homeaway);
+  html += field('Surface', m.surface);
+  html += field('Time', m.time);
+  if (m.location) html += field('Location', m.location, true);
+  html += `</div></div>`;
+
+  // Playoff section
+  html += `<div class="detail-section"><div class="detail-section-title">Playoff</div><div class="detail-grid">`;
+  html += pill('Playoff Match', m.playoff, 'Yes', 'No');
+  if (m.playoff && m.playoffround) html += field('Round', m.playoffround);
+  html += `</div></div>`;
+
+  body.innerHTML = html;
+
+  document.getElementById('detail-overlay').classList.add('visible');
+}
+
+function closeDetail(e) {
+  if (e.target === document.getElementById('detail-overlay')) {
+    document.getElementById('detail-overlay').classList.remove('visible');
+  }
+}
+function closeDetailDirect() {
+  document.getElementById('detail-overlay').classList.remove('visible');
+}
+
+function buildSetScores(m) {
+  let html = '';
+  const sets = [[m.s1w, m.s1l], [m.s2w, m.s2l], [m.s3w, m.s3l]];
+  sets.forEach(([w, l]) => {
+    if (w === '' && l === '') return;
+    if (w === null && l === null) return;
+    const nw = num(w), nl = num(l);
+    let cls = '';
+    if (nw !== null && nl !== null) cls = nw > nl ? 'set-win' : 'set-loss';
+    html += `<span class="set-score ${cls}">${w}–${l}</span>`;
   });
-  clearErrors();
+  return html;
 }
 
-// ── Helpers ────────────────────────────────────────────────
-function formatDate(isoDate) {
-  // Convert YYYY-MM-DD to M/D/YYYY for Google Sheets
-  const [y, m, d] = isoDate.split('-');
-  return `${parseInt(m)}/${parseInt(d)}/${y}`;
+function num(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  return isNaN(n) ? null : n;
 }
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function openModal(id) {
-  document.getElementById(id).classList.add('visible');
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('visible');
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
