@@ -658,7 +658,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <div class="nav-item" onclick="navigateTo('entry')">
       <span class="nav-icon">🎾</span> Match Entry
     </div>
-    <div class="nav-item" onclick="window.location='valid-entries.html'">
+    <div class="nav-item" onclick="navigateTo('validEntries')">
       <span class="nav-icon">⚙️</span> Valid Entries
     </div>
   </nav>
@@ -809,10 +809,11 @@ function navigateTo(page) {
   const mode = sessionStorage.getItem('appMode');
   // Only route to mobile pages if explicitly in a mobile session
   if (mode === 'mobile') {
-    if (page === 'history') { window.location.href = 'match-history.html'; return; }
-    if (page === 'entry')   { window.location.href = 'index.html'; return; }
+    if (page === 'history')      { window.location.href = 'match-history.html'; return; }
+    if (page === 'entry')        { window.location.href = 'index.html'; return; }
+    if (page === 'validEntries') { window.location.href = 'valid-entries.html'; return; }
   }
-  // Default: stay in desktop (mode === 'desktop' or unset)
+  // Default: stay in desktop
   showPage(page);
 }
 
@@ -833,14 +834,20 @@ function showPage(page) {
   currentPage = page;
   closeSidebar();
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const map = { dashboard: 0, history: 1, entry: 2 };
+  const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
-  const titles = { dashboard: 'Tennis Performance Tracker Dashboard', history: 'Match History', entry: 'Match Entry' };
+  const titles = {
+    dashboard:    'Tennis Performance Tracker Dashboard',
+    history:      'Match History',
+    entry:        'Match Entry',
+    validEntries: 'Valid Entries'
+  };
   document.getElementById('topbar-title').textContent = titles[page] || page;
 
-  if (page === 'dashboard') renderDashboard();
+  if (page === 'dashboard')    renderDashboard();
   else if (page === 'history') renderHistory();
-  else if (page === 'entry') renderEntry();
+  else if (page === 'entry')   renderEntry();
+  else if (page === 'validEntries') renderValidEntries();
 }
 
 function showSetup() {
@@ -2063,6 +2070,281 @@ async function saveEdit(idx) {
   } catch(e) {
     showToast('Network error: ' + e.message, true);
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// VALID ENTRIES
+// ═══════════════════════════════════════════════════════════
+const VE_FIELD_LABELS = {
+  partner:'Partners', season:'Seasons', league:'Leagues', level:'Levels',
+  type:'Match Types', line:'Lines', homeaway:'Home / Away',
+  surface:'Surfaces', playoffround:'Playoff Rounds'
+};
+const VE_FIELD_ORDER = ['partner','season','league','level','type','line','homeaway','surface','playoffround'];
+let veEntries    = {};
+let veThresholds = { great: 55, poor: 45 };
+let vePendingDelete = null;
+let vePendingRename = null;
+
+async function renderValidEntries() {
+  document.getElementById('topbar-right').innerHTML = '';
+  document.getElementById('mobile-filters').innerHTML = '';
+  setContent(`<div class="spinner-wrap"><div class="spinner"></div><div>Loading valid entries…</div></div>`);
+  try {
+    const res  = await fetch(`${webAppUrl}?action=getValidEntries`);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    veEntries    = data.entries;
+    veThresholds = data.thresholds;
+    localStorage.setItem('thresholdGreat', veThresholds.great);
+    localStorage.setItem('thresholdPoor',  veThresholds.poor);
+    renderVEContent();
+  } catch(e) {
+    setContent(`<div class="spinner-wrap" style="color:var(--danger)">Failed to load. <button class="btn btn-ghost" onclick="renderValidEntries()" style="margin-top:12px">Retry</button></div>`);
+  }
+}
+
+function renderVEContent() {
+  const great = veThresholds.great;
+  const poor  = veThresholds.poor;
+
+  const cardsHtml = VE_FIELD_ORDER.map(field => {
+    const vals = veEntries[field] || [];
+    const items = vals.map((v,i) => `
+      <li class="ve-item" id="ve-item-${field}-${i}">
+        <input class="ve-value" type="text" value="${escHtml(v)}"
+          data-original="${escHtml(v)}" data-field="${field}"
+          oninput="veOnInput(this,'${field}',${i})"
+          onblur="veOnBlur(this,'${field}',${i})">
+        <button class="ve-save-btn" id="ve-save-${field}-${i}"
+          onclick="veTriggerRename('${field}',${i})">Save</button>
+        <button class="ve-delete-btn" onclick="veTriggerDelete('${field}','${escHtml(v)}')">✕</button>
+      </li>`).join('');
+
+    return `
+      <div class="ve-card">
+        <div class="ve-card-title">
+          ${VE_FIELD_LABELS[field]}
+          <span class="ve-count">${vals.length}</span>
+        </div>
+        <ul class="ve-list" id="ve-list-${field}">${items || '<li style="font-size:12px;color:var(--muted);padding:6px 0">No entries yet</li>'}</ul>
+        <div class="ve-add-row">
+          <input type="text" class="ve-add-input" id="ve-add-${field}" placeholder="Add new…"
+            onkeydown="if(event.key==='Enter') veAddEntry('${field}')">
+          <button class="ve-add-btn" onclick="veAddEntry('${field}')">+ Add</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('content').innerHTML = `
+    <style>
+      .ve-threshold-card { background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow); }
+      .ve-threshold-title { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:14px; }
+      .ve-threshold-row { display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap; }
+      .ve-threshold-field { display:flex;flex-direction:column;gap:5px; }
+      .ve-threshold-label { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--label); }
+      .ve-threshold-wrap { display:flex;align-items:center;gap:6px; }
+      .ve-threshold-input { width:72px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:15px;font-weight:600;padding:8px 10px;outline:none;text-align:center; }
+      .ve-threshold-input:focus { border-color:var(--accent2); }
+      .ve-preview { display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap; }
+      .ve-chip { border-radius:4px;padding:4px 10px;font-size:12px;font-weight:600; }
+      .ve-chip-green { background:var(--win-bg);color:var(--win); }
+      .ve-chip-orange { background:#fef3c7;color:#92400e; }
+      .ve-chip-red { background:var(--loss-bg);color:var(--loss); }
+      .ve-save-threshold { background:var(--accent2);border:2px solid var(--accent);border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;white-space:nowrap; }
+      .ve-save-threshold:hover { background:var(--accent); }
+      .ve-cards-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px; }
+      .ve-card { background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow); }
+      .ve-card-title { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between; }
+      .ve-count { background:var(--surface2);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--muted);font-weight:500; }
+      .ve-list { list-style:none;margin-bottom:12px; }
+      .ve-item { display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border); }
+      .ve-item:last-child { border-bottom:none; }
+      .ve-value { flex:1;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;padding:3px 6px;border-radius:4px;border:1px solid transparent;background:none;font-family:var(--font);outline:none;transition:border-color 0.15s,background 0.15s; }
+      .ve-value:hover,.ve-value:focus { background:var(--surface2);border-color:var(--accent2); }
+      .ve-save-btn { background:var(--win-bg);border:1px solid var(--win);border-radius:4px;color:var(--win);font-family:var(--font);font-size:11px;font-weight:600;padding:2px 8px;cursor:pointer;display:none;white-space:nowrap; }
+      .ve-item.has-changes .ve-save-btn { display:block; }
+      .ve-delete-btn { background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;flex-shrink:0; }
+      .ve-delete-btn:hover { color:var(--danger);background:var(--loss-bg); }
+      .ve-add-row { display:flex;gap:8px; }
+      .ve-add-input { flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:7px 10px;outline:none; }
+      .ve-add-input:focus { border-color:var(--accent2); }
+      .ve-add-btn { background:var(--accent2);border:2px solid var(--accent);border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;padding:7px 14px;cursor:pointer;white-space:nowrap; }
+      .ve-add-btn:hover { background:var(--accent); }
+    </style>
+
+    <div class="ve-threshold-card">
+      <div class="ve-threshold-title">Performance Thresholds</div>
+      <div class="ve-threshold-row">
+        <div class="ve-threshold-field">
+          <div class="ve-threshold-label" style="color:var(--win)">Great (Green) ≥</div>
+          <div class="ve-threshold-wrap">
+            <input type="number" class="ve-threshold-input" id="ve-t-great" value="${great}" min="0" max="100" oninput="veUpdatePreview()">
+            <span style="font-size:14px;color:var(--muted)">%</span>
+          </div>
+        </div>
+        <div class="ve-threshold-field">
+          <div class="ve-threshold-label" style="color:var(--danger)">Poor (Red) ≤</div>
+          <div class="ve-threshold-wrap">
+            <input type="number" class="ve-threshold-input" id="ve-t-poor" value="${poor}" min="0" max="100" oninput="veUpdatePreview()">
+            <span style="font-size:14px;color:var(--muted)">%</span>
+          </div>
+        </div>
+        <div class="ve-preview" id="ve-t-preview">
+          <span class="ve-chip ve-chip-green">≥ ${great}%</span>
+          <span class="ve-chip ve-chip-orange">${poor}–${great}%</span>
+          <span class="ve-chip ve-chip-red">≤ ${poor}%</span>
+        </div>
+        <button class="ve-save-threshold" onclick="veSaveThresholds()">Save</button>
+      </div>
+    </div>
+    <div class="ve-cards-grid">${cardsHtml}</div>
+
+    <!-- Confirm modals -->
+    <div class="confirm-overlay" id="ve-confirm-delete">
+      <div class="confirm-box">
+        <div class="confirm-title" style="color:var(--danger)">🗑 Delete Entry?</div>
+        <div class="confirm-body" id="ve-confirm-delete-body"></div>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" onclick="document.getElementById('ve-confirm-delete').classList.remove('visible')">Cancel</button>
+          <button class="btn btn-danger" onclick="veConfirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="confirm-overlay" id="ve-confirm-rename">
+      <div class="confirm-box">
+        <div class="confirm-title">✏️ Rename Entry?</div>
+        <div class="confirm-body" id="ve-confirm-rename-body"></div>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" onclick="veCancelRename()">Cancel</button>
+          <button class="btn btn-primary" onclick="veConfirmRename()">Update</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function veUpdatePreview() {
+  const g = parseInt(document.getElementById('ve-t-great').value) || 55;
+  const p = parseInt(document.getElementById('ve-t-poor').value)  || 45;
+  document.getElementById('ve-t-preview').innerHTML = `
+    <span class="ve-chip ve-chip-green">≥ ${g}%</span>
+    <span class="ve-chip ve-chip-orange">${p}–${g}%</span>
+    <span class="ve-chip ve-chip-red">≤ ${p}%</span>`;
+}
+
+async function veSaveThresholds() {
+  const great = parseInt(document.getElementById('ve-t-great').value);
+  const poor  = parseInt(document.getElementById('ve-t-poor').value);
+  if (isNaN(great)||isNaN(poor)) { showToast('Please enter valid numbers',true); return; }
+  if (great <= poor) { showToast('Great threshold must be higher than Poor',true); return; }
+  try {
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'updateThresholds',great,poor})});
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    veThresholds = {great,poor};
+    localStorage.setItem('thresholdGreat', great);
+    localStorage.setItem('thresholdPoor',  poor);
+    showToast('Thresholds saved');
+  } catch(e) { showToast('Failed: '+e.message,true); }
+}
+
+async function veAddEntry(field) {
+  const input = document.getElementById('ve-add-'+field);
+  const value = input.value.trim();
+  if (!value) return;
+  if ((veEntries[field]||[]).includes(value)) { showToast('That value already exists',true); return; }
+  try {
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'addValidEntries',newEntries:{[field]:value}})});
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    if (!veEntries[field]) veEntries[field]=[];
+    veEntries[field].push(value);
+    renderVEContent();
+    showToast(`Added "${value}"`);
+  } catch(e) { showToast('Failed: '+e.message,true); }
+}
+
+function veOnInput(inputEl, field, idx) {
+  const item = document.getElementById(`ve-item-${field}-${idx}`);
+  const changed = inputEl.value.trim() !== inputEl.dataset.original && inputEl.value.trim() !== '';
+  item.classList.toggle('has-changes', changed);
+}
+
+function veOnBlur(inputEl, field, idx) {
+  setTimeout(() => {
+    if (inputEl.value.trim()===''||inputEl.value.trim()===inputEl.dataset.original) {
+      inputEl.value = inputEl.dataset.original;
+      document.getElementById(`ve-item-${field}-${idx}`)?.classList.remove('has-changes');
+    }
+  }, 200);
+}
+
+async function veTriggerRename(field, idx) {
+  const input    = document.querySelector(`#ve-item-${field}-${idx} .ve-value`);
+  const oldValue = input.dataset.original;
+  const newValue = input.value.trim();
+  if (!newValue || newValue === oldValue) return;
+  let matchCount = 0;
+  try {
+    const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
+    const key = logColMap[field];
+    if (key) matchCount = allMatches.filter(m => m[key] === oldValue).length;
+  } catch(e) {}
+  vePendingRename = {field, oldValue, newValue, inputEl: input};
+  document.getElementById('ve-confirm-rename-body').innerHTML =
+    `Rename <strong>"${escHtml(oldValue)}"</strong> to <strong>"${escHtml(newValue)}"</strong>?`+
+    (matchCount > 0 ? `<br><br>This will also update <strong>${matchCount} match${matchCount!==1?'es':''}</strong> in your Match Log.` : '');
+  document.getElementById('ve-confirm-rename').classList.add('visible');
+}
+
+async function veConfirmRename() {
+  document.getElementById('ve-confirm-rename').classList.remove('visible');
+  if (!vePendingRename) return;
+  const {field, oldValue, newValue} = vePendingRename;
+  vePendingRename = null;
+  try {
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    const idx = (veEntries[field]||[]).indexOf(oldValue);
+    if (idx !== -1) veEntries[field][idx] = newValue;
+    // Update local match data too
+    const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
+    const key = logColMap[field];
+    if (key) allMatches.forEach(m => { if (m[key]===oldValue) m[key]=newValue; });
+    renderVEContent();
+    const updated = data.matchesUpdated > 0 ? ` (${data.matchesUpdated} match${data.matchesUpdated!==1?'es':''} updated)` : '';
+    showToast(`Renamed to "${newValue}"${updated}`);
+  } catch(e) { showToast('Rename failed: '+e.message,true); }
+}
+
+function veCancelRename() {
+  document.getElementById('ve-confirm-rename').classList.remove('visible');
+  if (vePendingRename) { vePendingRename.inputEl.value = vePendingRename.oldValue; vePendingRename = null; }
+  renderVEContent();
+}
+
+function veTriggerDelete(field, value) {
+  vePendingDelete = {field, value};
+  document.getElementById('ve-confirm-delete-body').innerHTML =
+    `Delete <strong>"${escHtml(value)}"</strong> from ${VE_FIELD_LABELS[field]}?<br><br>Existing matches using this value won't be affected.`;
+  document.getElementById('ve-confirm-delete').classList.add('visible');
+}
+
+async function veConfirmDelete() {
+  document.getElementById('ve-confirm-delete').classList.remove('visible');
+  if (!vePendingDelete) return;
+  const {field, value} = vePendingDelete;
+  vePendingDelete = null;
+  try {
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'deleteValidEntry',field,value})});
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    veEntries[field] = (veEntries[field]||[]).filter(v => v!==value);
+    renderVEContent();
+    showToast(`Deleted "${value}"`);
+  } catch(e) { showToast('Delete failed: '+e.message,true); }
 }
 
 // ═══════════════════════════════════════════════════════════
