@@ -670,6 +670,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <span class="toggle-slider"></span>
       </label>
     </div>
+    <div style="margin-bottom:10px">
+      <button onclick="switchToMobile()"
+        style="width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.7);font-family:var(--font);font-size:12px;font-weight:500;padding:7px 10px;cursor:pointer;text-align:left;transition:background 0.15s">
+        📱 Switch to Mobile
+      </button>
+    </div>
     <div class="url-display" id="url-display" onclick="promptUrl()" title="Click to change URL">
       Click to connect your sheet
     </div>
@@ -740,11 +746,13 @@ let chartInstance = null;
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  // Only claim desktop mode if we weren't already in a mobile session.
-  // This lets mobile users visit the dashboard without getting stuck in desktop.
-  if (!sessionStorage.getItem('appMode')) {
-    sessionStorage.setItem('appMode', 'desktop');
+  // If user has explicitly chosen mobile view, redirect there
+  if (localStorage.getItem('viewMode') === 'mobile') {
+    window.location.href = 'index.html';
+    return;
   }
+  // Default this page to desktop
+  localStorage.setItem('viewMode', 'desktop');
 
   // Dark mode
   if (localStorage.getItem('darkMode') === 'true') {
@@ -805,15 +813,13 @@ async function loadAll() {
 // If the user arrived here from a mobile page (sessionStorage flag),
 // navigating to history/entry sends them back to the mobile pages.
 // If they loaded desktop.html directly, they stay in desktop mode.
+function switchToMobile() {
+  localStorage.setItem('viewMode', 'mobile');
+  window.location.href = 'index.html';
+}
+
+// ── Navigation always stays in desktop.html ─────────────────
 function navigateTo(page) {
-  const mode = sessionStorage.getItem('appMode');
-  // Only route to mobile pages if explicitly in a mobile session
-  if (mode === 'mobile') {
-    if (page === 'history')      { window.location.href = 'match-history.html'; return; }
-    if (page === 'entry')        { window.location.href = 'index.html'; return; }
-    if (page === 'validEntries') { window.location.href = 'valid-entries.html'; return; }
-  }
-  // Default: stay in desktop
   showPage(page);
 }
 

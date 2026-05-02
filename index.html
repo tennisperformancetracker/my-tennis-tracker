@@ -886,8 +886,13 @@ let pendingSubmitData = null;
 
 // ── Init ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Mark this as a mobile session
-  sessionStorage.setItem('appMode', 'mobile');
+  // If user has explicitly chosen desktop view, redirect there
+  if (localStorage.getItem('viewMode') === 'desktop') {
+    window.location.href = 'desktop.html';
+    return;
+  }
+  // Default this page to mobile
+  localStorage.setItem('viewMode', 'mobile');
 
   // Restore dark mode
   if (localStorage.getItem('darkMode') === 'true') {
@@ -919,6 +924,11 @@ function openMenu()  {
 function closeMenu() {
   document.getElementById('slide-menu').classList.remove('open');
   document.getElementById('slide-overlay').classList.remove('open');
+}
+
+function switchToDesktop() {
+  localStorage.setItem('viewMode', 'desktop');
+  window.location.href = 'desktop.html';
 }
 
 // ── Dark Mode ──────────────────────────────────────────────

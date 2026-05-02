@@ -473,6 +473,11 @@
     <div class="slide-item" style="cursor:pointer" onclick="window.location='valid-entries.html'">
       <div class="slide-item-label">⚙️ Valid Entries</div>
     </div>
+    <div style="height:20px"></div>
+    <div class="slide-section-label">View</div>
+    <div class="slide-item" style="cursor:pointer" onclick="switchToDesktop()">
+      <div class="slide-item-label">🖥 Switch to Desktop</div>
+    </div>
   </div>
   <div class="slide-menu-footer">
     <div class="slide-url-label">Web App URL</div>
@@ -609,8 +614,12 @@ let sortOrder = 'newest';
 
 // ── Init ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Mark this as a mobile session
-  sessionStorage.setItem('appMode', 'mobile');
+  // If user has explicitly chosen desktop view, redirect there
+  if (localStorage.getItem('viewMode') === 'desktop') {
+    window.location.href = 'desktop.html';
+    return;
+  }
+  localStorage.setItem('viewMode', 'mobile');
 
   // Restore dark mode
   if (localStorage.getItem('darkMode') === 'true') {
@@ -651,6 +660,11 @@ function saveSlideUrl() {
     showScreen('screen-loading');
     loadHistory(url);
   }
+}
+
+function switchToDesktop() {
+  localStorage.setItem('viewMode', 'desktop');
+  window.location.href = 'desktop.html';
 }
 
 // ── Dark Mode ──────────────────────────────────────────────

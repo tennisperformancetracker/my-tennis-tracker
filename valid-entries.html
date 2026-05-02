@@ -305,6 +305,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <div class="slide-item" onclick="window.location='valid-entries.html'" style="color:var(--accent2)">
       <div class="slide-item-label" style="color:var(--accent2)">⚙️ Valid Entries</div>
     </div>
+    <div style="height:20px"></div>
+    <div class="slide-section-label">View</div>
+    <div class="slide-item" onclick="switchToDesktop()">
+      <div class="slide-item-label">🖥 Switch to Desktop</div>
+    </div>
   </div>
 </div>
 
@@ -373,8 +378,12 @@ const FIELD_ORDER = [
 
 // ── Init ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Don't override appMode — valid-entries is shared between mobile and desktop.
-  // The mode was set by whichever page the user came from.
+  // Desktop users access Valid Entries inside desktop.html directly
+  if (localStorage.getItem('viewMode') === 'desktop') {
+    window.location.href = 'desktop.html';
+    return;
+  }
+  if (!localStorage.getItem('viewMode')) localStorage.setItem('viewMode', 'mobile');
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');
     document.getElementById('dark-toggle').checked = true;
@@ -388,6 +397,11 @@ function toggleDark() {
   const on = document.getElementById('dark-toggle').checked;
   document.body.classList.toggle('dark', on);
   localStorage.setItem('darkMode', on);
+}
+
+function switchToDesktop() {
+  localStorage.setItem('viewMode', 'desktop');
+  window.location.href = 'desktop.html';
 }
 
 function openMenu()  { document.getElementById('slide-menu').classList.add('open'); document.getElementById('slide-overlay').classList.add('open'); }
