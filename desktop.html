@@ -519,7 +519,21 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .pill-no  { background: var(--surface2); color: var(--muted); }
 .pill-ret { background: #fef3c7; color: #92400e; }
 
-/* Pagination */
+/* ── Note indicator ─────────────────────────────────────── */
+.note-indicator {
+  position: relative; display: inline-block; width: 0; height: 0;
+  border-style: solid; border-width: 0 10px 10px 0;
+  border-color: transparent var(--accent2) transparent transparent;
+  flex-shrink: 0; margin-top: 2px;
+  title: 'Has note';
+}
+.note-textarea {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-family: var(--font);
+  font-size: 13px; padding: 10px 12px; outline: none; resize: vertical;
+  line-height: 1.5; min-height: 72px; transition: border-color 0.2s;
+}
+.note-textarea:focus { border-color: var(--accent2); }
 .pagination { display: flex; align-items: center; gap: 8px; margin-top: 20px; justify-content: center; }
 .page-btn {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -1124,6 +1138,7 @@ function buildSplitsTable(matches) {
   function row(label, w, l) {
     const total = w + l;
     const p = pct(w, l);
+    // Only color if there are actual matches — avoid coloring 0-0 rows
     let cls = '';
     if (total > 0) {
       const rate = w / total;
@@ -1131,11 +1146,11 @@ function buildSplitsTable(matches) {
       else if (rate < poor) cls = 'row-weak';
       else                  cls = 'row-mid';
     }
-    const pClass = p === '0.0%' ? 'zero-pct' : cls || 'pct-text';
+    const pClass = total === 0 ? 'pct-text' : (p === '0.0%' ? 'zero-pct' : cls || 'pct-text');
     return `<tr>
       <td>${label}</td>
-      <td class="${cls || 'win-text'}">${w}</td>
-      <td class="${cls || 'loss-text'}">${l}</td>
+      <td class="${cls || ''}">${w}</td>
+      <td class="${cls || ''}">${l}</td>
       <td class="${pClass}">${p}</td>
     </tr>`;
   }
@@ -1163,8 +1178,10 @@ function buildSplitsTable(matches) {
 
   const home  = matches.filter(m=>m.homeaway==='Home');
   const away  = matches.filter(m=>m.homeaway==='Away');
-  const day   = matches.filter(m=>m.time==='Day');
-  const night = matches.filter(m=>m.time==='Night');
+  const morning   = matches.filter(m=>m.time==='Morning');
+  const afternoon = matches.filter(m=>m.time==='Afternoon');
+  const night     = matches.filter(m=>m.time==='Night');
+  const day       = matches.filter(m=>m.time==='Day'); // legacy support
   const two   = matches.filter(m=>countSets(m)===2 && !m.oppRet && !m.weRet);
   const three = matches.filter(m=>countSets(m)===3);
   const close = matches.filter(isClose);
@@ -1182,7 +1199,9 @@ function buildSplitsTable(matches) {
 
   const playoffs = matches.filter(m=>m.playoff);
   const [hW,hL]=wl(home), [aW,aL]=wl(away);
-  const [dW,dL]=wl(day),  [nW,nL]=wl(night);
+  const [morW,morL]=wl(morning), [aftW,aftL]=wl(afternoon), [nW,nL]=wl(night);
+  // Legacy "Day" entries rolled into Morning
+  const [dW,dL]=wl(day);
   const [t2W,t2L]=wl(two), [t3W,t3L]=wl(three);
   const [clW,clL]=wl(close);
   const [plW,plL]=wl(playoffs);
@@ -1200,7 +1219,8 @@ function buildSplitsTable(matches) {
         ${row('Home', hW, hL)}
         ${row('Away', aW, aL)}
         ${divider}
-        ${row('Day', dW, dL)}
+        ${row('Morning', morW+dW, morL+dL)}
+        ${row('Afternoon', aftW, aftL)}
         ${row('Night', nW, nL)}
         ${divider}
         ${row('2-Set Matches', t2W, t2L)}
@@ -1693,8 +1713,13 @@ function renderHistory(page, preFilterPartner) {
         <td class="hist-date">${m.date||''}</td>
         <td><span class="result-pill ${m.result||''}">${m.result||'—'}</span></td>
         <td>
-          <div class="hist-opponent">${escHtml(opponent)}</div>
-          ${partner ? `<div class="hist-meta">${escHtml(partner)}</div>` : ''}
+          <div style="display:flex;align-items:flex-start;gap:6px">
+            ${m.notes ? '<span class="note-indicator" title="Has note"></span>' : ''}
+            <div>
+              <div class="hist-opponent">${escHtml(opponent)}</div>
+              ${partner ? `<div class="hist-meta">${escHtml(partner)}</div>` : ''}
+            </div>
+          </div>
         </td>
         <td><div class="hist-scores">${scores}${retired}</div></td>
         <td>${escHtml(m.type||'')}</td>
@@ -1814,6 +1839,14 @@ function openMatchDetail(idx) {
       ${chip('Surface',   m.surface)}
       ${chip('Time',      m.time)}
       ${chip('Playoff',   playoffVal)}
+    </div>
+    <hr class="detail-divider">
+    <div style="padding:14px 20px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Notes</div>
+      <textarea class="note-textarea" id="detail-notes-input">${escHtml(m.notes || '')}</textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="saveNote(${idx})">Save Note</button>
+      </div>
     </div>
     <hr class="detail-divider">
     <div class="detail-modal-footer">
@@ -1963,6 +1996,21 @@ async function saveEdit(idx) {
   } catch(e) {
     showToast('Network error: ' + e.message, true);
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTES
+// ═══════════════════════════════════════════════════════════
+async function saveNote(idx) {
+  const note = document.getElementById('detail-notes-input')?.value?.trim() || '';
+  try {
+    const res  = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({ action:'saveNote', matchIndex: idx, note }) });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    allMatches[idx].notes = note;
+    showToast('Note saved');
+    if (currentPage === 'history') renderHistory(historyPage);
+  } catch(e) { showToast('Failed to save note: ' + e.message, true); }
 }
 
 // ═══════════════════════════════════════════════════════════

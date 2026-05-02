@@ -673,9 +673,8 @@
     <div class="two-col">
       <div class="field">
         <div class="field-label">Time</div>
-        <select id="f-time" onchange="onNewEntrySelect('time')">
+        <select id="f-time">
           <option value="">— Select —</option>
-          <option value="__new__">+ Add new…</option>
         </select>
       </div>
       <div class="field">
@@ -801,7 +800,22 @@
     </div>
   </div>
 
-  <button class="submit-btn" id="submit-btn" onclick="submitMatch()">LOG MATCH</button>
+  <!-- NOTES -->
+  <div class="form-section" id="notes-section" style="display:none">
+    <div class="section-title">Notes</div>
+    <div class="field">
+      <textarea id="f-notes" rows="3" placeholder="Add any notes about this match…"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5"></textarea>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+    <button class="submit-btn" id="submit-btn" onclick="submitMatch()" style="flex:1">SUBMIT MATCH</button>
+    <button onclick="toggleNotes()" id="notes-toggle-btn"
+      style="background:none;border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:var(--font-body);font-size:12px;font-weight:500;padding:10px 14px;cursor:pointer;white-space:nowrap;transition:all 0.2s">
+      📝 Add Note
+    </button>
+  </div>
   <div style="height:32px"></div>
 </div>
 
@@ -1055,7 +1069,14 @@ document.getElementById('f-partner').addEventListener('change', function() {
   onNewEntrySelect('partner');
 });
 
-// ── Validation ─────────────────────────────────────────────
+function toggleNotes() {
+  const section = document.getElementById('notes-section');
+  const btn     = document.getElementById('notes-toggle-btn');
+  const visible = section.style.display !== 'none';
+  section.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '📝 Add Note' : '✕ Hide Note';
+  btn.style.color = visible ? 'var(--muted)' : 'var(--accent2)';
+}
 function clearErrors() {
   document.querySelectorAll('.field-error').forEach(e => e.classList.remove('visible'));
   document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
@@ -1190,7 +1211,8 @@ function submitMatch() {
       set3wins:        document.getElementById('f-s3w').value !== '' ? parseInt(document.getElementById('f-s3w').value) : '',
       set3losses:      document.getElementById('f-s3l').value !== '' ? parseInt(document.getElementById('f-s3l').value) : '',
       opponentretired: document.getElementById('f-opp-retired').checked,
-      weretired:       document.getElementById('f-we-retired').checked
+      weretired:       document.getElementById('f-we-retired').checked,
+      notes:           document.getElementById('f-notes')?.value?.trim() || ''
     }
   };
 
@@ -1280,6 +1302,12 @@ function resetForm() {
     if (inp) inp.value = '';
   });
   clearErrors();
+  // Reset notes
+  document.getElementById('notes-section').style.display = 'none';
+  const notesTgl = document.getElementById('notes-toggle-btn');
+  if (notesTgl) { notesTgl.textContent = '📝 Add Note'; notesTgl.style.color = 'var(--muted)'; }
+  const notesEl = document.getElementById('f-notes');
+  if (notesEl) notesEl.value = '';
 }
 
 // ── Helpers ────────────────────────────────────────────────
