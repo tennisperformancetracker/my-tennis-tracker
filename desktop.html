@@ -740,8 +740,11 @@ let chartInstance = null;
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  // Mark this as a desktop session — persists for the browser tab's session
-  sessionStorage.setItem('appMode', 'desktop');
+  // Only claim desktop mode if we weren't already in a mobile session.
+  // This lets mobile users visit the dashboard without getting stuck in desktop.
+  if (!sessionStorage.getItem('appMode')) {
+    sessionStorage.setItem('appMode', 'desktop');
+  }
 
   // Dark mode
   if (localStorage.getItem('darkMode') === 'true') {
@@ -804,10 +807,12 @@ async function loadAll() {
 // If they loaded desktop.html directly, they stay in desktop mode.
 function navigateTo(page) {
   const mode = sessionStorage.getItem('appMode');
+  // Only route to mobile pages if explicitly in a mobile session
   if (mode === 'mobile') {
     if (page === 'history') { window.location.href = 'match-history.html'; return; }
     if (page === 'entry')   { window.location.href = 'index.html'; return; }
   }
+  // Default: stay in desktop (mode === 'desktop' or unset)
   showPage(page);
 }
 
