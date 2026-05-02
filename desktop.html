@@ -1940,6 +1940,12 @@ function openEditMode(idx) {
     <div class="modal-section-title">Playoff</div>
     ${tog('playoff', m.playoff, 'Playoff Match')}
     <div class="field"><div class="field-label">Playoff Round</div>${sel('playoffround','playoffround',validEntries.playoffround||[],m.playoffround)}</div>
+    <div class="modal-section-title">Notes</div>
+    <div class="field">
+      <textarea id="edit-notes" rows="3"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5"
+        placeholder="Add any notes about this match…">${escHtml(m.notes || '')}</textarea>
+    </div>
   `;
 }
 
@@ -1964,7 +1970,8 @@ async function saveEdit(idx) {
     opponent1: get('opp1'), opponent2: get('opp2'), partner: get('partner'),
     set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
     set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
-    opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret')
+    opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
+    notes: (document.getElementById('edit-notes')?.value || '').trim()
   };
 
   // Find the actual sheet row — we need to identify which row this is
@@ -1985,7 +1992,8 @@ async function saveEdit(idx) {
         opp1: updated.opponent1, opp2: updated.opponent2, partner: updated.partner,
         s1w: updated.set1wins, s1l: updated.set1losses, s2w: updated.set2wins,
         s2l: updated.set2losses, s3w: updated.set3wins, s3l: updated.set3losses,
-        oppRet: updated.opponentretired, weRet: updated.weretired
+        oppRet: updated.opponentretired, weRet: updated.weretired,
+        notes: updated.notes
       }};
       closeModal();
       showToast('Match updated successfully');
@@ -2151,22 +2159,22 @@ function renderEntry() {
       </div>
 
       <!-- Submit row -->
-      <div class="entry-submit-row" style="grid-column:1/-1">
-        <button class="btn btn-primary" style="padding:8px 20px;font-size:13px" onclick="submitEntry()">Submit Match</button>
-        <button class="btn btn-ghost" style="padding:8px 20px;font-size:13px" onclick="resetEntryForm()">Clear</button>
-        <button id="e-notes-toggle" class="btn btn-ghost"
-          style="padding:8px 14px;font-size:12px;color:var(--muted);margin-left:auto"
-          onclick="toggleDesktopNotes()">📝 Add Note</button>
-        <span id="entry-status" style="font-size:13px;color:var(--muted)"></span>
-      </div>
+      <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn btn-primary" style="padding:8px 20px;font-size:13px" onclick="submitEntry()">Submit Match</button>
+          <button class="btn btn-ghost" style="padding:8px 20px;font-size:13px" onclick="resetEntryForm()">Clear</button>
+          <span id="entry-status" style="font-size:13px;color:var(--muted)"></span>
+          <button id="e-notes-toggle" onclick="toggleDesktopNotes()"
+            style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:var(--font);font-size:12px;font-weight:500;padding:7px 14px;cursor:pointer;white-space:nowrap">
+            📝 Add Note
+          </button>
+        </div>
 
-      <!-- Notes section (hidden by default) -->
-      <div id="e-notes-section" class="form-section hidden" style="grid-column:1/-1">
-        <div class="section-title">Notes</div>
-        <div class="field">
+        <!-- Notes section (hidden by default) -->
+        <div id="e-notes-section" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow)">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.9px;color:var(--muted);margin-bottom:10px">Notes</div>
           <textarea id="e-notes" rows="3" placeholder="Add any notes about this match…"
-            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;transition:border-color 0.2s"
-            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5"></textarea>
         </div>
       </div>
     </div>
@@ -2181,9 +2189,14 @@ function renderEntry() {
 function toggleDesktopNotes() {
   const section = document.getElementById('e-notes-section');
   const btn     = document.getElementById('e-notes-toggle');
-  const hidden  = section.classList.toggle('hidden');
-  btn.textContent = hidden ? '📝 Add Note' : '✕ Hide Note';
-  btn.style.color = hidden ? 'var(--muted)' : 'var(--accent2)';
+  if (!section) return;
+  const isHidden = section.style.display === 'none' || section.style.display === '';
+  section.style.display = isHidden ? 'block' : 'none';
+  if (btn) {
+    btn.textContent = isHidden ? '✕ Hide Note' : '📝 Add Note';
+    btn.style.color = isHidden ? 'var(--accent2)' : 'var(--muted)';
+    btn.style.borderColor = isHidden ? 'var(--accent2)' : 'var(--border)';
+  }
 }
 
 function onEntryTypeChange() {
@@ -2333,9 +2346,9 @@ function resetEntryForm() {
   });
   // Reset notes
   const notesSection = document.getElementById('e-notes-section');
-  if (notesSection) notesSection.classList.add('hidden');
+  if (notesSection) notesSection.style.display = 'none';
   const notesToggle = document.getElementById('e-notes-toggle');
-  if (notesToggle) { notesToggle.textContent = '📝 Add Note'; notesToggle.style.color = 'var(--muted)'; }
+  if (notesToggle) { notesToggle.textContent = '📝 Add Note'; notesToggle.style.color = 'var(--muted)'; notesToggle.style.borderColor = 'var(--border)'; }
   const notesEl = document.getElementById('e-notes');
   if (notesEl) notesEl.value = '';
   document.querySelectorAll('#content .field-error').forEach(el => el.classList.remove('visible'));
