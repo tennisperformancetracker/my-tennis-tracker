@@ -1281,35 +1281,66 @@ function buildSplitsInsight(matches) {
 }
 
 function renderMonthChart(matches) {
-  const mode = document.getElementById('chart-mode-filter')?.value || 'month';
+  const mode      = document.getElementById('chart-mode-filter')?.value || 'month';
+  const chartYear = document.getElementById('chart-year-filter')?.value || '';
 
   // Build data map
   const dataMap = {};
-  matches.forEach(m => {
-    if (!m.date) return;
-    const p = m.date.split('/');
-    if (p.length !== 3) return;
-    let key;
-    if (mode === 'month') {
-      key = `${p[2]}-${p[0].padStart(2,'0')}`;
-    } else {
-      key = p[2]; // year only
-    }
-    if (!dataMap[key]) dataMap[key] = { w:0, l:0 };
-    if (m.result==='W') dataMap[key].w++;
-    else if (m.result==='L') dataMap[key].l++;
-  });
 
-  const keys = Object.keys(dataMap).sort();
-  const labels = keys.map(k => {
-    if (mode === 'year') return k;
-    const [y,mo] = k.split('-');
-    return new Date(y, parseInt(mo)-1).toLocaleString('default',{month:'short',year:'2-digit'});
-  });
-  const pcts = keys.map(k => {
-    const {w,l} = dataMap[k];
-    return w+l===0 ? 0 : Math.round(w/(w+l)*100);
-  });
+  if (mode === 'month' && !chartYear) {
+    // All Years + Month mode: group by calendar month (Jan–Dec), aggregate all years
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    MONTH_NAMES.forEach((name, i) => {
+      dataMap[String(i)] = { w: 0, l: 0, label: name };
+    });
+    matches.forEach(m => {
+      if (!m.date) return;
+      const p = m.date.split('/');
+      if (p.length !== 3) return;
+      const monthIdx = String(parseInt(p[0]) - 1);
+      if (m.result === 'W') dataMap[monthIdx].w++;
+      else if (m.result === 'L') dataMap[monthIdx].l++;
+    });
+    // Only include months that have at least one match
+    const keys   = Object.keys(dataMap).filter(k => dataMap[k].w + dataMap[k].l > 0);
+    const labels = keys.map(k => dataMap[k].label);
+    const pcts   = keys.map(k => {
+      const {w,l} = dataMap[k];
+      return w+l === 0 ? 0 : Math.round(w/(w+l)*100);
+    });
+    renderChart(keys, labels, pcts, dataMap, mode, chartYear);
+
+  } else {
+    // Specific year + Month mode: plot each individual month chronologically
+    // OR Year mode: plot each year
+    matches.forEach(m => {
+      if (!m.date) return;
+      const p = m.date.split('/');
+      if (p.length !== 3) return;
+      let key, label;
+      if (mode === 'month') {
+        key   = `${p[2]}-${p[0].padStart(2,'0')}`;
+        const d = new Date(p[2], parseInt(p[0])-1);
+        label = d.toLocaleString('default',{month:'short',year:'2-digit'});
+      } else {
+        key   = p[2];
+        label = p[2];
+      }
+      if (!dataMap[key]) dataMap[key] = { w:0, l:0, label };
+      if (m.result==='W') dataMap[key].w++;
+      else if (m.result==='L') dataMap[key].l++;
+    });
+    const keys   = Object.keys(dataMap).sort();
+    const labels = keys.map(k => dataMap[k].label);
+    const pcts   = keys.map(k => {
+      const {w,l} = dataMap[k];
+      return w+l===0 ? 0 : Math.round(w/(w+l)*100);
+    });
+    renderChart(keys, labels, pcts, dataMap, mode, chartYear);
+  }
+}
+
+function renderChart(keys, labels, pcts, dataMap, mode, chartYear) {
 
   const isDark = document.body.classList.contains('dark');
   const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(47,65,87,0.08)';
@@ -1408,41 +1439,51 @@ function renderMonthChart(matches) {
   const {w:bW, l:bL} = dataMap[keys[bestIdx]];
   const {w:wW, l:wL} = dataMap[keys[worstIdx]];
 
+  const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
   const fmtKey = k => {
     if (mode === 'year') return k;
+    // All-years by calendar month: key is numeric month index "0"–"11"
+    if (!chartYear && !k.includes('-')) return MONTH_NAMES_FULL[parseInt(k)] || k;
+    // Specific year: key is "YYYY-MM"
     const [y,mo] = k.split('-');
     return new Date(y, parseInt(mo)-1).toLocaleString('default',{month:'long',year:'numeric'});
   };
 
-  // Biggest improvement
+  // Biggest improvement — skip for all-years calendar month mode (months aren't sequential)
+  const isCalendarMonthMode = mode === 'month' && !chartYear;
   let biggestJump = 0, jumpFromLabel = '', jumpToLabel = '', jumpFromPct = 0, jumpToPct = 0;
-  for (let i = 1; i < keys.length; i++) {
-    const jump = pcts[i] - pcts[i-1];
-    if (jump > biggestJump) {
-      biggestJump = jump;
-      jumpFromLabel = fmtKey(keys[i-1]);
-      jumpToLabel   = fmtKey(keys[i]);
-      jumpFromPct   = pcts[i-1];
-      jumpToPct     = pcts[i];
+  if (!isCalendarMonthMode) {
+    for (let i = 1; i < keys.length; i++) {
+      const jump = pcts[i] - pcts[i-1];
+      if (jump > biggestJump) {
+        biggestJump = jump;
+        jumpFromLabel = fmtKey(keys[i-1]);
+        jumpToLabel   = fmtKey(keys[i]);
+        jumpFromPct   = pcts[i-1];
+        jumpToPct     = pcts[i];
+      }
     }
   }
 
-  // Recent trend
+  // Recent trend — also skip for calendar month mode
   let trendHtml = '';
-  if (keys.length >= 4) {
-    const recent2Avg = (pcts[keys.length-1] + pcts[keys.length-2]) / 2;
-    const prev2Avg   = (pcts[keys.length-3] + pcts[keys.length-4]) / 2;
-    const diff = recent2Avg - prev2Avg;
-    const dir  = diff >= 0 ? '↑' : '↓';
-    const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
-    const period = mode === 'year' ? 'years' : 'months';
-    trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff).toFixed(0)}%</strong> vs prior 2 ${period}`;
-  } else if (keys.length >= 2) {
-    const diff = pcts[keys.length-1] - pcts[keys.length-2];
-    const dir  = diff >= 0 ? '↑' : '↓';
-    const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
-    const period = mode === 'year' ? 'year' : 'month';
-    trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff)}%</strong> vs previous ${period}`;
+  if (!isCalendarMonthMode) {
+    if (keys.length >= 4) {
+      const recent2Avg = (pcts[keys.length-1] + pcts[keys.length-2]) / 2;
+      const prev2Avg   = (pcts[keys.length-3] + pcts[keys.length-4]) / 2;
+      const diff = recent2Avg - prev2Avg;
+      const dir  = diff >= 0 ? '↑' : '↓';
+      const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
+      const period = mode === 'year' ? 'years' : 'months';
+      trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff).toFixed(0)}%</strong> vs prior 2 ${period}`;
+    } else if (keys.length >= 2) {
+      const diff = pcts[keys.length-1] - pcts[keys.length-2];
+      const dir  = diff >= 0 ? '↑' : '↓';
+      const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
+      const period = mode === 'year' ? 'year' : 'month';
+      trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff)}%</strong> vs previous ${period}`;
+    }
   }
 
   panel.innerHTML = `
@@ -1454,6 +1495,11 @@ function renderMonthChart(matches) {
       <div class="chart-insight-label">📉 Worst ${mode==='year'?'Year':'Month'}</div>
       <div class="chart-insight-value"><strong>${fmtKey(keys[worstIdx])}</strong> — ${pcts[worstIdx]}% (${wW}W–${wL}L)</div>
     </div>
+    ${isCalendarMonthMode ? `
+    <div class="chart-insight-card">
+      <div class="chart-insight-label">📅 Months Played</div>
+      <div class="chart-insight-value">${keys.length} of 12 calendar months have data</div>
+    </div>` : ''}
     ${biggestJump > 0 ? `
     <div class="chart-insight-card">
       <div class="chart-insight-label">⚡ Biggest Improvement</div>
