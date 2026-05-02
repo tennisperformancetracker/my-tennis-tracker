@@ -746,13 +746,19 @@ let chartInstance = null;
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  // If user has explicitly chosen mobile view, redirect there
-  if (localStorage.getItem('viewMode') === 'mobile') {
+  // If mobile user tapped Dashboard explicitly, allow it and don't redirect
+  const params = new URLSearchParams(window.location.search);
+  const forceDashboard = params.get('dashboard') === '1';
+
+  // If user has chosen mobile view and isn't explicitly requesting dashboard, redirect
+  if (localStorage.getItem('viewMode') === 'mobile' && !forceDashboard) {
     window.location.href = 'index.html';
     return;
   }
-  // Default this page to desktop
-  localStorage.setItem('viewMode', 'desktop');
+  // Default this page to desktop (only if no preference set)
+  if (!localStorage.getItem('viewMode')) {
+    localStorage.setItem('viewMode', 'desktop');
+  }
 
   // Dark mode
   if (localStorage.getItem('darkMode') === 'true') {
@@ -818,8 +824,15 @@ function switchToMobile() {
   window.location.href = 'index.html';
 }
 
-// ── Navigation always stays in desktop.html ─────────────────
+// ── Navigation ───────────────────────────────────────────────
 function navigateTo(page) {
+  // If mobile user is viewing dashboard, route them back to mobile pages
+  const isMobileUser = localStorage.getItem('viewMode') === 'mobile';
+  if (isMobileUser) {
+    if (page === 'history')      { window.location.href = 'match-history.html'; return; }
+    if (page === 'entry')        { window.location.href = 'index.html'; return; }
+    if (page === 'validEntries') { window.location.href = 'valid-entries.html'; return; }
+  }
   showPage(page);
 }
 
