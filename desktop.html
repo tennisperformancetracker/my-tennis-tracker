@@ -2151,10 +2151,23 @@ function renderEntry() {
       </div>
 
       <!-- Submit row -->
-      <div class="entry-submit-row">
+      <div class="entry-submit-row" style="grid-column:1/-1">
         <button class="btn btn-primary" style="padding:8px 20px;font-size:13px" onclick="submitEntry()">Submit Match</button>
         <button class="btn btn-ghost" style="padding:8px 20px;font-size:13px" onclick="resetEntryForm()">Clear</button>
+        <button id="e-notes-toggle" class="btn btn-ghost"
+          style="padding:8px 14px;font-size:12px;color:var(--muted);margin-left:auto"
+          onclick="toggleDesktopNotes()">📝 Add Note</button>
         <span id="entry-status" style="font-size:13px;color:var(--muted)"></span>
+      </div>
+
+      <!-- Notes section (hidden by default) -->
+      <div id="e-notes-section" class="form-section hidden" style="grid-column:1/-1">
+        <div class="section-title">Notes</div>
+        <div class="field">
+          <textarea id="e-notes" rows="3" placeholder="Add any notes about this match…"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;transition:border-color 0.2s"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
       </div>
     </div>
   `;
@@ -2163,6 +2176,14 @@ function renderEntry() {
   const today = new Date();
   const y=today.getFullYear(), mo=String(today.getMonth()+1).padStart(2,'0'), d=String(today.getDate()).padStart(2,'0');
   document.getElementById('e-date').value = `${y}-${mo}-${d}`;
+}
+
+function toggleDesktopNotes() {
+  const section = document.getElementById('e-notes-section');
+  const btn     = document.getElementById('e-notes-toggle');
+  const hidden  = section.classList.toggle('hidden');
+  btn.textContent = hidden ? '📝 Add Note' : '✕ Hide Note';
+  btn.style.color = hidden ? 'var(--muted)' : 'var(--accent2)';
 }
 
 function onEntryTypeChange() {
@@ -2272,7 +2293,8 @@ async function submitEntry() {
     partner: isDb?resolve('partner'):'',
     set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
     set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
-    opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret')
+    opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
+    notes: document.getElementById('e-notes')?.value?.trim() || ''
   };
 
   const statusEl = document.getElementById('entry-status');
@@ -2309,6 +2331,13 @@ function resetEntryForm() {
     if (el.type==='checkbox') el.checked=false;
     else el.value='';
   });
+  // Reset notes
+  const notesSection = document.getElementById('e-notes-section');
+  if (notesSection) notesSection.classList.add('hidden');
+  const notesToggle = document.getElementById('e-notes-toggle');
+  if (notesToggle) { notesToggle.textContent = '📝 Add Note'; notesToggle.style.color = 'var(--muted)'; }
+  const notesEl = document.getElementById('e-notes');
+  if (notesEl) notesEl.value = '';
   document.querySelectorAll('#content .field-error').forEach(el => el.classList.remove('visible'));
   document.querySelectorAll('#content .cond').forEach(el => el.classList.add('cond-hidden'));
   document.querySelectorAll('#content [id$="-new"]').forEach(el => {
