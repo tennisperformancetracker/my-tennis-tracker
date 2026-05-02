@@ -740,6 +740,9 @@ let chartInstance = null;
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  // Mark this as a desktop session — persists for the browser tab's session
+  sessionStorage.setItem('appMode', 'desktop');
+
   // Dark mode
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');
@@ -795,11 +798,16 @@ async function loadAll() {
   }
 }
 
-// ── Always desktop on this page ────────────────────────────
-// navigateTo uses sidebar for in-page nav on desktop.
-// Mobile users who land here via Dashboard link stay here —
-// they use the sidebar's explicit Mobile links to go back.
+// ── Navigation ───────────────────────────────────────────────
+// If the user arrived here from a mobile page (sessionStorage flag),
+// navigating to history/entry sends them back to the mobile pages.
+// If they loaded desktop.html directly, they stay in desktop mode.
 function navigateTo(page) {
+  const mode = sessionStorage.getItem('appMode');
+  if (mode === 'mobile') {
+    if (page === 'history') { window.location.href = 'match-history.html'; return; }
+    if (page === 'entry')   { window.location.href = 'index.html'; return; }
+  }
   showPage(page);
 }
 

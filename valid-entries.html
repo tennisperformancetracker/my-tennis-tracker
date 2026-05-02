@@ -373,6 +373,8 @@ const FIELD_ORDER = [
 
 // ── Init ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // Don't override appMode — valid-entries is shared between mobile and desktop.
+  // The mode was set by whichever page the user came from.
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');
     document.getElementById('dark-toggle').checked = true;

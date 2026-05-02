@@ -609,6 +609,9 @@ let sortOrder = 'newest';
 
 // ── Init ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // Mark this as a mobile session
+  sessionStorage.setItem('appMode', 'mobile');
+
   // Restore dark mode
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');
