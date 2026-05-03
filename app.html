@@ -1802,10 +1802,10 @@ function renderHistory(page, preFilterPartner) {
       <!-- Always-visible search row -->
       <div style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
-          oninput="filterState.history.opponent=this.value.trim().toLowerCase();renderHistoryFiltered()"
+          oninput="onHistOpponentInput(this.value)"
           style="flex:1;min-width:0">
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
-          oninput="filterState.history.partner=this.value.trim();renderHistoryFiltered()"
+          oninput="onHistPartnerInput(this.value)"
           style="flex:1;min-width:0;max-width:200px">
         <span id="hist-match-count" style="font-size:12px;color:var(--muted);align-self:center;white-space:nowrap">${total} match${total!==1?'es':''}</span>
       </div>
@@ -1846,178 +1846,173 @@ function renderHistory(page, preFilterPartner) {
 function buildHistoryResults(filtered, sortOrder) {
   const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
   const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+
   function wlColor(w, l) {
-    const tot = w+l; if (!tot) return 'var(--text)';
-    const r = w/tot;
+    const tot = w + l;
+    if (!tot) return 'var(--text)';
+    const r = w / tot;
     return r > great ? 'var(--win)' : r < poor ? 'var(--loss)' : 'var(--warn)';
   }
-  function insightWL(label, arr) {
-    const w=arr.filter(m=>m.result==='W').length, l=arr.filter(m=>m.result==='L').length;
-    const tot=w+l; if(!tot) return '';
-    const col=wlColor(w,l);
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:12px;color:var(--label)">${label}</span>
-      <span style="font-size:12px;font-weight:600;color:${col}">${w}–${l} &nbsp; <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(w,l)}</span></span>
-    </div>`;
+
+  function insightRow(label, arr) {
+    const w = arr.filter(m => m.result === 'W').length;
+    const l = arr.filter(m => m.result === 'L').length;
+    if (!w && !l) return '';
+    const col = wlColor(w, l);
+    const p = pct(w, l);
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">'
+      + '<span style="font-size:12px;color:var(--label)">' + label + '</span>'
+      + '<span style="font-size:12px;font-weight:600;color:' + col + '">' + w + '–' + l
+      + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + p + '</span></span>'
+      + '</div>';
   }
 
-  const total    = filtered.length;
-  const pages    = Math.ceil(total / PAGE_SIZE);
-  const start    = (historyPage-1)*PAGE_SIZE;
-  const paged    = filtered.slice(start, start+PAGE_SIZE);
-  const singles  = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('singles'));
-  const doubles  = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('doubles'));
-  const mixed    = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('mixed'));
+  // Reset page to 1 if current page would be empty
+  const total = filtered.length;
+  const pages = Math.ceil(total / PAGE_SIZE) || 1;
+  if (historyPage > pages) historyPage = 1;
+  const start = (historyPage - 1) * PAGE_SIZE;
+  const paged = filtered.slice(start, start + PAGE_SIZE);
 
-  let tbW=0,tbL=0;
-  filtered.forEach(m=>{
-    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l])=>{
-      const nw=num(w),nl=num(l);
-      if(nw===7&&nl===6)tbW++;
-      if(nw===6&&nl===7)tbL++;
+  const singles   = filtered.filter(m => m.type && m.type.toLowerCase().includes('singles'));
+  const doubles   = filtered.filter(m => m.type && m.type.toLowerCase().includes('doubles'));
+  const mixed     = filtered.filter(m => m.type && m.type.toLowerCase().includes('mixed'));
+
+  let tbW = 0, tbL = 0;
+  filtered.forEach(m => {
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
+      var nw = num(pair[0]), nl = num(pair[1]);
+      if (nw === 7 && nl === 6) tbW++;
+      if (nw === 6 && nl === 7) tbL++;
     });
   });
 
-  const partnerMap={};
-  filtered.filter(m=>m.partner&&m.partner!=='None'&&m.partner!=='').forEach(m=>{
-    if(!partnerMap[m.partner])partnerMap[m.partner]={w:0,l:0};
-    if(m.result==='W')partnerMap[m.partner].w++;else partnerMap[m.partner].l++;
+  // Partner stats
+  const pMin = parseInt(filterState.histPartnerMin || 3);
+  const partnerMap = {};
+  filtered.filter(m => m.partner && m.partner !== 'None' && m.partner !== '').forEach(m => {
+    if (!partnerMap[m.partner]) partnerMap[m.partner] = {w:0, l:0};
+    if (m.result === 'W') partnerMap[m.partner].w++;
+    else partnerMap[m.partner].l++;
   });
-  const histPartnerMin = parseInt(filterState.histPartnerMin || 3);
-  const partners2=Object.entries(partnerMap).map(([n,{w,l}])=>({n,w,l,t:w+l,pv:w/(w+l)||0}));
-  const p2qualified = partners2.filter(p=>p.t>=histPartnerMin);
-  const mostWins = p2qualified.length?[...p2qualified].reduce((a,b)=>a.w>b.w?a:b):null;
-  const bestPct  = p2qualified.filter(p=>p.t>=histPartnerMin).length?[...p2qualified].reduce((a,b)=>a.pv>b.pv?a:b):null;
-  const partnerInsight = mostWins
-    ? `Most wins with <strong>${mostWins.n}</strong> (${mostWins.w}–${mostWins.l}).${bestPct&&bestPct.n!==mostWins.n?` Best % with <strong>${bestPct.n}</strong> (${(bestPct.pv*100).toFixed(0)}%, ${bestPct.w}–${bestPct.l}).`:''}`
-    : `No partners with ${histPartnerMin}+ matches.`;
+  const pList = Object.entries(partnerMap).map(function(e) {
+    return {n: e[0], w: e[1].w, l: e[1].l, t: e[1].w + e[1].l, pv: e[1].w / (e[1].w + e[1].l) || 0};
+  });
+  const pQual = pList.filter(p => p.t >= pMin);
+  const mostWins = pQual.length ? pQual.reduce((a,b) => a.w > b.w ? a : b) : null;
+  const bestPct  = pQual.length ? pQual.reduce((a,b) => a.pv > b.pv ? a : b) : null;
 
-  const rows = paged.map(m => {
-    const globalIdx = allMatches.indexOf(m);
-    const opp1 = escHtml(m.opp1||'');
-    const opp2 = m.opp2 ? ` / ${escHtml(m.opp2)}` : '';
-    const partner = m.partner && m.partner!=='None' && m.partner!=='' ? escHtml(m.partner) : '';
-    const retired = m.oppRet ? '<span class="retired-tag">Ret.</span>' : m.weRet ? '<span class="retired-tag">Ret.</span>' : '';
-    let scoresHtml='';
-    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l])=>{
-      if(w===''&&l==='') return;
-      const nw=num(w),nl=num(l);
-      const cls=nw!==null&&nl!==null?(nw>nl?'set-win':'set-loss'):'';
-      scoresHtml+=`<span class="set-score ${cls}">${w}–${l}</span>`;
-    });
-    const noteInd = m.notes ? `<span class="note-indicator" title="${escHtml(m.notes)}" style="cursor:help"></span>` : '';
-    return `<tr onclick="openMatchDetail(${globalIdx})" style="cursor:pointer">
-      <td style="white-space:nowrap;font-size:12px;color:var(--muted)">${m.date||''}</td>
-      <td><span class="result-pill ${m.result||''}">${m.result||'—'}</span></td>
-      <td>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <div>
-            <div class="hist-opponent">${opp1}${opp2}</div>
-            ${partner?`<div class="hist-meta">w/ ${partner}</div>`:''}
-          </div>
-          <div class="hist-scores" style="flex-shrink:0">${scoresHtml}${retired}${noteInd}</div>
-        </div>
-      </td>
-    </tr>`;
+  var partnerText = '';
+  if (mostWins) {
+    partnerText = 'Most wins with <strong>' + mostWins.n + '</strong> (' + mostWins.w + '–' + mostWins.l + ').';
+    if (bestPct && bestPct.n !== mostWins.n) {
+      partnerText += ' Best % with <strong>' + bestPct.n + '</strong> (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+    }
+  } else {
+    partnerText = 'No partners with ' + pMin + '+ matches.';
+  }
+
+  // Min threshold select — build without nested template literals
+  var minOpts = [1,3,5,10].map(function(v) {
+    return '<option value="' + v + '"' + (pMin === v ? ' selected' : '') + '>' + v + '+</option>';
   }).join('');
 
-  return `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Record Breakdown</div>
-        ${insightWL('Overall', filtered)}
-        ${insightWL('Singles', singles)}
-        ${insightWL('Doubles', doubles)}
-        ${insightWL('Mixed', mixed)}
-        ${(()=>{const col=wlColor(tbW,tbL);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">
-          <span style="font-size:12px;color:var(--label)">Tiebreaks</span>
-          <span style="font-size:12px;font-weight:600;color:${col}">${tbW}–${tbL} <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(tbW,tbL)}</span></span>
-        </div>`;})()}
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Partner Performance</div>
-          <div style="display:flex;align-items:center;gap:4px">
-            <span style="font-size:10px;color:var(--muted)">Min</span>
-            <select onchange="filterState.histPartnerMin=parseInt(this.value);renderHistoryFiltered()"
-              style="font-size:11px;padding:2px 18px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='5' viewBox='0 0 6 5'%3E%3Cpath d='M1 1l2 2 2-2' stroke='%236385a2' stroke-width='1.2' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 4px center;outline:none">
-              <option value="1" ${histPartnerMin===1?'selected':''}>1+</option>
-              <option value="3" ${histPartnerMin===3?'selected':''}>3+</option>
-              <option value="5" ${histPartnerMin===5?'selected':''}>5+</option>
-              <option value="10" ${histPartnerMin===10?'selected':''}>10+</option>
-            </select>
-          </div>
-        </div>
-        <div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px">${partnerInsight}</div>
-        ${p2qualified.length>=2?`<div style="border-top:1px solid var(--border);padding-top:8px">
-          ${[...p2qualified].sort((a,b)=>b.w-a.w).slice(0,4).map(p=>`
-            <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px">
-              <span style="color:var(--label)">${p.n}</span>
-              <span style="font-weight:600;color:${wlColor(p.w,p.l)}">${p.w}–${p.l} &nbsp; <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(p.w,p.l)}</span></span>
-            </div>`).join('')}
-        </div>`:''}
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Performance Splits</div>
-        ${insightWL('Home', filtered.filter(m=>m.homeaway==='Home'))}
-        ${insightWL('Away', filtered.filter(m=>m.homeaway==='Away'))}
-        ${insightWL('Morning', filtered.filter(m=>m.time==='Morning'||m.time==='Day'))}
-        ${insightWL('Afternoon', filtered.filter(m=>m.time==='Afternoon'))}
-        ${insightWL('Night', filtered.filter(m=>m.time==='Night'))}
-      </div>
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">
-      <table class="history-table" style="width:100%">
-        <thead><tr>
-          <th style="width:85px">Date</th>
-          <th style="width:48px"></th>
-          <th>Opponent / Score</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    ${buildPagination(historyPage, pages)}
-  `;
+  // Build table rows
+  var rows = paged.map(function(m) {
+    const globalIdx = allMatches.indexOf(m);
+    const opponent  = escHtml(m.opp2 ? m.opp1 + ' / ' + m.opp2 : m.opp1 || '');
+    const partner   = (m.partner && m.partner !== 'None' && m.partner !== '') ? escHtml(m.partner) : '—';
+    const retired   = m.oppRet ? ' <span class="retired-tag">Ret.</span>' : m.weRet ? ' <span class="retired-tag">Ret.</span>' : '';
+    var scoresHtml = '';
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
+      var w = pair[0], l = pair[1];
+      if (w === '' && l === '') return;
+      var nw = num(w), nl = num(l);
+      var cls = (nw !== null && nl !== null) ? (nw > nl ? 'set-win' : 'set-loss') : '';
+      scoresHtml += '<span class="set-score ' + cls + '">' + w + '–' + l + '</span>';
+    });
+    var noteInd = m.notes ? '<span class="note-indicator" title="' + escHtml(m.notes) + '" style="cursor:help"></span>' : '';
+    return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
+      + '<td style="white-space:nowrap;font-size:13px;color:var(--text)">' + (m.date || '') + '</td>'
+      + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
+      + '<td style="font-size:13px;color:var(--text)">' + opponent + '</td>'
+      + '<td style="font-size:13px;color:var(--muted)">' + partner + '</td>'
+      + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
+      + '</tr>';
+  }).join('');
+
+  // Build partner list rows
+  var partnerListHtml = '';
+  if (pQual.length >= 2) {
+    var sorted = pQual.slice().sort((a,b) => b.w - a.w).slice(0,4);
+    partnerListHtml = '<div style="border-top:1px solid var(--border);padding-top:8px">'
+      + sorted.map(function(p) {
+          return '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px">'
+            + '<span style="color:var(--label)">' + p.n + '</span>'
+            + '<span style="font-weight:600;color:' + wlColor(p.w,p.l) + '">' + p.w + '–' + p.l
+            + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(p.w,p.l) + '</span></span>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }
+
+  var tbColor = wlColor(tbW, tbL);
+
+  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">'
+
+    // Card 1: Record Breakdown
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">'
+    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Record Breakdown</div>'
+    + insightRow('Overall', filtered)
+    + insightRow('Singles', singles)
+    + insightRow('Doubles', doubles)
+    + insightRow('Mixed', mixed)
+    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">'
+    + '<span style="font-size:12px;color:var(--label)">Tiebreaks</span>'
+    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + '">' + tbW + '–' + tbL
+    + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
+    + '</div>'
+    + '</div>'
+
+    // Card 2: Partner Performance
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Partner Performance</div>'
+    + '<div style="display:flex;align-items:center;gap:4px"><span style="font-size:10px;color:var(--muted)">Min</span>'
+    + '<select onchange="filterState.histPartnerMin=parseInt(this.value);renderHistoryFiltered()" style="font-size:11px;padding:2px 16px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);outline:none">'
+    + minOpts + '</select></div></div>'
+    + '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px">' + partnerText + '</div>'
+    + partnerListHtml
+    + '</div>'
+
+    // Card 3: Performance Splits
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">'
+    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Performance Splits</div>'
+    + insightRow('Home',      filtered.filter(m => m.homeaway === 'Home'))
+    + insightRow('Away',      filtered.filter(m => m.homeaway === 'Away'))
+    + insightRow('Morning',   filtered.filter(m => m.time === 'Morning' || m.time === 'Day'))
+    + insightRow('Afternoon', filtered.filter(m => m.time === 'Afternoon'))
+    + insightRow('Night',     filtered.filter(m => m.time === 'Night'))
+    + '</div>'
+    + '</div>'
+
+    // Table
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">'
+    + '<table class="history-table" style="width:100%">'
+    + '<thead><tr>'
+    + '<th style="width:90px">Date</th>'
+    + '<th style="width:44px"></th>'
+    + '<th>Opponent</th>'
+    + '<th>Partner</th>'
+    + '<th>Score</th>'
+    + '</tr></thead>'
+    + '<tbody>' + rows + '</tbody>'
+    + '</table></div>'
+    + buildPagination(historyPage, pages);
 }
-function renderHistoryFiltered() {
-  // Updates only the results section — filter inputs stay in DOM so user keeps focus/cursor
-  clearTimeout(histSearchTimer);
-  histSearchTimer = setTimeout(() => {
-    const resultsEl = document.getElementById('hist-results');
-    if (!resultsEl) { renderHistory(1); return; }
 
-    const yearFilter     = filterState.history.year;
-    const seasonFilter   = filterState.history.season;
-    const levelFilter    = filterState.history.level;
-    const typeFilter     = filterState.history.type;
-    const partnerFilter  = filterState.history.partner;
-    const opponentFilter = filterState.history.opponent;
-    const sortOrder      = filterState.history.sort || 'newest';
 
-    let filtered = allMatches.filter(m => {
-      if (yearFilter     && String(m.year) !== String(yearFilter)) return false;
-      if (seasonFilter   && m.season !== seasonFilter) return false;
-      if (levelFilter    && m.level  !== levelFilter)  return false;
-      if (typeFilter     && m.type   !== typeFilter)   return false;
-      if (partnerFilter  && !(m.partner||'').toLowerCase().includes(partnerFilter.toLowerCase())) return false;
-      if (opponentFilter && !((m.opp1||'')+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
-      return true;
-    }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
 
-    // Update match count
-    const countEl = document.getElementById('hist-match-count');
-    if (countEl) countEl.textContent = filtered.length + ' match' + (filtered.length!==1?'es':'');
-
-    // Update topbar title
-    let histTitle = 'Match History';
-    if (partnerFilter && opponentFilter) histTitle = 'Match History with ' + partnerFilter + ' against ' + opponentFilter;
-    else if (partnerFilter)  histTitle = 'Match History with ' + partnerFilter;
-    else if (opponentFilter) histTitle = 'Match History against ' + opponentFilter;
-    document.getElementById('topbar-title').textContent = histTitle;
-
-    resultsEl.innerHTML = buildHistoryResults(filtered, sortOrder);
-  }, 350);
-}
 
 function toggleHistFilters() {
   const body    = document.getElementById('hist-filter-body');
