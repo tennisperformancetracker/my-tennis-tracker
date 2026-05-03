@@ -173,7 +173,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .dash-grid.full { grid-template-columns: 1fr; }
 .card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  padding: 20px; box-shadow: var(--shadow);
+  padding: 20px; box-shadow: var(--shadow); overflow: hidden; min-width: 0;
 }
 .card-header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
@@ -252,15 +252,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
 /* ── Partners slide animation ────────────────────────────── */
 .partners-slide-wrap {
-  overflow: hidden; position: relative; max-width: 100%;
+  overflow: hidden; position: relative; max-width: 100%; width: 100%;
 }
 .partners-slide-inner {
   display: flex; width: 200%; transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-  will-change: transform;
+  will-change: transform; transform: translateZ(0);
 }
 .partners-slide-inner.drilled { transform: translateX(-50%); }
 .partners-panel {
-  width: 50%; flex-shrink: 0; min-width: 0; overflow: hidden;
+  width: 50%; flex-shrink: 0; min-width: 0; overflow: hidden; box-sizing: border-box;
 }
 .partners-panel.drill-panel { padding-left: 0; }
 
@@ -1045,9 +1045,9 @@ function renderDashboard() {
         </div>
       </div>
       <div class="card">
-        <div class="card-header" style="min-height:40px">
+        <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
           <div class="card-title">Performance Breakdown</div>
-          <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <select class="topbar-select" id="splits-month-filter" onchange="filterState.splits.month=this.value;updateSplits()" style="font-size:11px;padding:4px 22px 4px 7px;">
               ${allMonths.map((m,i) => `<option value="${i===0?'':i}" ${(i===0?'':String(i))===filterState.splits.month?'selected':''}>${m||'All Months'}</option>`).join('')}
             </select>
@@ -1783,9 +1783,8 @@ function renderHistory(page, preFilterPartner) {
   else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
   document.getElementById('topbar-title').textContent = histTitle;
 
+  document.getElementById('mobile-filters').innerHTML = '';
   document.getElementById('topbar-right').innerHTML = `
-    <div class="topbar-filter-group">
-      <span class="topbar-label">Sort:</span>
       <select class="topbar-select" id="hist-sort" onchange="renderHistory()">
         <option value="newest" ${sortOrder==='newest'?'selected':''}>Newest First</option>
         <option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest First</option>
@@ -2799,6 +2798,7 @@ async function confirmDelete() {
 // ═══════════════════════════════════════════════════════════
 function renderEntry() {
   document.getElementById('topbar-right').innerHTML = '';
+  document.getElementById('mobile-filters').innerHTML = '';
   const content = document.getElementById('content');
 
   function sel(id, label, values, req, onchange='') {
