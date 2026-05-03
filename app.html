@@ -769,7 +769,8 @@ const filterState = {
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5 },
-  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest' }
+  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest' },
+  histPartnerMin: 3
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1806,18 +1807,11 @@ function renderHistory(page, preFilterPartner) {
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="filterState.history.partner=this.value.trim();renderHistoryFiltered()"
           style="flex:1;min-width:0;max-width:200px">
-        <span style="font-size:12px;color:var(--muted);align-self:center;white-space:nowrap">${total} match${total!==1?'es':''}</span>
+        <span id="hist-match-count" style="font-size:12px;color:var(--muted);align-self:center;white-space:nowrap">${total} match${total!==1?'es':''}</span>
       </div>
-      <!-- Collapsible dropdowns -->
-      <div onclick="toggleHistFilters()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;user-select:none;background:var(--surface2)">
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--label)">
-          More Filters
-          ${activeFilterCount > 0 ? `<span style="background:var(--accent2);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700">${activeFilterCount}</span>` : ''}
-        </div>
-        <span id="hist-filter-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;display:inline-block">▼</span>
-      </div>
-      <div id="hist-filter-body" style="display:none;padding:10px 14px 12px;border-top:1px solid var(--border)">
-        <div class="history-controls">
+      <!-- Collapsible dropdowns — collapsed by default -->
+      <div id="hist-filter-body" style="display:none;padding:10px 14px 0;border-bottom:1px solid var(--border)">
+        <div class="history-controls" style="margin-bottom:10px">
           <select class="filter-select" id="hist-year" onchange="renderHistory()">
             ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
           </select>
@@ -1833,11 +1827,19 @@ function renderHistory(page, preFilterPartner) {
           <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear All</button>
         </div>
       </div>
+      <!-- Toggle row at bottom -->
+      <div onclick="toggleHistFilters()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;user-select:none;background:var(--surface2)">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--label)">
+          <span id="hist-filter-label">More Filters</span>
+          ${activeFilterCount > 0 ? `<span style="background:var(--accent2);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700">${activeFilterCount}</span>` : ''}
+        </div>
+        <span id="hist-filter-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;display:inline-block">▼</span>
+      </div>
     </div>
   `;
 
-  // Add a results div that can be updated without rebuilding filter bar
-  content.innerHTML += `<div id="hist-results">${buildHistoryResults(filtered, sortOrder)}</div>`;
+  // Use insertAdjacentHTML so the filter bar above is NOT destroyed/recreated
+  content.insertAdjacentHTML('beforeend', `<div id="hist-results">${buildHistoryResults(filtered, sortOrder)}</div>`);
   autoOpenHistFilters();
 }
 
@@ -1855,7 +1857,7 @@ function buildHistoryResults(filtered, sortOrder) {
     const col=wlColor(w,l);
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:12px;color:var(--label)">${label}</span>
-      <span style="font-size:12px;font-weight:600;color:${col}">${w}–${l} <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(w,l)}</span></span>
+      <span style="font-size:12px;font-weight:600;color:${col}">${w}–${l} &nbsp; <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(w,l)}</span></span>
     </div>`;
   }
 
@@ -1881,12 +1883,14 @@ function buildHistoryResults(filtered, sortOrder) {
     if(!partnerMap[m.partner])partnerMap[m.partner]={w:0,l:0};
     if(m.result==='W')partnerMap[m.partner].w++;else partnerMap[m.partner].l++;
   });
+  const histPartnerMin = parseInt(filterState.histPartnerMin || 3);
   const partners2=Object.entries(partnerMap).map(([n,{w,l}])=>({n,w,l,t:w+l,pv:w/(w+l)||0}));
-  const mostWins = partners2.length?partners2.reduce((a,b)=>a.w>b.w?a:b):null;
-  const bestPct  = partners2.filter(p=>p.t>=3).length?partners2.filter(p=>p.t>=3).reduce((a,b)=>a.pv>b.pv?a:b):null;
+  const p2qualified = partners2.filter(p=>p.t>=histPartnerMin);
+  const mostWins = p2qualified.length?[...p2qualified].reduce((a,b)=>a.w>b.w?a:b):null;
+  const bestPct  = p2qualified.filter(p=>p.t>=histPartnerMin).length?[...p2qualified].reduce((a,b)=>a.pv>b.pv?a:b):null;
   const partnerInsight = mostWins
     ? `Most wins with <strong>${mostWins.n}</strong> (${mostWins.w}–${mostWins.l}).${bestPct&&bestPct.n!==mostWins.n?` Best % with <strong>${bestPct.n}</strong> (${(bestPct.pv*100).toFixed(0)}%, ${bestPct.w}–${bestPct.l}).`:''}`
-    : 'No doubles matches.';
+    : `No partners with ${histPartnerMin}+ matches.`;
 
   const rows = paged.map(m => {
     const globalIdx = allMatches.indexOf(m);
@@ -1931,13 +1935,25 @@ function buildHistoryResults(filtered, sortOrder) {
         </div>`;})()}
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Partner Performance</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Partner Performance</div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="font-size:10px;color:var(--muted)">Min</span>
+            <select onchange="filterState.histPartnerMin=parseInt(this.value);renderHistoryFiltered()"
+              style="font-size:11px;padding:2px 18px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='5' viewBox='0 0 6 5'%3E%3Cpath d='M1 1l2 2 2-2' stroke='%236385a2' stroke-width='1.2' fill='none'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 4px center;outline:none">
+              <option value="1" ${histPartnerMin===1?'selected':''}>1+</option>
+              <option value="3" ${histPartnerMin===3?'selected':''}>3+</option>
+              <option value="5" ${histPartnerMin===5?'selected':''}>5+</option>
+              <option value="10" ${histPartnerMin===10?'selected':''}>10+</option>
+            </select>
+          </div>
+        </div>
         <div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px">${partnerInsight}</div>
-        ${partners2.length>=2?`<div style="border-top:1px solid var(--border);padding-top:8px">
-          ${[...partners2].sort((a,b)=>b.w-a.w).slice(0,4).map(p=>`
+        ${p2qualified.length>=2?`<div style="border-top:1px solid var(--border);padding-top:8px">
+          ${[...p2qualified].sort((a,b)=>b.w-a.w).slice(0,4).map(p=>`
             <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px">
               <span style="color:var(--label)">${p.n}</span>
-              <span style="font-weight:600;color:${wlColor(p.w,p.l)}">${p.w}–${p.l} <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(p.w,p.l)}</span></span>
+              <span style="font-weight:600;color:${wlColor(p.w,p.l)}">${p.w}–${p.l} &nbsp; <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(p.w,p.l)}</span></span>
             </div>`).join('')}
         </div>`:''}
       </div>
@@ -2005,19 +2021,25 @@ function renderHistoryFiltered() {
 
 function toggleHistFilters() {
   const body    = document.getElementById('hist-filter-body');
+  const label   = document.getElementById('hist-filter-label');
   const chevron = document.getElementById('hist-filter-chevron');
   if (!body) return;
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
+  if (label)   label.textContent   = isOpen ? 'More Filters' : 'Less Filters';
   if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
 
 // Auto-open filters on desktop after render
 function autoOpenHistFilters() {
-  if (window.innerWidth > 768) {
-    const body = document.getElementById('hist-filter-body');
+  const hasDropdownFilters = !!(filterState.history.year || filterState.history.season ||
+    filterState.history.level || filterState.history.type);
+  if (window.innerWidth > 768 && hasDropdownFilters) {
+    const body    = document.getElementById('hist-filter-body');
+    const label   = document.getElementById('hist-filter-label');
     const chevron = document.getElementById('hist-filter-chevron');
-    if (body) body.style.display = 'block';
+    if (body)    body.style.display    = 'block';
+    if (label)   label.textContent     = 'Less Filters';
     if (chevron) chevron.style.transform = 'rotate(180deg)';
   }
 }
@@ -2705,71 +2727,82 @@ function renderEntry() {
           <input type="text" id="e-type-new" placeholder="Enter type name">
         </div>
 
-        ${inp('opp1','Opponent 1','text',true,'First Last')}
-        <div class="cond cond-hidden" id="e-doubles-fields">
-          ${inp('opp2','Opponent 2','text',false,'First Last')}
-          ${sel('partner','Partner',validEntries.partner||[],false,"onchange=\"onEntryNewSelect('partner')\"")}
-          <div class="field hidden" id="field-partner-new">
-            <div class="field-label">New Partner Name</div>
-            <input type="text" id="e-partner-new" placeholder="First Last">
-          </div>
-        </div>
+        <!-- Opponent / Partner / Score in 3 columns -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:4px">
 
-        <div class="section-title" style="margin-top:16px">Scores</div>
-
-        <!-- Set score boxes — bordered, no dashes, retired below -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
-          <!-- Set 1 -->
-          <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;text-align:center">Set 1 <span class="required-dot"></span></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-              <div>
-                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Us</div>
-                <input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-              </div>
-              <div>
-                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Opp</div>
-                <input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-              </div>
+          <!-- Column 1: Opponent(s) -->
+          <div>
+            <div class="section-title" style="font-size:11px;margin-bottom:8px">Opponent(s)</div>
+            ${inp('opp1','Opponent 1','text',true,'First Last')}
+            <div class="cond cond-hidden" id="e-opp2-field">
+              ${inp('opp2','Opponent 2','text',false,'First Last')}
             </div>
           </div>
-          <!-- Set 2 -->
-          <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;text-align:center">Set 2</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-              <div>
-                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Us</div>
-                <input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-              </div>
-              <div>
-                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Opp</div>
-                <input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-              </div>
-            </div>
-          </div>
-          <!-- Set 3 -->
-          <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;text-align:center">Set 3</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-              <div>
-                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Us</div>
-                <input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
-              </div>
-              <div>
-                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Opp</div>
-                <input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="field-error" id="err-s1">Set 1 is required</div>
-        <div class="field-error" id="err-s2">Set 2 required (unless retired)</div>
-        <div class="field-error" id="err-s3">Set 3 required — sets were split</div>
 
-        <!-- Retired options below scores -->
-        <div style="margin-top:10px">
-          ${tog('opp-ret','Opponent Retired',"onchange=\"onEntryRetiredChange()\"")}
-          ${tog('we-ret','I / We Retired',"onchange=\"onEntryRetiredChange()\"")}
+          <!-- Column 2: Partner (shown for doubles) -->
+          <div class="cond cond-hidden" id="e-doubles-fields">
+            <div class="section-title" style="font-size:11px;margin-bottom:8px">Partner</div>
+            ${sel('partner','Partner',validEntries.partner||[],false,"onchange=\"onEntryNewSelect('partner')\"")}
+            <div class="field hidden" id="field-partner-new">
+              <div class="field-label">New Partner</div>
+              <input type="text" id="e-partner-new" placeholder="First Last">
+            </div>
+          </div>
+          <!-- Placeholder when singles so scores stay in col 3 -->
+          <div id="e-singles-spacer"></div>
+
+          <!-- Column 3: Scores -->
+          <div>
+            <div class="section-title" style="font-size:11px;margin-bottom:8px">Score</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <!-- Set 1 -->
+              <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+                <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 1 <span class="required-dot"></span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
+                    <input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+                  </div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
+                    <input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+                  </div>
+                </div>
+              </div>
+              <!-- Set 2 -->
+              <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+                <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 2</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
+                    <input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+                  </div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
+                    <input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+                  </div>
+                </div>
+              </div>
+              <!-- Set 3 -->
+              <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
+                <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 3</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
+                    <input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
+                  </div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
+                    <input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:2px">
+                <div class="field-error" id="err-s1">Set 1 required</div>
+                <div class="field-error" id="err-s2">Set 2 required</div>
+                <div class="field-error" id="err-s3">Set 3 required</div>
+              </div>
+            </div>
+            <!-- Retired options below score -->
+            <div style="margin-top:10px">
+              ${tog('opp-ret','Opp. Retired',"onchange=\"onEntryRetiredChange()\"")}
+              ${tog('we-ret','We Retired',"onchange=\"onEntryRetiredChange()\"")}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2830,8 +2863,12 @@ function renderEntry() {
 
 function onEntryTypeChange() {
   const type = document.getElementById('e-type')?.value.toLowerCase() || '';
-  const isDb = type.includes('doubles');
+  const isDb = type.includes('doubles') || type.includes('mixed');
   document.getElementById('e-doubles-fields')?.classList.toggle('cond-hidden', !isDb);
+  document.getElementById('e-opp2-field')?.classList.toggle('cond-hidden', !isDb);
+  // Show/hide spacer — when doubles, partner fills col 2; when singles, spacer fills col 2
+  const spacer = document.getElementById('e-singles-spacer');
+  if (spacer) spacer.style.display = isDb ? 'none' : 'block';
   // Toggle required dots on opp2 and partner labels
   ['opp2','partner'].forEach(id => {
     const label = document.querySelector(`#e-${id}`)?.closest('.field')?.querySelector('.field-label');
