@@ -770,7 +770,7 @@ const filterState = {
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5 },
   history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest' },
-  histPartnerMin: 3
+  histPartnerMin: 5
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1888,7 +1888,7 @@ function buildHistoryResults(filtered, sortOrder) {
   });
 
   // Partner stats
-  const pMin = parseInt(filterState.histPartnerMin || 3);
+  const pMin = parseInt(filterState.histPartnerMin || 5);
   const partnerMap = {};
   filtered.filter(m => m.partner && m.partner !== 'None' && m.partner !== '').forEach(m => {
     if (!partnerMap[m.partner]) partnerMap[m.partner] = {w:0, l:0};
@@ -1913,7 +1913,7 @@ function buildHistoryResults(filtered, sortOrder) {
   }
 
   // Min threshold select — build without nested template literals
-  var minOpts = [1,3,5,10].map(function(v) {
+  var minOpts = [1,5,10,15,25].map(function(v) {
     return '<option value="' + v + '"' + (pMin === v ? ' selected' : '') + '>' + v + '+</option>';
   }).join('');
 
@@ -2013,6 +2013,70 @@ function buildHistoryResults(filtered, sortOrder) {
 
 
 
+
+
+var _histTimer = null;
+
+function onHistOpponentInput(val) {
+  filterState.history.opponent = val.trim().toLowerCase();
+  clearTimeout(_histTimer);
+  _histTimer = setTimeout(applyHistoryFilter, 400);
+}
+
+function onHistPartnerInput(val) {
+  filterState.history.partner = val.trim();
+  clearTimeout(_histTimer);
+  _histTimer = setTimeout(applyHistoryFilter, 400);
+}
+
+function renderHistoryFiltered() {
+  clearTimeout(_histTimer);
+  _histTimer = setTimeout(applyHistoryFilter, 400);
+}
+
+function applyHistoryFilter() {
+  var resultsEl = document.getElementById('hist-results');
+  if (!resultsEl) { renderHistory(1); return; }
+
+  var opp  = filterState.history.opponent  || '';
+  var par  = filterState.history.partner   || '';
+  var yr   = filterState.history.year      || '';
+  var sea  = filterState.history.season    || '';
+  var lev  = filterState.history.level     || '';
+  var typ  = filterState.history.type      || '';
+  var srt  = filterState.history.sort      || 'newest';
+
+  var filtered = allMatches.filter(function(m) {
+    if (yr  && String(m.year) !== String(yr)) return false;
+    if (sea  && m.season !== sea)  return false;
+    if (lev  && m.level  !== lev)  return false;
+    if (typ  && m.type   !== typ)  return false;
+    if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
+    if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
+    return true;
+  });
+
+  filtered.sort(function(a, b) {
+    return srt === 'newest'
+      ? parseDate(b.date) - parseDate(a.date)
+      : parseDate(a.date) - parseDate(b.date);
+  });
+
+  // Update count
+  var countEl = document.getElementById('hist-match-count');
+  if (countEl) countEl.textContent = filtered.length + ' match' + (filtered.length !== 1 ? 'es' : '');
+
+  // Update title
+  var title = 'Match History';
+  if (par && opp) title = 'Match History with ' + par + ' against ' + opp;
+  else if (par)   title = 'Match History with ' + par;
+  else if (opp)   title = 'Match History against ' + opp;
+  var titleEl = document.getElementById('topbar-title');
+  if (titleEl) titleEl.textContent = title;
+
+  historyPage = 1;
+  resultsEl.innerHTML = buildHistoryResults(filtered, srt);
+}
 
 function toggleHistFilters() {
   const body    = document.getElementById('hist-filter-body');
