@@ -1798,20 +1798,26 @@ function renderHistory(page, preFilterPartner) {
   const content = document.getElementById('content');
   content.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)">
-      <div onclick="toggleHistFilters()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none">
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--label)">
-          🔍 Filters
+      <!-- Always-visible search row -->
+      <div style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)">
+        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
+          oninput="filterState.history.opponent=this.value.trim().toLowerCase();renderHistoryFiltered()"
+          style="flex:1;min-width:0">
+        <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
+          oninput="filterState.history.partner=this.value.trim();renderHistoryFiltered()"
+          style="flex:1;min-width:0;max-width:200px">
+        <span style="font-size:12px;color:var(--muted);align-self:center;white-space:nowrap">${total} match${total!==1?'es':''}</span>
+      </div>
+      <!-- Collapsible dropdowns -->
+      <div onclick="toggleHistFilters()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;user-select:none;background:var(--surface2)">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--label)">
+          More Filters
           ${activeFilterCount > 0 ? `<span style="background:var(--accent2);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700">${activeFilterCount}</span>` : ''}
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:12px;color:var(--muted)">${total} match${total!==1?'es':''}</span>
-          <span id="hist-filter-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;display:inline-block">▼</span>
-        </div>
+        <span id="hist-filter-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;display:inline-block">▼</span>
       </div>
-      <div id="hist-filter-body" style="display:none;padding:0 14px 12px">
+      <div id="hist-filter-body" style="display:none;padding:10px 14px 12px;border-top:1px solid var(--border)">
         <div class="history-controls">
-          <input class="search-input" id="hist-opponent" placeholder="Search opponent…" value="${escHtml(opponentFilter)}" oninput="debounceHistorySearch()" style="flex:1;min-width:140px">
-          <input class="search-input" id="hist-partner" placeholder="Search partner…" value="${escHtml(partnerFilter)}" oninput="debounceHistorySearch()" style="min-width:130px;max-width:180px">
           <select class="filter-select" id="hist-year" onchange="renderHistory()">
             ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
           </select>
@@ -1824,66 +1830,43 @@ function renderHistory(page, preFilterPartner) {
           <select class="filter-select" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
+          <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear All</button>
         </div>
       </div>
     </div>
   `;
 
-  const pages = Math.ceil(total / PAGE_SIZE);
-  const start = (historyPage-1)*PAGE_SIZE;
-  const paged = filtered.slice(start, start+PAGE_SIZE);
+  // Add a results div that can be updated without rebuilding filter bar
+  content.innerHTML += `<div id="hist-results">${buildHistoryResults(filtered, sortOrder)}</div>`;
+  autoOpenHistFilters();
+}
 
-  const rows = paged.map((m, i) => {
-    const globalIdx = allMatches.indexOf(m);
-    const opponent = m.opp2 ? `${m.opp1} / ${m.opp2}` : m.opp1;
-    const partner  = m.partner && m.partner !== 'None' ? `w/ ${m.partner}` : '';
-    const retired  = m.oppRet ? '<span class="retired-tag">Opp. Ret.</span>'
-                   : m.weRet  ? '<span class="retired-tag">Ret.</span>' : '';
-    const scores = (() => {
-      let h = '';
-      [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l]) => {
-        if (w===''&&l==='') return;
-        const nw=num(w),nl=num(l);
-        const cls = nw!==null&&nl!==null ? (nw>nl?'set-win':'set-loss') : '';
-        h += `<span class="set-score ${cls}">${w}–${l}</span>`;
-      });
-      return h;
-    })();
-    return `
-      <tr onclick="openMatchDetail(${globalIdx})">
-        <td class="hist-date">${m.date||''}</td>
-        <td><span class="result-pill ${m.result||''}">${m.result||'—'}</span></td>
-        <td>
-          <div class="hist-opponent">${escHtml(opponent)}</div>
-          ${partner ? `<div class="hist-meta">${escHtml(partner)}</div>` : ''}
-        </td>
-        <td>
-          <div class="hist-scores">${scores}${retired}
-            ${m.notes ? `<span class="note-indicator" title="${escHtml(m.notes)}" style="cursor:help"></span>` : ''}
-          </div>
-        </td>
-        <td>${escHtml(m.type||'')}</td>
-        <td>${escHtml(m.level||'')}</td>
-      </tr>`;
-  }).join('');
-
-  // Build detailed history insights
-  const histW = filtered.filter(m=>m.result==='W').length;
-  const histL = filtered.filter(m=>m.result==='L').length;
-
+function buildHistoryResults(filtered, sortOrder) {
+  const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+  const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+  function wlColor(w, l) {
+    const tot = w+l; if (!tot) return 'var(--text)';
+    const r = w/tot;
+    return r > great ? 'var(--win)' : r < poor ? 'var(--loss)' : 'var(--warn)';
+  }
   function insightWL(label, arr) {
     const w=arr.filter(m=>m.result==='W').length, l=arr.filter(m=>m.result==='L').length;
+    const tot=w+l; if(!tot) return '';
+    const col=wlColor(w,l);
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:12px;color:var(--label)">${label}</span>
-      <span style="font-size:12px;font-weight:600;color:var(--text)">${w}–${l}</span>
+      <span style="font-size:12px;font-weight:600;color:${col}">${w}–${l} <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(w,l)}</span></span>
     </div>`;
   }
 
+  const total    = filtered.length;
+  const pages    = Math.ceil(total / PAGE_SIZE);
+  const start    = (historyPage-1)*PAGE_SIZE;
+  const paged    = filtered.slice(start, start+PAGE_SIZE);
   const singles  = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('singles'));
   const doubles  = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('doubles'));
   const mixed    = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('mixed'));
 
-  // Tiebreaks
   let tbW=0,tbL=0;
   filtered.forEach(m=>{
     [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l])=>{
@@ -1893,41 +1876,68 @@ function renderHistory(page, preFilterPartner) {
     });
   });
 
-  // Partner stats
   const partnerMap={};
   filtered.filter(m=>m.partner&&m.partner!=='None'&&m.partner!=='').forEach(m=>{
     if(!partnerMap[m.partner])partnerMap[m.partner]={w:0,l:0};
     if(m.result==='W')partnerMap[m.partner].w++;else partnerMap[m.partner].l++;
   });
   const partners2=Object.entries(partnerMap).map(([n,{w,l}])=>({n,w,l,t:w+l,pv:w/(w+l)||0}));
-  const mostWins  = partners2.length?partners2.reduce((a,b)=>a.w>b.w?a:b):null;
-  const bestPct   = partners2.filter(p=>p.t>=3).length ? partners2.filter(p=>p.t>=3).reduce((a,b)=>a.pv>b.pv?a:b) : null;
-
+  const mostWins = partners2.length?partners2.reduce((a,b)=>a.w>b.w?a:b):null;
+  const bestPct  = partners2.filter(p=>p.t>=3).length?partners2.filter(p=>p.t>=3).reduce((a,b)=>a.pv>b.pv?a:b):null;
   const partnerInsight = mostWins
-    ? `You have the most wins with <strong>${mostWins.n}</strong> (${mostWins.w}–${mostWins.l}).${bestPct&&bestPct.n!==mostWins.n?` Highest win % with <strong>${bestPct.n}</strong> (${(bestPct.pv*100).toFixed(0)}%, ${bestPct.w}–${bestPct.l}).`:''}`
-    : 'No doubles matches in this selection.';
+    ? `Most wins with <strong>${mostWins.n}</strong> (${mostWins.w}–${mostWins.l}).${bestPct&&bestPct.n!==mostWins.n?` Best % with <strong>${bestPct.n}</strong> (${(bestPct.pv*100).toFixed(0)}%, ${bestPct.w}–${bestPct.l}).`:''}`
+    : 'No doubles matches.';
 
-  content.innerHTML += `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:16px">
+  const rows = paged.map(m => {
+    const globalIdx = allMatches.indexOf(m);
+    const opp1 = escHtml(m.opp1||'');
+    const opp2 = m.opp2 ? ` / ${escHtml(m.opp2)}` : '';
+    const partner = m.partner && m.partner!=='None' && m.partner!=='' ? escHtml(m.partner) : '';
+    const retired = m.oppRet ? '<span class="retired-tag">Ret.</span>' : m.weRet ? '<span class="retired-tag">Ret.</span>' : '';
+    let scoresHtml='';
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l])=>{
+      if(w===''&&l==='') return;
+      const nw=num(w),nl=num(l);
+      const cls=nw!==null&&nl!==null?(nw>nl?'set-win':'set-loss'):'';
+      scoresHtml+=`<span class="set-score ${cls}">${w}–${l}</span>`;
+    });
+    const noteInd = m.notes ? `<span class="note-indicator" title="${escHtml(m.notes)}" style="cursor:help"></span>` : '';
+    return `<tr onclick="openMatchDetail(${globalIdx})" style="cursor:pointer">
+      <td style="white-space:nowrap;font-size:12px;color:var(--muted)">${m.date||''}</td>
+      <td><span class="result-pill ${m.result||''}">${m.result||'—'}</span></td>
+      <td>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div>
+            <div class="hist-opponent">${opp1}${opp2}</div>
+            ${partner?`<div class="hist-meta">w/ ${partner}</div>`:''}
+          </div>
+          <div class="hist-scores" style="flex-shrink:0">${scoresHtml}${retired}${noteInd}</div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Record Breakdown</div>
         ${insightWL('Overall', filtered)}
-        ${singles.length?insightWL('Singles', singles):''}
-        ${doubles.length?insightWL('Doubles', doubles):''}
-        ${mixed.length?insightWL('Mixed', mixed):''}
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">
+        ${insightWL('Singles', singles)}
+        ${insightWL('Doubles', doubles)}
+        ${insightWL('Mixed', mixed)}
+        ${(()=>{const col=wlColor(tbW,tbL);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">
           <span style="font-size:12px;color:var(--label)">Tiebreaks</span>
-          <span style="font-size:12px;font-weight:600;color:var(--text)">${tbW}–${tbL}</span>
-        </div>
+          <span style="font-size:12px;font-weight:600;color:${col}">${tbW}–${tbL} <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(tbW,tbL)}</span></span>
+        </div>`;})()}
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Partner Performance</div>
-        <div style="font-size:12px;color:var(--label);line-height:1.7">${partnerInsight}</div>
-        ${partners2.length>=2?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
-          ${partners2.sort((a,b)=>b.w-a.w).slice(0,3).map(p=>`
+        <div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px">${partnerInsight}</div>
+        ${partners2.length>=2?`<div style="border-top:1px solid var(--border);padding-top:8px">
+          ${[...partners2].sort((a,b)=>b.w-a.w).slice(0,4).map(p=>`
             <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px">
               <span style="color:var(--label)">${p.n}</span>
-              <span style="font-weight:600;color:var(--text)">${p.w}–${p.l}</span>
+              <span style="font-weight:600;color:${wlColor(p.w,p.l)}">${p.w}–${p.l} <span style="font-weight:400;color:var(--muted);font-size:11px">${pct(p.w,p.l)}</span></span>
             </div>`).join('')}
         </div>`:''}
       </div>
@@ -1940,32 +1950,57 @@ function renderHistory(page, preFilterPartner) {
         ${insightWL('Night', filtered.filter(m=>m.time==='Night'))}
       </div>
     </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
-      <table class="history-table" style="min-width:480px">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th style="width:48px"></th>
-            <th>Opponent</th>
-            <th>Score</th>
-            <th>Type</th>
-            <th>Level</th>
-          </tr>
-        </thead>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">
+      <table class="history-table" style="width:100%">
+        <thead><tr>
+          <th style="width:85px">Date</th>
+          <th style="width:48px"></th>
+          <th>Opponent / Score</th>
+        </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
     ${buildPagination(historyPage, pages)}
   `;
-  autoOpenHistFilters();
 }
-function debounceHistorySearch() {
-  const oppEl = document.getElementById('hist-opponent');
-  const parEl = document.getElementById('hist-partner');
-  if (oppEl) filterState.history.opponent = oppEl.value.trim().toLowerCase();
-  if (parEl) filterState.history.partner  = parEl.value.trim();
+function renderHistoryFiltered() {
+  // Updates only the results section — filter inputs stay in DOM so user keeps focus/cursor
   clearTimeout(histSearchTimer);
-  histSearchTimer = setTimeout(() => renderHistory(1), 400);
+  histSearchTimer = setTimeout(() => {
+    const resultsEl = document.getElementById('hist-results');
+    if (!resultsEl) { renderHistory(1); return; }
+
+    const yearFilter     = filterState.history.year;
+    const seasonFilter   = filterState.history.season;
+    const levelFilter    = filterState.history.level;
+    const typeFilter     = filterState.history.type;
+    const partnerFilter  = filterState.history.partner;
+    const opponentFilter = filterState.history.opponent;
+    const sortOrder      = filterState.history.sort || 'newest';
+
+    let filtered = allMatches.filter(m => {
+      if (yearFilter     && String(m.year) !== String(yearFilter)) return false;
+      if (seasonFilter   && m.season !== seasonFilter) return false;
+      if (levelFilter    && m.level  !== levelFilter)  return false;
+      if (typeFilter     && m.type   !== typeFilter)   return false;
+      if (partnerFilter  && !(m.partner||'').toLowerCase().includes(partnerFilter.toLowerCase())) return false;
+      if (opponentFilter && !((m.opp1||'')+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
+      return true;
+    }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
+
+    // Update match count
+    const countEl = document.getElementById('hist-match-count');
+    if (countEl) countEl.textContent = filtered.length + ' match' + (filtered.length!==1?'es':'');
+
+    // Update topbar title
+    let histTitle = 'Match History';
+    if (partnerFilter && opponentFilter) histTitle = 'Match History with ' + partnerFilter + ' against ' + opponentFilter;
+    else if (partnerFilter)  histTitle = 'Match History with ' + partnerFilter;
+    else if (opponentFilter) histTitle = 'Match History against ' + opponentFilter;
+    document.getElementById('topbar-title').textContent = histTitle;
+
+    resultsEl.innerHTML = buildHistoryResults(filtered, sortOrder);
+  }, 350);
 }
 
 function toggleHistFilters() {
