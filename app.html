@@ -1943,8 +1943,8 @@ function buildHistoryResults(filtered, sortOrder) {
 
   // Build partner list rows
   var partnerListHtml = '';
-  if (pQual.length >= 2) {
-    var sorted = pQual.slice().sort((a,b) => b.w - a.w).slice(0,4);
+  if (pQual.length >= 1) {
+    var sorted = pQual.slice().sort((a,b) => b.pv - a.pv).slice(0,6);
     partnerListHtml = '<div style="border-top:1px solid var(--border);padding-top:8px">'
       + sorted.map(function(p) {
           return '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px">'
@@ -1966,7 +1966,6 @@ function buildHistoryResults(filtered, sortOrder) {
     + insightRow('Overall', filtered)
     + insightRow('Singles', singles)
     + insightRow('Doubles', doubles)
-    + insightRow('Mixed', mixed)
     + '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">'
     + '<span style="font-size:12px;color:var(--label)">Tiebreaks</span>'
     + '<span style="font-size:12px;font-weight:600;color:' + tbColor + '">' + tbW + '–' + tbL
@@ -1987,7 +1986,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
     // Card 3: Performance Splits
     + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">'
-    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Performance Splits</div>'
+    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Performance Breakdown</div>'
     + insightRow('Home',      filtered.filter(m => m.homeaway === 'Home'))
     + insightRow('Away',      filtered.filter(m => m.homeaway === 'Away'))
     + insightRow('Morning',   filtered.filter(m => m.time === 'Morning' || m.time === 'Day'))
