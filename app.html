@@ -642,6 +642,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   .partners-slide-inner { width: 200%; }
   .partners-panel { width: 50%; }
 
+  /* History insight cards — stack on mobile */
+  .hist-cards-grid { grid-template-columns: 1fr !important; }
+
   /* Valid entries grid */
   .ve-cards-grid { grid-template-columns: 1fr !important; }
 }
@@ -1958,54 +1961,94 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var tbColor = wlColor(tbW, tbL);
 
-  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">'
+  // Card toggling on mobile — each card collapses
+  function cardHtml(id, title, headerExtra, body) {
+    var isMob = window.innerWidth <= 768;
+    var open  = !isMob; // open by default on desktop, closed on mobile
+    return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">'
+      + '<div onclick="toggleHistCard(\'' + id + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none;' + (isMob ? 'background:var(--surface2);' : '') + '">'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
+      + (headerExtra || '')
+      + '</div>'
+      + (isMob ? '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted);transition:transform 0.2s">' + (open ? '▲' : '▼') + '</span>' : '')
+      + '</div>'
+      + '<div id="' + id + '" style="padding:0 14px 12px;' + (isMob && !open ? 'display:none' : '') + '">'
+      + body
+      + '</div>'
+      + '</div>';
+  }
 
-    // Card 1: Record Breakdown
-    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">'
-    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Record Breakdown</div>'
-    + insightRow('Overall', filtered)
+  var tbColor = wlColor(tbW, tbL);
+
+  var card1Body =
+      insightRow('Overall', filtered)
     + insightRow('Singles', singles)
     + insightRow('Doubles', doubles)
     + '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">'
     + '<span style="font-size:12px;color:var(--label)">Tiebreaks</span>'
     + '<span style="font-size:12px;font-weight:600;color:' + tbColor + '">' + tbW + '–' + tbL
     + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
-    + '</div>'
-    + '</div>'
+    + '</div>';
 
-    // Card 2: Partner Performance
-    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Partner Performance</div>'
-    + '<div style="display:flex;align-items:center;gap:4px"><span style="font-size:10px;color:var(--muted)">Min</span>'
-    + '<select onchange="filterState.histPartnerMin=parseInt(this.value);renderHistoryFiltered()" style="font-size:11px;padding:2px 16px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);outline:none">'
-    + minOpts + '</select></div></div>'
-    + '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px">' + partnerText + '</div>'
-    + partnerListHtml
-    + '</div>'
+  var card3Header = '<div style="display:flex;align-items:center;gap:4px;margin-left:8px">'
+    + '<span style="font-size:10px;color:var(--muted)">Min</span>'
+    + '<select onchange="filterState.histPartnerMin=parseInt(this.value);renderHistoryFiltered()" onclick="event.stopPropagation()" style="font-size:11px;padding:2px 16px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);outline:none">'
+    + minOpts + '</select></div>';
 
-    // Card 3: Performance Splits
-    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">'
-    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Performance Breakdown</div>'
-    + insightRow('Home',      filtered.filter(m => m.homeaway === 'Home'))
-    + insightRow('Away',      filtered.filter(m => m.homeaway === 'Away'))
-    + insightRow('Morning',   filtered.filter(m => m.time === 'Morning' || m.time === 'Day'))
-    + insightRow('Afternoon', filtered.filter(m => m.time === 'Afternoon'))
-    + insightRow('Night',     filtered.filter(m => m.time === 'Night'))
-    + '</div>'
-    + '</div>'
+  var card3Body =
+      '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px">' + partnerText + '</div>'
+    + partnerListHtml;
 
-    // Table
+  var card2Body =
+      insightRow('Home',      filtered.filter(function(m){ return m.homeaway === 'Home'; }))
+    + insightRow('Away',      filtered.filter(function(m){ return m.homeaway === 'Away'; }))
+    + insightRow('Morning',   filtered.filter(function(m){ return m.time === 'Morning' || m.time === 'Day'; }))
+    + insightRow('Afternoon', filtered.filter(function(m){ return m.time === 'Afternoon'; }))
+    + insightRow('Night',     filtered.filter(function(m){ return m.time === 'Night'; }));
+
+  // Table rows — wrap partner + score on mobile
+  var tableRows = paged.map(function(m) {
+    var globalIdx = allMatches.indexOf(m);
+    var opponent  = escHtml(m.opp2 ? m.opp1 + ' / ' + m.opp2 : m.opp1 || '');
+    var partner   = (m.partner && m.partner !== 'None' && m.partner !== '') ? escHtml(m.partner) : '';
+    var retired   = m.oppRet || m.weRet ? ' <span class="retired-tag">Ret.</span>' : '';
+    var scoresHtml = '';
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
+      var w = pair[0], l = pair[1];
+      if (w === '' && l === '') return;
+      var nw = num(w), nl = num(l);
+      var cls = (nw !== null && nl !== null) ? (nw > nl ? 'set-win' : 'set-loss') : '';
+      scoresHtml += '<span class="set-score ' + cls + '">' + w + '–' + l + '</span>';
+    });
+    var noteInd = m.notes ? '<span class="note-indicator" title="' + escHtml(m.notes) + '" style="cursor:help"></span>' : '';
+    return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
+      + '<td style="white-space:nowrap;font-size:12px;color:var(--text);vertical-align:top;padding-top:11px">' + (m.date || '') + '</td>'
+      + '<td style="vertical-align:top;padding-top:9px"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
+      + '<td>'
+        + '<div style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + '</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-items:center">'
+          + (partner ? '<span style="font-size:12px;color:var(--muted)">w/ ' + partner + '</span>' : '')
+          + (partner ? '<span style="color:var(--border)">·</span>' : '')
+          + '<div class="hist-scores" style="flex-wrap:wrap">' + scoresHtml + retired + noteInd + '</div>'
+        + '</div>'
+      + '</td>'
+      + '</tr>';
+  }).join('');
+
+  return '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">'
+    + cardHtml('hc-record',  'Record Breakdown',    '',            card1Body)
+    + cardHtml('hc-perf',    'Performance Breakdown','',            card2Body)
+    + cardHtml('hc-partner', 'Partner Performance',  card3Header,   card3Body)
+    + '</div>'
     + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">'
     + '<table class="history-table" style="width:100%">'
     + '<thead><tr>'
     + '<th style="width:90px">Date</th>'
     + '<th style="width:44px"></th>'
-    + '<th>Opponent</th>'
-    + '<th>Partner</th>'
-    + '<th>Score</th>'
+    + '<th>Opponent / Partner / Score</th>'
     + '</tr></thead>'
-    + '<tbody>' + rows + '</tbody>'
+    + '<tbody>' + tableRows + '</tbody>'
     + '</table></div>'
     + buildPagination(historyPage, pages);
 }
@@ -2075,6 +2118,16 @@ function applyHistoryFilter() {
 
   historyPage = 1;
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
+}
+
+function toggleHistCard(id) {
+  if (window.innerWidth > 768) return; // only collapsible on mobile
+  var body   = document.getElementById(id);
+  var chev   = document.getElementById(id + '-chev');
+  if (!body) return;
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (chev) chev.textContent = isOpen ? '▼' : '▲';
 }
 
 function toggleHistFilters() {
