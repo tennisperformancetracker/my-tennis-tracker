@@ -45,6 +45,7 @@ body.dark {
   --shadow:   0 1px 4px rgba(0,0,0,0.3);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+button, a, select, label { touch-action: manipulation; }
 body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; display: flex; min-height: 100vh; }
 
 /* ── Sidebar ────────────────────────────────────────────── */
@@ -623,11 +624,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   .modal-detail-grid { grid-template-columns: 1fr 1fr; }
   .edit-grid { grid-template-columns: 1fr 1fr; }
 
-  /* Tables */
-  .splits-table { font-size: 12px; }
+/* Prevent iOS zoom on input focus */
+@media (max-width: 768px) {
+  input, select, textarea { font-size: 16px !important; }
+  input[type="number"] { font-size: 16px !important; }
   .history-table { font-size: 12px; }
   .history-table th { font-size: 11px; padding: 10px 8px; }
   .history-table td { padding: 9px 8px; }
+  .splits-table { font-size: 12px; }
+}
 
   /* Partners slide */
   .partners-slide-inner { width: 200%; }
@@ -1729,7 +1734,7 @@ function renderHistory(page, preFilterPartner) {
   if (document.getElementById('hist-season'))  filterState.history.season   = document.getElementById('hist-season').value;
   if (document.getElementById('hist-level'))   filterState.history.level    = document.getElementById('hist-level').value;
   if (document.getElementById('hist-type'))    filterState.history.type     = document.getElementById('hist-type').value;
-  if (document.getElementById('hist-partner')) filterState.history.partner  = document.getElementById('hist-partner').value;
+  if (document.getElementById('hist-partner')) filterState.history.partner  = document.getElementById('hist-partner').value?.trim() || '';
   if (document.getElementById('hist-opponent'))filterState.history.opponent = document.getElementById('hist-opponent').value?.trim().toLowerCase() || '';
   if (document.getElementById('hist-sort'))    filterState.history.sort     = document.getElementById('hist-sort').value;
 
@@ -1771,15 +1776,14 @@ function renderHistory(page, preFilterPartner) {
     if (seasonFilter   && m.season !== seasonFilter) return false;
     if (levelFilter    && m.level  !== levelFilter)  return false;
     if (typeFilter     && m.type   !== typeFilter)   return false;
-    if (partnerFilter  && m.partner !== partnerFilter) return false;
-    if (opponentFilter && !(m.opp1+' '+m.opp2).toLowerCase().includes(opponentFilter)) return false;
+    if (partnerFilter  && !m.partner?.toLowerCase().includes(partnerFilter.toLowerCase())) return false;
+    if (opponentFilter && !(m.opp1+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
     return true;
   }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
 
   const total = filtered.length;
 
   const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter].filter(Boolean).length;
-  const partners = ['', ...(validEntries.partner || [])];
 
   const content = document.getElementById('content');
   content.innerHTML = `
@@ -1796,12 +1800,8 @@ function renderHistory(page, preFilterPartner) {
       </div>
       <div id="hist-filter-body" style="display:none;padding:0 14px 12px">
         <div class="history-controls">
-          <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:200px">
-            <input class="search-input" id="hist-opponent" placeholder="Search opponent…" value="${escHtml(opponentFilter)}" oninput="debounceHistorySearch()" style="flex:1">
-          </div>
-          <select class="filter-select" id="hist-partner" onchange="renderHistory()">
-            ${partners.map(p=>`<option value="${p}" ${p===partnerFilter?'selected':''}>${p||'All Partners'}</option>`).join('')}
-          </select>
+          <input class="search-input" id="hist-opponent" placeholder="Search opponent…" value="${escHtml(opponentFilter)}" oninput="debounceHistorySearch()" style="flex:1;min-width:140px">
+          <input class="search-input" id="hist-partner" placeholder="Search partner…" value="${escHtml(partnerFilter)}" oninput="debounceHistorySearch()" style="min-width:130px;max-width:180px">
           <select class="filter-select" id="hist-year" onchange="renderHistory()">
             ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
           </select>
@@ -1857,24 +1857,77 @@ function renderHistory(page, preFilterPartner) {
       </tr>`;
   }).join('');
 
-  // Build insights for filtered matches
+  // Build detailed history insights
   const histW = filtered.filter(m=>m.result==='W').length;
   const histL = filtered.filter(m=>m.result==='L').length;
-  const histInsight = buildSplitsInsight(filtered);
+
+  function insightWL(label, arr) {
+    const w=arr.filter(m=>m.result==='W').length, l=arr.filter(m=>m.result==='L').length;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;color:var(--label)">${label}</span>
+      <span style="font-size:12px;font-weight:600;color:var(--text)">${w}–${l}</span>
+    </div>`;
+  }
+
+  const singles  = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('singles'));
+  const doubles  = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('doubles'));
+  const mixed    = filtered.filter(m=>m.type&&m.type.toLowerCase().includes('mixed'));
+
+  // Tiebreaks
+  let tbW=0,tbL=0;
+  filtered.forEach(m=>{
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l])=>{
+      const nw=num(w),nl=num(l);
+      if(nw===7&&nl===6)tbW++;
+      if(nw===6&&nl===7)tbL++;
+    });
+  });
+
+  // Partner stats
+  const partnerMap={};
+  filtered.filter(m=>m.partner&&m.partner!=='None'&&m.partner!=='').forEach(m=>{
+    if(!partnerMap[m.partner])partnerMap[m.partner]={w:0,l:0};
+    if(m.result==='W')partnerMap[m.partner].w++;else partnerMap[m.partner].l++;
+  });
+  const partners2=Object.entries(partnerMap).map(([n,{w,l}])=>({n,w,l,t:w+l,pv:w/(w+l)||0}));
+  const mostWins  = partners2.length?partners2.reduce((a,b)=>a.w>b.w?a:b):null;
+  const bestPct   = partners2.filter(p=>p.t>=3).length ? partners2.filter(p=>p.t>=3).reduce((a,b)=>a.pv>b.pv?a:b) : null;
+
+  const partnerInsight = mostWins
+    ? `You have the most wins with <strong>${mostWins.n}</strong> (${mostWins.w}–${mostWins.l}).${bestPct&&bestPct.n!==mostWins.n?` Highest win % with <strong>${bestPct.n}</strong> (${(bestPct.pv*100).toFixed(0)}%, ${bestPct.w}–${bestPct.l}).`:''}`
+    : 'No doubles matches in this selection.';
 
   content.innerHTML += `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:16px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Filtered Results</div>
-        <div style="display:flex;align-items:flex-end;gap:8px">
-          <span style="font-size:22px;font-weight:700;color:var(--text)">${histW}–${histL}</span>
-          <span style="font-size:13px;color:var(--muted);padding-bottom:2px">${pct(histW,histL)}</span>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Record Breakdown</div>
+        ${insightWL('Overall', filtered)}
+        ${singles.length?insightWL('Singles', singles):''}
+        ${doubles.length?insightWL('Doubles', doubles):''}
+        ${mixed.length?insightWL('Mixed', mixed):''}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">
+          <span style="font-size:12px;color:var(--label)">Tiebreaks</span>
+          <span style="font-size:12px;font-weight:600;color:var(--text)">${tbW}–${tbL}</span>
         </div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px">${total} match${total!==1?'es':''}</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Insights</div>
-        <div style="font-size:12px;color:var(--label);line-height:1.6">${histInsight}</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Partner Performance</div>
+        <div style="font-size:12px;color:var(--label);line-height:1.7">${partnerInsight}</div>
+        ${partners2.length>=2?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
+          ${partners2.sort((a,b)=>b.w-a.w).slice(0,3).map(p=>`
+            <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px">
+              <span style="color:var(--label)">${p.n}</span>
+              <span style="font-weight:600;color:var(--text)">${p.w}–${p.l}</span>
+            </div>`).join('')}
+        </div>`:''}
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px">Performance Splits</div>
+        ${insightWL('Home', filtered.filter(m=>m.homeaway==='Home'))}
+        ${insightWL('Away', filtered.filter(m=>m.homeaway==='Away'))}
+        ${insightWL('Morning', filtered.filter(m=>m.time==='Morning'||m.time==='Day'))}
+        ${insightWL('Afternoon', filtered.filter(m=>m.time==='Afternoon'))}
+        ${insightWL('Night', filtered.filter(m=>m.time==='Night'))}
       </div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">
@@ -1897,6 +1950,10 @@ function renderHistory(page, preFilterPartner) {
   autoOpenHistFilters();
 }
 function debounceHistorySearch() {
+  const oppEl = document.getElementById('hist-opponent');
+  const parEl = document.getElementById('hist-partner');
+  if (oppEl) filterState.history.opponent = oppEl.value.trim().toLowerCase();
+  if (parEl) filterState.history.partner  = parEl.value.trim();
   clearTimeout(histSearchTimer);
   histSearchTimer = setTimeout(() => renderHistory(1), 400);
 }
@@ -2292,8 +2349,12 @@ function renderVEContent() {
       .ve-add-btn:hover{background:var(--accent)}
     </style>
     <div class="ve-cards-grid">
+      ${cardsHtml}
       <div class="ve-card" style="grid-column:1/-1">
         <div class="ve-card-title">Performance Thresholds</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">
+          These thresholds control row coloring across the app. Win rates above the Great threshold turn green, below Poor turn red, and everything in between turns orange.
+        </div>
         <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
           <div class="ve-threshold-field">
             <div class="ve-threshold-label" style="color:var(--win)">Great (Green) &ge;</div>
@@ -2317,7 +2378,6 @@ function renderVEContent() {
           <button class="ve-save-threshold" onclick="veSaveThresholds()">Save</button>
         </div>
       </div>
-      ${cardsHtml}
     </div>
     <div class="confirm-overlay" id="ve-confirm-delete">
       <div class="confirm-box">
@@ -2617,39 +2677,60 @@ function renderEntry() {
         </div>
 
         <div class="section-title" style="margin-top:16px">Scores</div>
-        ${tog('opp-ret','Opponent Retired',"onchange=\"onEntryRetiredChange()\"")}
-        ${tog('we-ret','I / We Retired',"onchange=\"onEntryRetiredChange()\"")}
 
-        <div class="field">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-            <div>
-              <div class="field-label" style="font-size:10px">Set 1 <span class="required-dot"></span></div>
-              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center">
-                <input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 4px;font-size:13px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-                <span style="color:var(--muted);font-size:14px;text-align:center">–</span>
-                <input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 4px;font-size:13px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+        <!-- Set score boxes — bordered, no dashes, retired below -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <!-- Set 1 -->
+          <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;text-align:center">Set 1 <span class="required-dot"></span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+              <div>
+                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Us</div>
+                <input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
               </div>
-            </div>
-            <div>
-              <div class="field-label" style="font-size:10px">Set 2</div>
-              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center">
-                <input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 4px;font-size:13px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-                <span style="color:var(--muted);font-size:14px;text-align:center">–</span>
-                <input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 4px;font-size:13px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-              </div>
-            </div>
-            <div id="e-s3-container" style="opacity:0.3;pointer-events:none">
-              <div class="field-label" style="font-size:10px">Set 3</div>
-              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center">
-                <input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 4px;font-size:13px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
-                <span style="color:var(--muted);font-size:14px;text-align:center">–</span>
-                <input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 4px;font-size:13px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
+              <div>
+                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Opp</div>
+                <input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
               </div>
             </div>
           </div>
-          <div class="field-error" id="err-s1" style="margin-top:6px">Set 1 is required</div>
-          <div class="field-error" id="err-s2" style="margin-top:2px">Set 2 required (unless retired)</div>
-          <div class="field-error" id="err-s3" style="margin-top:2px">Set 3 required — sets were split</div>
+          <!-- Set 2 -->
+          <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;text-align:center">Set 2</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+              <div>
+                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Us</div>
+                <input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+              </div>
+              <div>
+                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Opp</div>
+                <input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+              </div>
+            </div>
+          </div>
+          <!-- Set 3 -->
+          <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;text-align:center">Set 3</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+              <div>
+                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Us</div>
+                <input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
+              </div>
+              <div>
+                <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:3px">Opp</div>
+                <input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:6px 2px;font-size:14px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field-error" id="err-s1">Set 1 is required</div>
+        <div class="field-error" id="err-s2">Set 2 required (unless retired)</div>
+        <div class="field-error" id="err-s3">Set 3 required — sets were split</div>
+
+        <!-- Retired options below scores -->
+        <div style="margin-top:10px">
+          ${tog('opp-ret','Opponent Retired',"onchange=\"onEntryRetiredChange()\"")}
+          ${tog('we-ret','I / We Retired',"onchange=\"onEntryRetiredChange()\"")}
         </div>
       </div>
 
