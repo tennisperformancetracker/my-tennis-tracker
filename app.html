@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Match Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -173,7 +173,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .dash-grid.full { grid-template-columns: 1fr; }
 .card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  padding: 20px; box-shadow: var(--shadow); overflow: hidden; min-width: 0;
+  padding: 20px; box-shadow: var(--shadow); min-width: 0;
 }
 .card-header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
@@ -2854,82 +2854,73 @@ function renderEntry() {
           <input type="text" id="e-type-new" placeholder="Enter type name">
         </div>
 
-        <!-- Opponent / Partner / Score in 3 columns -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:4px">
+        <!-- Opponents full width -->
+        <div class="section-title" style="font-size:11px;margin:10px 0 6px">Opponent(s)</div>
+        ${inp('opp1','Opponent 1','text',true,'First Last')}
+        <div class="cond cond-hidden" id="e-opp2-field">
+          ${inp('opp2','Opponent 2','text',false,'First Last')}
+        </div>
 
-          <!-- Column 1: Opponent(s) -->
-          <div>
-            <div class="section-title" style="font-size:11px;margin-bottom:8px">Opponent(s)</div>
-            ${inp('opp1','Opponent 1','text',true,'First Last')}
-            <div class="cond cond-hidden" id="e-opp2-field">
-              ${inp('opp2','Opponent 2','text',false,'First Last')}
+        <!-- Partner full width (doubles only) -->
+        <div class="cond cond-hidden" id="e-doubles-fields">
+          <div class="section-title" style="font-size:11px;margin:10px 0 6px">Partner</div>
+          ${sel('partner','Partner',validEntries.partner||[],false,"onchange=\"onEntryNewSelect('partner')\"")}
+          <div class="field hidden" id="field-partner-new">
+            <div class="field-label">New Partner</div>
+            <input type="text" id="e-partner-new" placeholder="First Last">
+          </div>
+        </div>
+
+        <!-- Score boxes — 3 in a row -->
+        <div class="section-title" style="font-size:11px;margin:10px 0 6px">Score</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <!-- Set 1 -->
+          <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+            <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 1 <span class="required-dot"></span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+              <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
+                <input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+              </div>
+              <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
+                <input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+              </div>
             </div>
           </div>
-
-          <!-- Column 2: Partner (shown for doubles) -->
-          <div class="cond cond-hidden" id="e-doubles-fields">
-            <div class="section-title" style="font-size:11px;margin-bottom:8px">Partner</div>
-            ${sel('partner','Partner',validEntries.partner||[],false,"onchange=\"onEntryNewSelect('partner')\"")}
-            <div class="field hidden" id="field-partner-new">
-              <div class="field-label">New Partner</div>
-              <input type="text" id="e-partner-new" placeholder="First Last">
+          <!-- Set 2 -->
+          <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+            <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 2</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+              <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
+                <input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+              </div>
+              <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
+                <input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
+              </div>
             </div>
           </div>
-          <!-- Placeholder when singles so scores stay in col 3 -->
-          <div id="e-singles-spacer"></div>
-
-          <!-- Column 3: Scores -->
-          <div>
-            <div class="section-title" style="font-size:11px;margin-bottom:8px">Score</div>
-            <div style="display:flex;flex-direction:column;gap:6px">
-              <!-- Set 1 -->
-              <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
-                <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 1 <span class="required-dot"></span></div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
-                    <input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-                  </div>
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
-                    <input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-                  </div>
-                </div>
+          <!-- Set 3 -->
+          <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
+            <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 3</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+              <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
+                <input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
               </div>
-              <!-- Set 2 -->
-              <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
-                <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 2</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
-                    <input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-                  </div>
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
-                    <input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none" onchange="onEntryScoreChange()">
-                  </div>
-                </div>
+              <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
+                <input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
               </div>
-              <!-- Set 3 -->
-              <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
-                <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:5px;text-align:center">Set 3</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>
-                    <input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
-                  </div>
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>
-                    <input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none">
-                  </div>
-                </div>
-              </div>
-              <div style="margin-top:2px">
-                <div class="field-error" id="err-s1">Set 1 required</div>
-                <div class="field-error" id="err-s2">Set 2 required</div>
-                <div class="field-error" id="err-s3">Set 3 required</div>
-              </div>
-            </div>
-            <!-- Retired options below score -->
-            <div style="margin-top:10px">
-              ${tog('opp-ret','Opp. Retired',"onchange=\"onEntryRetiredChange()\"")}
-              ${tog('we-ret','We Retired',"onchange=\"onEntryRetiredChange()\"")}
             </div>
           </div>
+        </div>
+        <div style="margin-top:4px">
+          <div class="field-error" id="err-s1">Set 1 required</div>
+          <div class="field-error" id="err-s2">Set 2 required</div>
+          <div class="field-error" id="err-s3">Set 3 required</div>
+        </div>
+
+        <!-- Retired — right-aligned toggles with full labels -->
+        <div style="margin-top:10px">
+          ${tog('opp-ret','Opponent Retired',"onchange=\"onEntryRetiredChange()\"")}
+          ${tog('we-ret','I / We Retired',"onchange=\"onEntryRetiredChange()\"")}
         </div>
       </div>
 
@@ -2972,10 +2963,10 @@ function renderEntry() {
       </div>
 
       <!-- Submit row -->
-      <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center">
-        <button class="btn btn-primary" style="padding:8px 20px;font-size:13px" onclick="submitEntry()">Submit Match</button>
+      <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center;justify-content:flex-end">
+        <span id="entry-status" style="font-size:13px;color:var(--muted);flex:1"></span>
         <button class="btn btn-ghost" style="padding:8px 20px;font-size:13px" onclick="resetEntryForm()">Clear</button>
-        <span id="entry-status" style="font-size:13px;color:var(--muted)"></span>
+        <button class="btn btn-primary" style="padding:8px 20px;font-size:13px" onclick="submitEntry()">Submit Match</button>
       </div>
     </div>
   `;
