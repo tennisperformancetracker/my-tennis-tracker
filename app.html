@@ -42,6 +42,9 @@ body.dark {
   --accent2:  #6385a2;
   --win-bg:   #e6f4ea;
   --loss-bg:  #fce8e6;
+}
+body.dark .result-pill.W { background: transparent; }
+body.dark .result-pill.L { background: transparent; }
   --text:     #dde6f0;
   --muted:    #7a97b0;
   --label:    #9ab0c4;
@@ -1988,9 +1991,10 @@ function buildHistoryResults(filtered, sortOrder) {
     var chevron = '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted)">'
       + (isMob ? '▼' : '▲') + '</span>';
     var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
-      + (isMob ? 'background:var(--surface2);' : '');
+      + (isMob ? 'background:var(--surface2);cursor:pointer;user-select:none;' : '');
+    var hdrOnclick = isMob ? ' onclick="toggleHistCard(\'' + id + '\')"' : '';
     return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);width:100%;min-width:0;">'
-      + '<div style="' + hdrStyle + '">'
+      + '<div' + hdrOnclick + ' style="' + hdrStyle + '">'
       + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">'
       + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
       + (headerExtra || '')
@@ -2167,6 +2171,15 @@ function applyHistoryFilter() {
   resultsEl.style.maxWidth = '100%';
   resultsEl.style.overflow = 'hidden';
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
+}
+
+function toggleHistCard(id) {
+  var body = document.getElementById(id);
+  var chev = document.getElementById(id + '-chev');
+  if (!body) return;
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (chev) chev.textContent = isOpen ? '▼' : '▲';
 }
 
 function toggleAllHistCards() {
