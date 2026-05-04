@@ -840,7 +840,16 @@ async function loadAll() {
     const histData  = await histRes.json();
     const validData = await validRes.json();
     if (histData.success)  allMatches   = histData.matches;
-    if (validData.success) validEntries = validData.validEntries;
+    if (validData.success) {
+      validEntries = validData.validEntries;
+      // Also pre-populate veEntries so Valid Entries page doesn't need a second fetch
+      if (validData.entries)    veEntries    = validData.entries;
+      if (validData.thresholds) {
+        veThresholds = validData.thresholds;
+        localStorage.setItem('thresholdGreat', veThresholds.great);
+        localStorage.setItem('thresholdPoor',  veThresholds.poor);
+      }
+    }
     showPage('dashboard');
   } catch(e) {
     setContent(`<div class="spinner-wrap" style="color:var(--danger)">Failed to load data. <button class="btn btn-ghost" onclick="loadAll()" style="margin-top:12px">Retry</button></div>`);
@@ -2491,6 +2500,13 @@ let vePendingRename = null;
 async function renderValidEntries() {
   document.getElementById('topbar-right').innerHTML = '';
   document.getElementById('mobile-filters').innerHTML = '';
+
+  // Use cached data if we already have entries loaded — no need to re-fetch
+  if (veEntries && Object.keys(veEntries).length > 0) {
+    renderVEContent();
+    return;
+  }
+
   setContent(`<div class="spinner-wrap"><div class="spinner"></div><div>Loading valid entries…</div></div>`);
   try {
     const res  = await fetch(`${webAppUrl}?action=getValidEntries`);
