@@ -601,7 +601,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   .mobile-filters { display: flex; }
 
   /* Content */
-  .content { padding: 12px 14px; }
+  .content { padding: 12px 14px; overflow-x: hidden; }
 
   /* KPI: 2 columns */
   .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
@@ -622,6 +622,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
   /* Entry form: single column */
   .entry-layout { grid-template-columns: 1fr; max-width: 100%; gap: 12px; }
+  .form-section { padding: 14px; overflow: hidden; }
+  .form-section * { box-sizing: border-box; max-width: 100%; }
+  .field input, .field select, .field textarea { font-size: 16px; } /* prevent iOS zoom */
   .entry-submit-row { grid-column: 1; flex-wrap: wrap; }
 
   /* History */
@@ -661,7 +664,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   .hist-insight-card [style*="display:flex;justify-content:space-between"] { flex-wrap: wrap; gap: 4px; }
 
   /* Valid entries grid */
-  .ve-cards-grid { grid-template-columns: 1fr !important; }
+  .ve-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; max-width: 100% !important; }
+  .ve-card { width: 100% !important; max-width: 100% !important; overflow: hidden; }
+  .ve-add-row { flex-wrap: wrap; }
+  .ve-add-btn { white-space: nowrap; }
 }
 
 @media (max-width: 480px) {
@@ -995,10 +1001,13 @@ function setScoresHtml(m) {
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════
 function renderDashboard() {
-  // Read from DOM if available, else use persistent state
-  filterState.dash.type  = document.getElementById('dash-type-filter')?.value  ?? filterState.dash.type;
-  filterState.chart.mode = document.getElementById('chart-mode-filter')?.value  ?? filterState.chart.mode;
-  filterState.chart.year = document.getElementById('chart-year-filter')?.value  ?? filterState.chart.year;
+  // Only read from DOM selects if they exist — don't overwrite filterState from hidden elements
+  const dtEl = document.getElementById('dash-type-filter');
+  if (dtEl) filterState.dash.type = dtEl.value;
+  const cmEl = document.getElementById('chart-mode-filter');
+  if (cmEl) filterState.chart.mode = cmEl.value;
+  const cyEl = document.getElementById('chart-year-filter');
+  if (cyEl) filterState.chart.year = cyEl.value;
 
   const typeFilter = filterState.dash.type;
   const chartYear  = filterState.chart.year;
@@ -1655,7 +1664,10 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
   partners.sort((a,b) => dir * (a[sortCol] > b[sortCol] ? 1 : a[sortCol] < b[sortCol] ? -1 : 0));
   partners = partners.slice(0,10);
 
-  if (!partners.length) return `<div style="color:var(--muted);font-size:13px;padding:12px 0">No partners with ${threshold}+ matches found.</div>`;
+  if (!partners.length) {
+    const isSingles = filterState.dash.type && filterState.dash.type.toLowerCase().includes('singles');
+    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">${isSingles ? 'No partner data when viewing Singles.' : `No partners with ${threshold}+ matches found.`}</div>`;
+  }
 
   function thSort(col, label) {
     const isActive = sortCol === col;
@@ -2077,7 +2089,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
   // Desktop: cards grid wrapped in a relative container so the pill can sit on the bottom edge
   // Mobile: no pill — cards toggle individually via cardHtml headers
-  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;overflow:hidden;">'
+  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;">'
     + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
     + cardHtml('hc-perf',    'Performance Breakdown','',          card2Body)
     + cardHtml('hc-partner', 'Partner Performance',  card3Header, card3Body)
