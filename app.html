@@ -348,18 +348,20 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
 /* ── Match Entry form ───────────────────────────────────── */
 .entry-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; }
-.entry-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow); }
+.entry-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-width: 0; }
+.entry-pair > * { min-width: 0; }
+.form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow); box-sizing: border-box; overflow: hidden; }
+.form-section *, .form-section *::before, .form-section *::after { box-sizing: border-box; }
 .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted); margin-bottom: 16px; }
-.field { margin-bottom: 14px; }
+.field { margin-bottom: 14px; min-width: 0; }
 .field:last-child { margin-bottom: 0; }
 .field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--label); margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
-.required-dot { width: 5px; height: 5px; background: var(--danger); border-radius: 50%; display: inline-block; }
+.required-dot { width: 5px; height: 5px; background: var(--danger); border-radius: 50%; display: inline-block; flex-shrink: 0; }
 .field input, .field select, .field textarea {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
   font-size: 13px; padding: 9px 12px; outline: none; transition: border-color 0.2s;
-  appearance: none; -webkit-appearance: none;
+  appearance: none; -webkit-appearance: none; box-sizing: border-box; max-width: 100%;
 }
 .field select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -2961,24 +2963,24 @@ function renderEntry() {
         <!-- Scores -->
         <div style="margin-top:10px">
           <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Score</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;min-width:0">
             <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 1 <span class="required-dot"></span></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
             <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
             <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
