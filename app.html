@@ -621,10 +621,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   .chart-wrap { height: 200px !important; }
 
   /* Entry form: single column */
-  .entry-layout { grid-template-columns: 1fr; max-width: 100%; gap: 12px; }
-  .form-section { padding: 14px; overflow: hidden; }
-  .form-section * { box-sizing: border-box; max-width: 100%; }
-  .field input, .field select, .field textarea { font-size: 16px; } /* prevent iOS zoom */
+  .entry-layout { grid-template-columns: 1fr; max-width: 100%; gap: 12px; width: 100%; }
+  .form-section { padding: 14px; overflow: hidden; width: 100%; max-width: 100%; }
+  .form-section * { box-sizing: border-box; }
+  .form-section input, .form-section select, .form-section textarea { max-width: 100%; width: 100%; font-size: 16px; }
+  .two-col { grid-template-columns: 1fr !important; }
   .entry-submit-row { grid-column: 1; flex-wrap: wrap; }
 
   /* History */
@@ -1001,13 +1002,16 @@ function setScoresHtml(m) {
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════
 function renderDashboard() {
-  // Only read from DOM selects if they exist — don't overwrite filterState from hidden elements
-  const dtEl = document.getElementById('dash-type-filter');
-  if (dtEl) filterState.dash.type = dtEl.value;
-  const cmEl = document.getElementById('chart-mode-filter');
-  if (cmEl) filterState.chart.mode = cmEl.value;
-  const cyEl = document.getElementById('chart-year-filter');
-  if (cyEl) filterState.chart.year = cyEl.value;
+  // Only sync from desktop DOM selects when they're actually visible (not hidden by mobile CSS)
+  const isMobileView = window.innerWidth <= 768;
+  if (!isMobileView) {
+    const dtEl = document.getElementById('dash-type-filter');
+    if (dtEl) filterState.dash.type = dtEl.value;
+    const cmEl = document.getElementById('chart-mode-filter');
+    if (cmEl) filterState.chart.mode = cmEl.value;
+    const cyEl = document.getElementById('chart-year-filter');
+    if (cyEl) filterState.chart.year = cyEl.value;
+  }
 
   const typeFilter = filterState.dash.type;
   const chartYear  = filterState.chart.year;
@@ -1666,7 +1670,7 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
 
   if (!partners.length) {
     const isSingles = filterState.dash.type && filterState.dash.type.toLowerCase().includes('singles');
-    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">${isSingles ? 'No partner data when viewing Singles.' : `No partners with ${threshold}+ matches found.`}</div>`;
+    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">${isSingles ? 'No partner data when viewing the Dashboard for Singles.' : `No partners with ${threshold}+ matches found.`}</div>`;
   }
 
   function thSort(col, label) {
@@ -1874,7 +1878,7 @@ function renderHistory(page, preFilterPartner) {
   `;
 
   // Use insertAdjacentHTML so the filter bar above is NOT destroyed/recreated
-  content.insertAdjacentHTML('beforeend', `<div id="hist-results" style="max-width:100%;overflow:hidden">${buildHistoryResults(filtered, sortOrder)}</div>`);
+  content.insertAdjacentHTML('beforeend', `<div id="hist-results" style="max-width:100%;overflow:hidden;width:100%">${buildHistoryResults(filtered, sortOrder)}</div>`);
   autoOpenHistFilters();
 }
 
@@ -2182,6 +2186,7 @@ function applyHistoryFilter() {
   historyPage = 1;
   resultsEl.style.maxWidth = '100%';
   resultsEl.style.overflow = 'hidden';
+  resultsEl.style.width = '100%';
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
 }
 
@@ -2585,7 +2590,7 @@ function renderVEContent() {
       .ve-chip-red{background:var(--loss-bg);color:var(--loss)}
       .ve-save-threshold{background:var(--accent2);border:2px solid var(--accent);border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;white-space:nowrap}
       .ve-save-threshold:hover{background:var(--accent)}
-      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;width:100%;max-width:100%}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
       .ve-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
       .ve-count{background:var(--surface2);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--muted);font-weight:500}
