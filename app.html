@@ -715,6 +715,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <div class="url-display" id="url-display" onclick="promptUrl()" title="Click to change URL">
       Click to connect your sheet
     </div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:10px;line-height:1.4">
+      © 2026 Tennis Performance Tracker.<br>All rights reserved.
+    </div>
   </div>
 </aside>
 
@@ -736,6 +739,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   <!-- CONTENT -->
   <div class="content" id="content">
     <div class="spinner-wrap"><div class="spinner"></div><div>Loading…</div></div>
+  </div>
+  <div style="text-align:center;padding:12px 16px 20px;font-size:10px;color:var(--muted)">
+    © 2026 Tennis Performance Tracker. All rights reserved.
   </div>
 </main>
 
@@ -1975,17 +1981,16 @@ function buildHistoryResults(filtered, sortOrder) {
   // Card toggling on mobile — each card collapses
   function cardHtml(id, title, headerExtra, body) {
     var isMob = window.innerWidth <= 768;
-    // Mobile: closed by default. Desktop: open by default. Both are toggleable.
+    // Mobile: closed by default. Desktop: open by default.
     var bodyStyle = isMob
       ? 'display:none;padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;'
       : 'padding:0 14px 12px;';
-    var chevron = '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted);transition:transform 0.2s">'
+    var chevron = '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted)">'
       + (isMob ? '▼' : '▲') + '</span>';
     var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
-      + 'cursor:pointer;user-select:none;'
       + (isMob ? 'background:var(--surface2);' : '');
     return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);width:100%;min-width:0;">'
-      + '<div onclick="toggleHistCard(\'' + id + '\')" style="' + hdrStyle + '">'
+      + '<div style="' + hdrStyle + '">'
       + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">'
       + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
       + (headerExtra || '')
@@ -2067,7 +2072,15 @@ function buildHistoryResults(filtered, sortOrder) {
       + '</tr>';
   }).join('');
 
-  return '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;width:100%;min-width:0;overflow:hidden;">'
+  var isMob = window.innerWidth <= 768;
+  var toggleBtn = '<div style="display:flex;justify-content:flex-end;margin-bottom:8px">'
+    + '<button id="hist-cards-toggle-btn" onclick="toggleAllHistCards()" '
+    + 'style="background:none;border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:var(--font);font-size:12px;font-weight:500;padding:5px 12px;cursor:pointer">'
+    + (isMob ? '▼ Show Insights' : '▲ Hide Insights')
+    + '</button></div>';
+
+  return toggleBtn
+    + '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;width:100%;min-width:0;overflow:hidden;">'
     + cardHtml('hc-record',  'Record Breakdown',    '',            card1Body)
     + cardHtml('hc-perf',    'Performance Breakdown','',            card2Body)
     + cardHtml('hc-partner', 'Partner Performance',  card3Header,   card3Body)
@@ -2152,13 +2165,21 @@ function applyHistoryFilter() {
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
 }
 
-function toggleHistCard(id) {
-  var body  = document.getElementById(id);
-  var chev  = document.getElementById(id + '-chev');
-  if (!body) return;
-  var isOpen = body.style.display !== 'none';
-  body.style.display = isOpen ? 'none' : 'block';
-  if (chev) chev.textContent = isOpen ? '▼' : '▲';
+function toggleAllHistCards() {
+  var ids = ['hc-record', 'hc-perf', 'hc-partner'];
+  // Determine current state from first card
+  var first = document.getElementById(ids[0]);
+  if (!first) return;
+  var isOpen = first.style.display !== 'none';
+  ids.forEach(function(id) {
+    var body = document.getElementById(id);
+    var chev = document.getElementById(id + '-chev');
+    if (body) body.style.display = isOpen ? 'none' : 'block';
+    if (chev) chev.textContent = isOpen ? '▼' : '▲';
+  });
+  // Update toggle button label
+  var btn = document.getElementById('hist-cards-toggle-btn');
+  if (btn) btn.textContent = isOpen ? '▼ Show Insights' : '▲ Hide Insights';
 }
 
 function toggleHistFilters() {
