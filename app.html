@@ -40,8 +40,8 @@ body.dark {
   --border:   #2e3f54;
   --accent:   #1e2d3d;
   --accent2:  #6385a2;
-  --win-bg:   #0d2e1a;
-  --loss-bg:  #2e0f0f;
+  --win-bg:   #e6f4ea;
+  --loss-bg:  #fce8e6;
   --text:     #dde6f0;
   --muted:    #7a97b0;
   --label:    #9ab0c4;
@@ -2048,19 +2048,17 @@ function buildHistoryResults(filtered, sortOrder) {
     var noteInd = m.notes ? '<span class="note-indicator" title="' + escHtml(m.notes) + '" style="cursor:help"></span>' : '';
     var isMob = window.innerWidth <= 768;
     if (isMob) {
-      // Mobile: 3 columns, partner + score wrap under opponent
+      // Mobile: opponent line 1, partner line 2, scores line 3
       return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
         + '<td style="white-space:nowrap;font-size:12px;color:var(--text);vertical-align:top;padding-top:11px">' + (m.date || '') + '</td>'
         + '<td style="vertical-align:top;padding-top:9px"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
         + '<td>'
           + '<div style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + '</div>'
-          + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-items:center">'
-            + (partner ? '<span style="font-size:12px;color:var(--muted)">w/ ' + partner + '</span>' : '')
-            + (partner ? '<span style="color:var(--border)">·</span>' : '')
-            + '<div class="hist-scores">' + scoresHtml + retired + noteInd + '</div>'
-          + '</div>'
+          + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">w/ ' + partner + '</div>' : '')
+          + '<div class="hist-scores" style="margin-top:5px">' + scoresHtml + retired + noteInd + '</div>'
         + '</td>'
         + '</tr>';
+    }
     }
     // Desktop: 5 columns — Date, Result, Opponent, Partner, Score
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
