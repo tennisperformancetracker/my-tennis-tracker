@@ -1553,37 +1553,34 @@ function renderChart(keys, labels, pcts, dataMap, mode, chartYear) {
   // Biggest improvement — skip for all-years calendar month mode (months aren't sequential)
   const isCalendarMonthMode = mode === 'month' && !chartYear;
   let biggestJump = 0, jumpFromLabel = '', jumpToLabel = '', jumpFromPct = 0, jumpToPct = 0;
-  if (!isCalendarMonthMode) {
-    for (let i = 1; i < keys.length; i++) {
-      const jump = pcts[i] - pcts[i-1];
-      if (jump > biggestJump) {
-        biggestJump = jump;
-        jumpFromLabel = fmtKey(keys[i-1]);
-        jumpToLabel   = fmtKey(keys[i]);
-        jumpFromPct   = pcts[i-1];
-        jumpToPct     = pcts[i];
-      }
+  // Biggest Improvement — all modes
+  for (let i = 1; i < keys.length; i++) {
+    const jump = pcts[i] - pcts[i-1];
+    if (jump > biggestJump) {
+      biggestJump = jump;
+      jumpFromLabel = fmtKey(keys[i-1]);
+      jumpToLabel   = fmtKey(keys[i]);
+      jumpFromPct   = pcts[i-1];
+      jumpToPct     = pcts[i];
     }
   }
 
-  // Recent trend — also skip for calendar month mode
+  // Recent trend — all modes
   let trendHtml = '';
-  if (!isCalendarMonthMode) {
-    if (keys.length >= 4) {
-      const recent2Avg = (pcts[keys.length-1] + pcts[keys.length-2]) / 2;
-      const prev2Avg   = (pcts[keys.length-3] + pcts[keys.length-4]) / 2;
-      const diff = recent2Avg - prev2Avg;
-      const dir  = diff >= 0 ? '↑' : '↓';
-      const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
-      const period = mode === 'year' ? 'years' : 'months';
-      trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff).toFixed(0)}%</strong> vs prior 2 ${period}`;
-    } else if (keys.length >= 2) {
-      const diff = pcts[keys.length-1] - pcts[keys.length-2];
-      const dir  = diff >= 0 ? '↑' : '↓';
-      const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
-      const period = mode === 'year' ? 'year' : 'month';
-      trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff)}%</strong> vs previous ${period}`;
-    }
+  if (keys.length >= 4) {
+    const recent2Avg = (pcts[keys.length-1] + pcts[keys.length-2]) / 2;
+    const prev2Avg   = (pcts[keys.length-3] + pcts[keys.length-4]) / 2;
+    const diff = recent2Avg - prev2Avg;
+    const dir  = diff >= 0 ? '↑' : '↓';
+    const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
+    const period = mode === 'year' ? 'years' : 'months';
+    trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff).toFixed(0)}%</strong> vs prior 2 ${period}`;
+  } else if (keys.length >= 2) {
+    const diff = pcts[keys.length-1] - pcts[keys.length-2];
+    const dir  = diff >= 0 ? '↑' : '↓';
+    const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
+    const period = mode === 'year' ? 'year' : 'month';
+    trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff)}%</strong> vs previous ${period}`;
   }
 
   panel.innerHTML = `
@@ -1595,18 +1592,6 @@ function renderChart(keys, labels, pcts, dataMap, mode, chartYear) {
       <div class="chart-insight-label">📉 Worst ${mode==='year'?'Year':'Month'}</div>
       <div class="chart-insight-value"><strong>${fmtKey(keys[worstIdx])}</strong> — ${pcts[worstIdx]}% (${wW}W–${wL}L)</div>
     </div>
-    ${isCalendarMonthMode ? (() => {
-      // Find the month with the most matches played
-      const busiest = keys.reduce((a,b) => (dataMap[a].w+dataMap[a].l) >= (dataMap[b].w+dataMap[b].l) ? a : b);
-      const {w:bW, l:bL} = dataMap[busiest];
-      const MFULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
-      const bName = MFULL[parseInt(busiest)];
-      return `
-    <div class="chart-insight-card">
-      <div class="chart-insight-label">🎾 Most Active Month</div>
-      <div class="chart-insight-value"><strong>${bName}</strong> — ${bW+bL} matches (${bW}W–${bL}L)</div>
-    </div>`;
-    })() : ''}
     ${biggestJump > 0 ? `
     <div class="chart-insight-card">
       <div class="chart-insight-label">⚡ Biggest Improvement</div>
@@ -2559,14 +2544,18 @@ function renderVEContent() {
     const extra = vals.length > SHOW;
     const visible = vals.slice(0, SHOW).map((v,i) => buildItem(field,v,i)).join('');
     const hidden  = vals.slice(SHOW).map((v,i) => buildItem(field,v,i+SHOW)).join('');
+    // Always reserve the same space for the expand button row so Add aligns across cards
+    const expandRow = extra
+      ? `<ul class="ve-list" id="ve-list-${field}-extra" style="display:none">${hidden}</ul>
+        <button onclick="veToggleExpand('${field}')" id="ve-expand-${field}"
+          style="background:none;border:none;color:var(--accent2);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px">
+          &#x2193; Show ${vals.length - SHOW} more</button>`
+      : `<div style="height:28px;margin-bottom:8px"></div>`;
     return `
       <div class="ve-card">
         <div class="ve-card-title">${VE_FIELD_LABELS[field]}<span class="ve-count">${vals.length}</span></div>
         <ul class="ve-list">${visible || '<li style="font-size:12px;color:var(--muted);padding:6px 0">No entries yet</li>'}</ul>
-        ${extra ? `<ul class="ve-list" id="ve-list-${field}-extra" style="display:none">${hidden}</ul>
-        <button onclick="veToggleExpand('${field}')" id="ve-expand-${field}"
-          style="background:none;border:none;color:var(--accent2);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px">
-          &#x2193; Show ${vals.length - SHOW} more</button>` : ''}
+        ${expandRow}
         <div class="ve-add-row">
           <input type="text" class="ve-add-input" id="ve-add-${field}" placeholder="Add new&hellip;"
             onkeydown="if(event.key==='Enter') veAddEntry('${field}')">
@@ -2611,12 +2600,12 @@ function renderVEContent() {
     </style>
     <div class="ve-cards-grid">
       ${cardsHtml}
-      <div class="ve-card" style="grid-column:1/-1">
+      <div class="ve-card">
         <div class="ve-card-title">Performance Thresholds</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">
-          These thresholds control row coloring across the app. Win rates above the Great threshold turn green, below Poor turn red, and everything in between turns orange.
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+          Controls row coloring — green above Great %, red below Poor %.
         </div>
-        <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:12px">
           <div class="ve-threshold-field">
             <div class="ve-threshold-label" style="color:var(--win)">Great (Green) &ge;</div>
             <div class="ve-threshold-wrap">
@@ -2631,7 +2620,7 @@ function renderVEContent() {
               <span style="font-size:14px;color:var(--muted)">%</span>
             </div>
           </div>
-          <div class="ve-preview" id="ve-t-preview">
+          <div id="ve-t-preview" style="display:flex;gap:6px;flex-wrap:wrap">
             <span class="ve-chip ve-chip-green">&ge; ${great}%</span>
             <span class="ve-chip ve-chip-orange">${poor}&ndash;${great}%</span>
             <span class="ve-chip ve-chip-red">&le; ${poor}%</span>
