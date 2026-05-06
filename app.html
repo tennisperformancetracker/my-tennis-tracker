@@ -45,6 +45,9 @@ body.dark {
 }
 body.dark .result-pill.W { background: transparent; }
 body.dark .result-pill.L { background: transparent; }
+body.dark .hist-date { color: var(--label); }
+body.dark .hist-opponent { color: var(--label); }
+body.dark .history-table th { color: var(--label); font-weight: 700; }
   --text:     #dde6f0;
   --muted:    #7a97b0;
   --label:    #9ab0c4;
@@ -519,7 +522,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .back-btn:hover { color: var(--accent); }
 
 /* Spinner */
-.spinner-wrap { text-align: center; padding: 60px; color: var(--muted); }
+.saving-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.saving-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px 32px; display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18); font-size: 14px; color: var(--text); font-weight: 500;
+}
 .spinner {
   display: inline-block; width: 32px; height: 32px;
   border: 3px solid var(--border); border-top-color: var(--accent2);
@@ -878,6 +889,22 @@ function closeSidebar() {
 // ═══════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════
+function showSaving(msg) {
+  let el = document.getElementById('saving-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'saving-overlay';
+    el.className = 'saving-overlay';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = '<div class="saving-box"><div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0"></div><span>' + (msg||'Saving…') + '</span></div>';
+  el.style.display = 'flex';
+}
+function hideSaving() {
+  const el = document.getElementById('saving-overlay');
+  if (el) el.style.display = 'none';
+}
+
 function showPage(page) {
   currentPage = page;
   closeSidebar();
@@ -2412,6 +2439,7 @@ function openEditMode(idx) {
 }
 
 async function saveEdit(idx) {
+  showSaving('Saving changes…');
   const m = allMatches[idx];
   const get = id => { const el = document.getElementById('edit-'+id); return el ? el.value : ''; };
   const getCheck = id => { const el = document.getElementById('edit-'+id); return el ? el.checked : false; };
@@ -2711,6 +2739,7 @@ async function veSaveThresholds() {
 }
 
 async function veAddEntry(field) {
+  showSaving('Adding…');
   const input = document.getElementById('ve-add-'+field);
   const value = input.value.trim();
   if (!value) return;
@@ -2760,6 +2789,7 @@ async function veTriggerRename(field, idx) {
 }
 
 async function veConfirmRename() {
+  showSaving('Renaming…');
   document.getElementById('ve-confirm-rename').classList.remove('visible');
   if (!vePendingRename) return;
   const {field, oldValue, newValue} = vePendingRename;
@@ -2794,6 +2824,7 @@ function veTriggerDelete(field, value) {
 }
 
 async function veConfirmDelete() {
+  showSaving('Deleting…');
   document.getElementById('ve-confirm-delete').classList.remove('visible');
   if (!vePendingDelete) return;
   const {field, value} = vePendingDelete;
@@ -2844,12 +2875,14 @@ async function confirmDelete() {
   const idx = pendingDeleteIdx;
   closeConfirm();
   closeModal();
+  showSaving('Deleting match…');
   try {
     const res = await fetch(webAppUrl, {
       method: 'POST',
       body: JSON.stringify({ action: 'deleteMatch', matchIndex: idx })
     });
     const data = await res.json();
+    hideSaving();
     if (data.success) {
       allMatches.splice(idx, 1);
       showToast('Match deleted');
@@ -2859,6 +2892,7 @@ async function confirmDelete() {
       showToast(data.error || 'Delete failed', true);
     }
   } catch(e) {
+    hideSaving();
     showToast('Network error: ' + e.message, true);
   }
 }
@@ -2937,6 +2971,9 @@ function renderEntry() {
         <div class="field hidden" id="field-type-new">
           <div class="field-label">New Type Name</div>
           <input type="text" id="e-type-new" placeholder="Enter type name">
+          <div style="margin-top:5px;font-size:11px;color:var(--muted);line-height:1.4;font-style:italic">
+            💡 For optimal results, include the word "doubles" for any doubles type — e.g. Men's Doubles, Mixed Doubles.
+          </div>
         </div>
 
         <!-- Opponents -->
@@ -2959,12 +2996,13 @@ function renderEntry() {
         <div id="e-doubles-fields" class="cond cond-hidden" style="margin-top:6px">
           <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Partner</div>
           <div class="field">
-            <div class="field-label">Partner</div>
+            <div class="field-label">Partner <span class="required-dot"></span></div>
             <select id="e-partner" onchange="onEntryNewSelect('partner')">
               <option value="">— Select —</option>
               ${(validEntries.partner||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
+            <div class="field-error" id="err-partner">Partner is required for doubles</div>
           </div>
           <div class="field hidden" id="field-partner-new">
             <div class="field-label">New Partner</div>
@@ -3201,35 +3239,65 @@ async function submitEntry() {
   const getCheck = id => document.getElementById('e-'+id)?.checked || false;
   const resolve = key => { const v=get(key); return v==='__new__' ? (get(key+'-new')||'') : v; };
 
-  // Validate
   const type = resolve('type');
   const isDb = type.toLowerCase().includes('doubles');
+  const retired = getCheck('opp-ret') || getCheck('we-ret');
   let valid = true;
-  const setErr = (id, show) => {
+
+  const setErr = (id, show, msg) => {
     const el = document.getElementById('err-'+id);
-    if (el) el.classList.toggle('visible', show);
+    if (el) { el.classList.toggle('visible', show); if (msg && show) el.textContent = msg; }
   };
 
   if (!type) { setErr('type',true); valid=false; }
   if (!get('opp1').trim()) { setErr('opp1',true); valid=false; }
   if (isDb && !get('opp2').trim()) { setErr('opp2',true); valid=false; }
 
-  const retired = getCheck('opp-ret') || getCheck('we-ret');
+  // Partner required for doubles
+  if (isDb) {
+    const partnerVal = resolve('partner');
+    if (!partnerVal.trim()) { setErr('partner',true,'Partner is required for doubles'); valid=false; }
+  }
+
+  // Validate set scores
+  function validSetScore(w, l, isThird) {
+    const nw = parseInt(w), nl = parseInt(l);
+    if (isNaN(nw) || isNaN(nl)) return false;
+    // Third set: 1-0 or 0-1 valid (super tiebreak)
+    if (isThird && ((nw===1&&nl===0)||(nw===0&&nl===1))) return true;
+    // Tiebreak: 7-6 or 6-7
+    if ((nw===7&&nl===6)||(nw===6&&nl===7)) return true;
+    // Normal: win by 2, at least 6
+    const hi=Math.max(nw,nl), lo=Math.min(nw,nl);
+    return hi>=6 && hi-lo>=2;
+  }
+
+  const s1w=get('s1w'), s1l=get('s1l');
+  const s2w=get('s2w'), s2l=get('s2l');
+  const s3w=get('s3w'), s3l=get('s3l');
 
   // Set 1 always required
-  if (get('s1w')===''||get('s1l')==='') { setErr('s1',true); valid=false; }
+  if (s1w===''||s1l==='') { setErr('s1',true,'Set 1 is required'); valid=false; }
+  else if (!retired && !validSetScore(s1w,s1l,false)) { setErr('s1',true,'Invalid score (e.g. 6–0, 7–6)'); valid=false; }
+  else setErr('s1',false);
 
-  // Set 2 required unless someone retired
-  if (!retired && (get('s2w')===''||get('s2l')==='')) { setErr('s2',true); valid=false; }
+  // Set 2 required unless retired
+  if (!retired) {
+    if (s2w===''||s2l==='') { setErr('s2',true,'Set 2 is required'); valid=false; }
+    else if (!validSetScore(s2w,s2l,false)) { setErr('s2',true,'Invalid score (e.g. 6–4, 7–6)'); valid=false; }
+    else setErr('s2',false);
+  } else { setErr('s2',false); }
 
-  // Set 3 required if sets 1 and 2 were split (different winner) unless someone retired
-  if (!retired && get('s1w')!==''&&get('s1l')!==''&&get('s2w')!==''&&get('s2l')!=='') {
-    const s1w=parseInt(get('s1w')),s1l=parseInt(get('s1l'));
-    const s2w=parseInt(get('s2w')),s2l=parseInt(get('s2l'));
-    if (!isNaN(s1w)&&!isNaN(s1l)&&!isNaN(s2w)&&!isNaN(s2l) && (s1w>s1l)!==(s2w>s2l)) {
-      if (get('s3w')===''||get('s3l')==='') { setErr('s3',true); valid=false; }
+  // Set 3 required if sets split
+  if (!retired && s1w!==''&&s1l!==''&&s2w!==''&&s2l!=='') {
+    const n1w=parseInt(s1w),n1l=parseInt(s1l),n2w=parseInt(s2w),n2l=parseInt(s2l);
+    if (!isNaN(n1w)&&!isNaN(n1l)&&!isNaN(n2w)&&!isNaN(n2l) && (n1w>n1l)!==(n2w>n2l)) {
+      if (s3w===''||s3l==='') { setErr('s3',true,'Set 3 required — sets were split'); valid=false; }
+      else if (!validSetScore(s3w,s3l,true)) { setErr('s3',true,'Invalid (e.g. 6–4, 7–6, or 1–0)'); valid=false; }
+      else setErr('s3',false);
     }
   }
+
   if (!valid) return;
 
   const dateRaw = get('date');
@@ -3256,8 +3324,7 @@ async function submitEntry() {
     notes: document.getElementById('e-notes')?.value?.trim() || ''
   };
 
-  const statusEl = document.getElementById('entry-status');
-  if (statusEl) statusEl.textContent = 'Saving…';
+  showSaving('Saving match…');
 
   try {
     if (Object.keys(newEntries).length > 0) {
@@ -3270,16 +3337,16 @@ async function submitEntry() {
     const res = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({match}) });
     const data = await res.json();
     if (data.success) {
+      hideSaving();
       showToast('Match submitted successfully!');
-      if (statusEl) statusEl.textContent = '';
       resetEntryForm();
-      // Add to local state so history updates without refresh
       await loadAll();
     } else {
+      hideSaving();
       showToast(data.error||'Submission failed', true);
-      if (statusEl) statusEl.textContent = '';
     }
   } catch(e) {
+    hideSaving();
     showToast('Network error: '+e.message, true);
     if (statusEl) statusEl.textContent = '';
   }
