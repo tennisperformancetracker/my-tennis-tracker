@@ -1817,12 +1817,13 @@ function renderHistory(page, preFilterPartner) {
 
   document.getElementById('mobile-filters').innerHTML = '';
   document.getElementById('topbar-right').innerHTML = `
+    <div class="topbar-filter-group">
+      <span class="topbar-label">Sort:</span>
       <select class="topbar-select" id="hist-sort" onchange="renderHistory()">
         <option value="newest" ${sortOrder==='newest'?'selected':''}>Newest First</option>
         <option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest First</option>
       </select>
     </div>
-    <button class="btn btn-ghost" onclick="clearHistoryFilters()">Clear Filters</button>
   `;
 
   let filtered = allMatches.filter(m => {
@@ -1867,7 +1868,7 @@ function renderHistory(page, preFilterPartner) {
           <select class="filter-select" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
-          <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear All</button>
+          <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear Filters</button>
         </div>
       </div>
       <!-- Toggle row at bottom -->
@@ -2070,6 +2071,7 @@ function buildHistoryResults(filtered, sortOrder) {
       scoresHtml += '<span class="set-score ' + cls + '">' + w + '–' + l + '</span>';
     });
     var noteInd = m.notes ? '<span class="note-indicator" title="' + escHtml(m.notes) + '" style="cursor:help"></span>' : '';
+    var playoffStar = m.playoff ? '<span title="Playoff' + (m.playoffround ? ', Round: ' + escHtml(m.playoffround) : '') + '" style="color:#f59e0b;font-size:13px;margin-left:5px;cursor:help">★</span>' : '';
     var isMob = window.innerWidth <= 768;
     if (isMob) {
       // Mobile: opponent line 1, partner line 2, scores line 3
@@ -2077,17 +2079,17 @@ function buildHistoryResults(filtered, sortOrder) {
         + '<td style="white-space:nowrap;font-size:12px;color:var(--text);vertical-align:top;padding-top:11px">' + (m.date || '') + '</td>'
         + '<td style="vertical-align:top;padding-top:9px"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
         + '<td>'
-          + '<div style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + '</div>'
+          + '<div style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + playoffStar + '</div>'
           + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">w/ ' + partner + '</div>' : '')
           + '<div class="hist-scores" style="margin-top:5px">' + scoresHtml + retired + noteInd + '</div>'
         + '</td>'
         + '</tr>';
     }
-    // Desktop: 5 columns — Date, Result, Opponent, Partner, Score
+    // Desktop: 5 columns
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + '</td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + playoffStar + '</td>'
       + '<td style="font-size:13px;color:var(--muted)">' + (partner || '—') + '</td>'
       + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
@@ -2250,6 +2252,11 @@ function autoOpenHistFilters() {
 
 function clearHistoryFilters() {
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest' };
+  // Clear text inputs directly so they visually empty without full re-render destroying them
+  const oppEl = document.getElementById('hist-opponent');
+  const parEl = document.getElementById('hist-partner');
+  if (oppEl) oppEl.value = '';
+  if (parEl) parEl.value = '';
   renderHistory(1);
 }
 
@@ -2473,7 +2480,6 @@ async function saveEdit(idx) {
     });
     const data = await res.json();
     if (data.success) {
-      // Update local state
       allMatches[idx] = { ...allMatches[idx], ...{
         date: dateFormatted, season: updated.season, league: updated.league,
         level: updated.level, type: updated.type, line: updated.line,
@@ -2485,13 +2491,16 @@ async function saveEdit(idx) {
         oppRet: updated.opponentretired, weRet: updated.weretired,
         notes: updated.notes
       }};
+      hideSaving();
       closeModal();
       showToast('Match updated successfully');
       if (currentPage === 'history') renderHistory(historyPage);
     } else {
+      hideSaving();
       showToast(data.error || 'Update failed', true);
     }
   } catch(e) {
+    hideSaving();
     showToast('Network error: ' + e.message, true);
   }
 }
@@ -2986,8 +2995,9 @@ function renderEntry() {
           </div>
           <div id="e-opp2-field" class="cond cond-hidden">
             <div class="field">
-              <div class="field-label">Opponent 2</div>
+              <div class="field-label">Opponent 2 <span class="required-dot"></span></div>
               <input type="text" id="e-opp2" placeholder="First Last">
+              <div class="field-error" id="err-opp2">Opponent 2 is required for doubles</div>
             </div>
           </div>
         </div>
