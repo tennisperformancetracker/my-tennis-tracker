@@ -794,7 +794,7 @@ const filterState = {
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5 },
-  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest' },
+  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest', playoff: false },
   histPartnerMin: 5
 };
 
@@ -903,6 +903,27 @@ function showSaving(msg) {
 function hideSaving() {
   const el = document.getElementById('saving-overlay');
   if (el) el.style.display = 'none';
+}
+
+// ── Dropdown sort helpers ────────────────────────────────────
+function sortedPartners(arr) {
+  return [...(arr||[])].sort((a,b) => {
+    const la = a.trim().split(' ').pop().toLowerCase();
+    const lb = b.trim().split(' ').pop().toLowerCase();
+    return la.localeCompare(lb);
+  });
+}
+function sortedLeagues(arr) { return [...(arr||[])].sort((a,b) => a.localeCompare(b)); }
+function sortedLevels(arr) {
+  function levelNum(v) { const n = parseFloat(v.replace(/[^0-9.]/g,'')); return isNaN(n)?Infinity:n; }
+  function hasDash(v) { return /[-]/.test(v.replace(/\s/g,'')); }
+  const letters = (arr||[]).filter(v => !/[0-9]/.test(v)).sort((a,b)=>a.localeCompare(b));
+  const numbers = (arr||[]).filter(v => /[0-9]/.test(v)).sort((a,b)=>{
+    const na=levelNum(a), nb=levelNum(b);
+    if (na!==nb) return na-nb;
+    return hasDash(a)?-1:hasDash(b)?1:a.localeCompare(b);
+  });
+  return [...letters, ...numbers];
 }
 
 function showPage(page) {
@@ -1786,11 +1807,13 @@ function renderHistory(page, preFilterPartner) {
   const lvEl  = document.getElementById('hist-level');
   const tyEl  = document.getElementById('hist-type');
   const soEl  = document.getElementById('hist-sort');
+  const poEl  = document.getElementById('hist-playoff');
   if (yrEl) filterState.history.year   = yrEl.value;
   if (seEl) filterState.history.season = seEl.value;
   if (lvEl) filterState.history.level  = lvEl.value;
   if (tyEl) filterState.history.type   = tyEl.value;
   if (soEl) filterState.history.sort   = soEl.value;
+  if (poEl) filterState.history.playoff = poEl.checked;
 
   // preFilterPartner overrides partner state (coming from dashboard drill)
   if (preFilterPartner) filterState.history.partner = preFilterPartner;
@@ -1801,11 +1824,12 @@ function renderHistory(page, preFilterPartner) {
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
   const opponentFilter = filterState.history.opponent;
+  const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
 
   const years   = ['', ...new Set(allMatches.map(m=>m.year).filter(Boolean)).values()].sort((a,b)=>b-a);
   const seasons = ['', ...(validEntries.season||[])];
-  const levels  = ['', ...(validEntries.level||[])];
+  const levels  = ['', ...sortedLevels(validEntries.level)];
   const types   = ['', ...(validEntries.type||[])];
 
   // Dynamic topbar title
@@ -1833,12 +1857,13 @@ function renderHistory(page, preFilterPartner) {
     if (typeFilter     && m.type   !== typeFilter)   return false;
     if (partnerFilter  && !m.partner?.toLowerCase().includes(partnerFilter.toLowerCase())) return false;
     if (opponentFilter && !(m.opp1+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
+    if (playoffFilter  && !m.playoff) return false;
     return true;
   }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
 
   const total = filtered.length;
 
-  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter].filter(Boolean).length;
+  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter].filter(Boolean).length + (playoffFilter?1:0);
 
   const content = document.getElementById('content');
   content.innerHTML = `
@@ -1868,6 +1893,10 @@ function renderHistory(page, preFilterPartner) {
           <select class="filter-select" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--label);cursor:pointer;white-space:nowrap">
+            <input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()" style="width:14px;height:14px;cursor:pointer;accent-color:var(--accent2)">
+            Playoff only
+          </label>
           <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear Filters</button>
         </div>
       </div>
@@ -2159,7 +2188,8 @@ function applyHistoryFilter() {
   var sea  = filterState.history.season    || '';
   var lev  = filterState.history.level     || '';
   var typ  = filterState.history.type      || '';
-  var srt  = filterState.history.sort      || 'newest';
+  var typ  = filterState.history.type      || '';
+  var po   = filterState.history.playoff   || false;
 
   var filtered = allMatches.filter(function(m) {
     if (yr  && String(m.year) !== String(yr)) return false;
@@ -2168,6 +2198,7 @@ function applyHistoryFilter() {
     if (typ  && m.type   !== typ)  return false;
     if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
     if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
+    if (po   && !m.playoff) return false;
     return true;
   });
 
@@ -2252,11 +2283,17 @@ function autoOpenHistFilters() {
 
 function clearHistoryFilters() {
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest' };
-  // Clear text inputs directly so they visually empty without full re-render destroying them
+  // Clear all DOM inputs/selects immediately so renderHistory reads empty values
+  ['hist-year','hist-season','hist-level','hist-type','hist-sort'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = id === 'hist-sort' ? 'newest' : '';
+  });
   const oppEl = document.getElementById('hist-opponent');
   const parEl = document.getElementById('hist-partner');
   if (oppEl) oppEl.value = '';
   if (parEl) parEl.value = '';
+  const poEl = document.getElementById('hist-playoff');
+  if (poEl) poEl.checked = false;
   renderHistory(1);
 }
 
@@ -2558,9 +2595,22 @@ function renderVEContent() {
       });
     }
     if (field === 'level') {
-      const letters = vals.filter(v => isNaN(parseFloat(v))).sort((a,b) => a.localeCompare(b));
-      const numbers = vals.filter(v => !isNaN(parseFloat(v))).sort((a,b) => parseFloat(a)-parseFloat(b));
+      // Extract numeric value from a level string (ignoring dashes)
+      function levelNum(v) { return parseFloat(v.replace(/[^0-9.]/g, '')) || Infinity; }
+      // Has dash = true (should sort before same number without dash)
+      function hasDash(v) { return /[-]/.test(v.replace(/\s/g,'')); }
+      const letters = vals.filter(v => isNaN(levelNum(v)) || levelNum(v) === Infinity && !/[0-9]/.test(v))
+                          .sort((a,b) => a.localeCompare(b));
+      const numbers = vals.filter(v => /[0-9]/.test(v)).sort((a,b) => {
+        const na = levelNum(a), nb = levelNum(b);
+        if (na !== nb) return na - nb;
+        // Same numeric value: dash version first
+        return hasDash(a) ? -1 : hasDash(b) ? 1 : a.localeCompare(b);
+      });
       return [...letters, ...numbers];
+    }
+    if (field === 'league') {
+      return [...vals].sort((a, b) => a.localeCompare(b));
     }
     return vals;
   }
@@ -2583,7 +2633,7 @@ function renderVEContent() {
     const hidden  = vals.slice(SHOW).map((v,i) => buildItem(field,v,i+SHOW)).join('');
     // Always reserve the same space for the expand button row so Add aligns across cards
     const expandRow = extra
-      ? `<ul class="ve-list" id="ve-list-${field}-extra" style="display:none">${hidden}</ul>
+      ? `<ul class="ve-list" id="ve-list-${field}-extra" style="display:none;margin-top:0">${hidden}</ul>
         <button onclick="veToggleExpand('${field}')" id="ve-expand-${field}"
           style="background:none;border:none;color:var(--accent2);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px">
           &#x2193; Show ${vals.length - SHOW} more</button>`
@@ -2639,26 +2689,26 @@ function renderVEContent() {
       ${cardsHtml}
       <div class="ve-card">
         <div class="ve-card-title">Performance Thresholds</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.5">
           Controls row coloring — green above Great %, red below Poor %.
         </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
-          <div class="ve-threshold-field">
-            <div class="ve-threshold-label" style="color:var(--win)">Great (Green) &ge;</div>
-            <div class="ve-threshold-wrap">
+        <div style="display:flex;gap:24px;justify-content:center;margin-bottom:16px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--win);text-align:center">Great (Green) &ge;</div>
+            <div style="display:flex;align-items:center;gap:6px">
               <input type="number" class="ve-threshold-input" id="ve-t-great" value="${great}" min="0" max="100" oninput="veAutoSave()">
               <span style="font-size:14px;color:var(--muted)">%</span>
             </div>
           </div>
-          <div class="ve-threshold-field">
-            <div class="ve-threshold-label" style="color:var(--danger)">Poor (Red) &le;</div>
-            <div class="ve-threshold-wrap">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--danger);text-align:center">Poor (Red) &le;</div>
+            <div style="display:flex;align-items:center;gap:6px">
               <input type="number" class="ve-threshold-input" id="ve-t-poor" value="${poor}" min="0" max="100" oninput="veAutoSave()">
               <span style="font-size:14px;color:var(--muted)">%</span>
             </div>
           </div>
         </div>
-        <div id="ve-t-preview" style="display:flex;gap:6px;flex-wrap:wrap">
+        <div id="ve-t-preview" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
           <span class="ve-chip ve-chip-green">&ge; ${great}%</span>
           <span class="ve-chip ve-chip-orange">${poor}&ndash;${great}%</span>
           <span class="ve-chip ve-chip-red">&le; ${poor}%</span>
@@ -2690,27 +2740,15 @@ function renderVEContent() {
 
 
 function veToggleExpand(field) {
-  const extra = document.getElementById(`ve-list-${field}-extra`);
-  const btn   = document.getElementById(`ve-expand-${field}`);
-  if (!extra) return;
-  const open = extra.style.display !== "none";
-  extra.style.display = open ? "none" : "block";
-  if (btn) btn.innerHTML = open ? btn.innerHTML.replace("&#x2191;","&#x2193;").replace("Hide","Show ") : btn.innerHTML.replace("&#x2193;","&#x2191;").replace(/Show.*/, "Hide extra");
-}
-
-
-function veToggleExpand(field) {
   const extra = document.getElementById('ve-list-' + field + '-extra');
   const btn   = document.getElementById('ve-expand-' + field);
   if (!extra) return;
   const open = extra.style.display !== 'none';
   extra.style.display = open ? 'none' : 'block';
+  extra.style.marginTop = '0';
   if (btn) {
-    const rawVals = veEntries[field] || [];
-    const hidden  = rawVals.length - 3;
-    btn.innerHTML = open
-      ? '&#x2193; Show ' + hidden + ' more'
-      : '&#x2191; Show less';
+    const hidden = (veEntries[field] || []).length - 3;
+    btn.innerHTML = open ? '&#x2193; Show ' + hidden + ' more' : '&#x2191; Show less';
   }
 }
 
@@ -3009,7 +3047,7 @@ function renderEntry() {
             <div class="field-label">Partner <span class="required-dot"></span></div>
             <select id="e-partner" onchange="onEntryNewSelect('partner')">
               <option value="">— Select —</option>
-              ${(validEntries.partner||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${sortedPartners(validEntries.partner).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
             <div class="field-error" id="err-partner">Partner is required for doubles</div>
@@ -3078,7 +3116,7 @@ function renderEntry() {
             <div class="field-label">League</div>
             <select id="e-league" onchange="onEntryNewSelect('league')">
               <option value="">— Select —</option>
-              ${(validEntries.league||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${sortedLeagues(validEntries.league).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3092,7 +3130,7 @@ function renderEntry() {
             <div class="field-label">Level</div>
             <select id="e-level" onchange="onEntryNewSelect('level')">
               <option value="">— Select —</option>
-              ${(validEntries.level||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${sortedLevels(validEntries.level).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
