@@ -915,15 +915,20 @@ function sortedPartners(arr) {
 }
 function sortedLeagues(arr) { return [...(arr||[])].sort((a,b) => a.localeCompare(b)); }
 function sortedLevels(arr) {
-  function levelNum(v) { const n = parseFloat(v.replace(/[^0-9.]/g,'')); return isNaN(n)?Infinity:n; }
-  function hasDash(v) { return /[-]/.test(v.replace(/\s/g,'')); }
-  const letters = (arr||[]).filter(v => !/[0-9]/.test(v)).sort((a,b)=>a.localeCompare(b));
-  const numbers = (arr||[]).filter(v => /[0-9]/.test(v)).sort((a,b)=>{
-    const na=levelNum(a), nb=levelNum(b);
-    if (na!==nb) return na-nb;
-    return hasDash(a)?-1:hasDash(b)?1:a.localeCompare(b);
+  // "Letter group" = starts with a letter (e.g. A-8, B-1, B-2)
+  // "Number group" = starts with a digit or dash+digit (e.g. 3.0, 3.0-, 4.0)
+  function startsWithLetter(v) { return /^[A-Za-z]/.test(v.trim()); }
+  function levelNum(v) { const n = parseFloat(v.replace(/[^0-9.]/g,'')); return isNaN(n) ? Infinity : n; }
+  function hasDash(v) { return /-/.test(v); }
+
+  const letterGroup = (arr||[]).filter(startsWithLetter).sort((a,b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+  const numberGroup = (arr||[]).filter(v => !startsWithLetter(v)).sort((a,b) => {
+    const na = levelNum(a), nb = levelNum(b);
+    if (na !== nb) return na - nb;
+    // Same number: dash variant first (3.0- before 3.0)
+    return hasDash(a) ? -1 : hasDash(b) ? 1 : a.localeCompare(b);
   });
-  return [...letters, ...numbers];
+  return [...letterGroup, ...numberGroup];
 }
 
 function showPage(page) {
@@ -1893,10 +1898,10 @@ function renderHistory(page, preFilterPartner) {
           <select class="filter-select" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--label);cursor:pointer;white-space:nowrap">
-            <input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()" style="width:14px;height:14px;cursor:pointer;accent-color:var(--accent2)">
-            Playoff only
-          </label>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;gap:12px">
+            <span style="font-size:13px;color:var(--text)">Playoff Only</span>
+            <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
+          </div>
           <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear Filters</button>
         </div>
       </div>
@@ -2160,6 +2165,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
 
 var _histTimer = null;
+var histFiltersOpen = false; // persists across re-renders
 
 function onHistOpponentInput(val) {
   filterState.history.opponent = val.trim().toLowerCase();
@@ -2262,21 +2268,24 @@ function toggleHistFilters() {
   const chevron = document.getElementById('hist-filter-chevron');
   if (!body) return;
   const isOpen = body.style.display !== 'none';
+  histFiltersOpen = !isOpen; // persist state
   body.style.display = isOpen ? 'none' : 'block';
   if (label)   label.textContent   = isOpen ? 'More Filters' : 'Less Filters';
   if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
 
-// Auto-open filters on desktop after render
+// Restore filter open/close state after every re-render
 function autoOpenHistFilters() {
-  const hasDropdownFilters = !!(filterState.history.year || filterState.history.season ||
-    filterState.history.level || filterState.history.type);
-  if (window.innerWidth > 768 && hasDropdownFilters) {
-    const body    = document.getElementById('hist-filter-body');
-    const label   = document.getElementById('hist-filter-label');
-    const chevron = document.getElementById('hist-filter-chevron');
-    if (body)    body.style.display    = 'block';
-    if (label)   label.textContent     = 'Less Filters';
+  const shouldOpen = histFiltersOpen ||
+    !!(filterState.history.year || filterState.history.season ||
+       filterState.history.level || filterState.history.type ||
+       filterState.history.playoff);
+  const body    = document.getElementById('hist-filter-body');
+  const label   = document.getElementById('hist-filter-label');
+  const chevron = document.getElementById('hist-filter-chevron');
+  if (shouldOpen) {
+    if (body)    body.style.display      = 'block';
+    if (label)   label.textContent       = 'Less Filters';
     if (chevron) chevron.style.transform = 'rotate(180deg)';
   }
 }
@@ -2595,19 +2604,16 @@ function renderVEContent() {
       });
     }
     if (field === 'level') {
-      // Extract numeric value from a level string (ignoring dashes)
-      function levelNum(v) { return parseFloat(v.replace(/[^0-9.]/g, '')) || Infinity; }
-      // Has dash = true (should sort before same number without dash)
-      function hasDash(v) { return /[-]/.test(v.replace(/\s/g,'')); }
-      const letters = vals.filter(v => isNaN(levelNum(v)) || levelNum(v) === Infinity && !/[0-9]/.test(v))
-                          .sort((a,b) => a.localeCompare(b));
-      const numbers = vals.filter(v => /[0-9]/.test(v)).sort((a,b) => {
-        const na = levelNum(a), nb = levelNum(b);
-        if (na !== nb) return na - nb;
-        // Same numeric value: dash version first
-        return hasDash(a) ? -1 : hasDash(b) ? 1 : a.localeCompare(b);
+      function slv(v) { return /^[A-Za-z]/.test(v.trim()); }
+      function lNum(v) { const n=parseFloat(v.replace(/[^0-9.]/g,'')); return isNaN(n)?Infinity:n; }
+      function lDash(v) { return /-/.test(v); }
+      const lg = vals.filter(slv).sort((a,b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+      const ng = vals.filter(v => !slv(v)).sort((a,b) => {
+        const na=lNum(a), nb=lNum(b);
+        if (na!==nb) return na-nb;
+        return lDash(a)?-1:lDash(b)?1:a.localeCompare(b);
       });
-      return [...letters, ...numbers];
+      return [...lg, ...ng];
     }
     if (field === 'league') {
       return [...vals].sort((a, b) => a.localeCompare(b));
