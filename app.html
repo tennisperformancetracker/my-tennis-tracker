@@ -3430,6 +3430,10 @@ async function submitEntry() {
     if (err) { err.style.display = show ? 'block' : 'none'; if (msg && show) err.textContent = msg; }
   }
 
+  const s1w = get('s1w'), s1l = get('s1l');
+  const s2w = get('s2w'), s2l = get('s2l');
+  const s3w = get('s3w'), s3l = get('s3l');
+
   // Set 1 always required
   if (s1w===''||s1l==='') { setBoxErr('e-s1-box','err-s1',true,'Set 1 is required'); valid=false; }
   else if (!retired && !validSetScore(s1w,s1l,false)) { setBoxErr('e-s1-box','err-s1',true,'Invalid score (e.g. 6–0, 7–6)'); valid=false; }
