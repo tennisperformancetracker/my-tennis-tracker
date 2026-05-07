@@ -3380,14 +3380,24 @@ async function submitEntry() {
   let valid = true;
 
   const setErr = (id, show, msg) => {
+    // Show/hide error text
     const errEl = document.getElementById('err-'+id);
-    if (errEl) { errEl.classList.toggle('visible', show); if (msg && show) errEl.textContent = msg; }
-    // For regular fields: outline the input/select
-    const fieldEl = document.getElementById('e-'+id) || document.querySelector(`[id^="e-${id}"]`);
-    if (fieldEl) fieldEl.classList.toggle('error', show);
-    // For score sets: outline the container box
-    const boxEl = document.getElementById('e-'+id+'-box');
-    if (boxEl) boxEl.style.borderColor = show ? 'var(--danger)' : 'var(--border)';
+    if (errEl) {
+      errEl.style.display = show ? 'block' : 'none';
+      if (msg && show) errEl.textContent = msg;
+    }
+    // Score set boxes (s1, s2) have container divs with -box suffix
+    const boxId = id === 's3' ? 'e-s3-container' : 'e-'+id+'-box';
+    const boxEl = document.getElementById(boxId);
+    if (boxEl) {
+      boxEl.style.borderColor = show ? 'var(--danger)' : 'var(--border)';
+      return; // box handles the visual — done
+    }
+    // Regular fields: outline the input/select directly
+    const fieldEl = document.getElementById('e-'+id);
+    if (fieldEl) {
+      fieldEl.style.borderColor = show ? 'var(--danger)' : '';
+    }
   };
 
   function validSetScore(w, l, isThird) {
@@ -3436,10 +3446,6 @@ async function submitEntry() {
   else if (s3w===''||s3l==='') { setErr('s3',true,'Set 3 required — sets were split'); valid=false; }
   else if (!validSetScore(s3w,s3l,true)) { setErr('s3',true,'Invalid (e.g. 6–4, 7–6, or 1–0)'); valid=false; }
   else { setErr('s3',false); }
-
-  // Also highlight the s3 container box border when needed
-  const s3box = document.getElementById('e-s3-container');
-  if (s3box) s3box.style.borderColor = (needsS3 && (s3w===''||s3l==='')) ? 'var(--danger)' : 'var(--border)';
 
   if (!valid) return;
 
