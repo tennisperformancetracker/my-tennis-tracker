@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<!-- Copyright © 2026 Match Tracker Pro. All rights reserved.
+<!-- Copyright © 2026 Tennis Performance Tracker. All rights reserved.
      Unauthorized copying, modification, or distribution of this software
      is strictly prohibited without prior written permission. -->
-<title>Match Tracker Pro</title>
+<title>Match Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -45,9 +45,6 @@ body.dark {
 }
 body.dark .result-pill.W { background: transparent; }
 body.dark .result-pill.L { background: transparent; }
-body.dark .hist-date { color: var(--label); }
-body.dark .hist-opponent { color: var(--label); }
-body.dark .history-table th { color: var(--label); font-weight: 700; }
   --text:     #dde6f0;
   --muted:    #7a97b0;
   --label:    #9ab0c4;
@@ -92,19 +89,19 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   margin-bottom: 12px;
 }
 .dark-toggle-label { font-size: 12px; color: rgba(255,255,255,0.6); }
-.toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+.toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
 .toggle input { opacity: 0; width: 0; height: 0; }
 .toggle-slider {
   position: absolute; inset: 0; background: rgba(255,255,255,0.2);
-  border-radius: 9px; cursor: pointer; transition: background 0.2s;
+  border-radius: 11px; cursor: pointer; transition: background 0.2s;
 }
 .toggle-slider::before {
-  content: ''; position: absolute; width: 13px; height: 13px;
-  left: 2.5px; top: 2.5px; background: rgba(255,255,255,0.6);
+  content: ''; position: absolute; width: 16px; height: 16px;
+  left: 3px; top: 3px; background: rgba(255,255,255,0.6);
   border-radius: 50%; transition: transform 0.2s, background 0.2s;
 }
 .toggle input:checked + .toggle-slider { background: var(--accent2); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(14px); background: white; }
+.toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: white; }
 .url-display {
   font-size: 10px; color: rgba(255,255,255,0.3);
   word-break: break-all; line-height: 1.4; cursor: pointer;
@@ -312,7 +309,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 }
 .partner-drill-btn:hover { background: var(--accent2); color: #fff; border-color: var(--accent2); }
 .rank-num { color: var(--muted); font-size: 12px; margin-right: 4px; }
-@media (max-width: 768px) { .partners-view-col { display: none; } }
 
 /* ── Insight blurb ──────────────────────────────────────── */
 .insight-blurb {
@@ -352,20 +348,18 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
 /* ── Match Entry form ───────────────────────────────────── */
 .entry-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; }
-.entry-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-width: 0; }
-.entry-pair > * { min-width: 0; }
-.form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow); box-sizing: border-box; overflow: hidden; }
-.form-section *, .form-section *::before, .form-section *::after { box-sizing: border-box; }
+.entry-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow); }
 .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted); margin-bottom: 16px; }
-.field { margin-bottom: 14px; min-width: 0; }
+.field { margin-bottom: 14px; }
 .field:last-child { margin-bottom: 0; }
 .field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--label); margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
-.required-dot { width: 5px; height: 5px; background: var(--danger); border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.required-dot { width: 5px; height: 5px; background: var(--danger); border-radius: 50%; display: inline-block; }
 .field input, .field select, .field textarea {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
   font-size: 13px; padding: 9px 12px; outline: none; transition: border-color 0.2s;
-  appearance: none; -webkit-appearance: none; box-sizing: border-box; max-width: 100%;
+  appearance: none; -webkit-appearance: none;
 }
 .field select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -381,19 +375,19 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .score-divider { color: var(--muted); font-size: 18px; text-align: center; }
 .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; margin-bottom: 12px; }
 .toggle-row-label { font-size: 13px; color: var(--text); }
-.form-toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+.form-toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
 .form-toggle input { opacity: 0; width: 0; height: 0; }
 .form-toggle-slider {
-  position: absolute; inset: 0; background: var(--border); border-radius: 9px;
+  position: absolute; inset: 0; background: var(--border); border-radius: 11px;
   cursor: pointer; transition: background 0.2s;
 }
 .form-toggle-slider::before {
-  content: ''; position: absolute; width: 13px; height: 13px;
-  left: 2.5px; top: 2.5px; background: var(--muted);
+  content: ''; position: absolute; width: 16px; height: 16px;
+  left: 3px; top: 3px; background: var(--muted);
   border-radius: 50%; transition: transform 0.2s, background 0.2s;
 }
 .form-toggle input:checked + .form-toggle-slider { background: var(--accent2); }
-.form-toggle input:checked + .form-toggle-slider::before { transform: translateX(14px); background: white; }
+.form-toggle input:checked + .form-toggle-slider::before { transform: translateX(18px); background: white; }
 .cond { transition: opacity 0.2s; }
 .cond.cond-hidden { opacity: 0.3; pointer-events: none; }
 .hidden { display: none !important; }
@@ -523,15 +517,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .back-btn:hover { color: var(--accent); }
 
 /* Spinner */
-.saving-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 9999;
-  display: flex; align-items: center; justify-content: center;
-}
-.saving-box {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-  padding: 20px 32px; display: flex; align-items: center; gap: 14px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18); font-size: 14px; color: var(--text); font-weight: 500;
-}
+.spinner-wrap { text-align: center; padding: 60px; color: var(--muted); }
 .spinner {
   display: inline-block; width: 32px; height: 32px;
   border: 3px solid var(--border); border-top-color: var(--accent2);
@@ -691,7 +677,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 <!-- ═══════════════════════════════════ SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="sidebar-logo-title">MATCH TRACKER PRO</div>
+    <div class="sidebar-logo-title">MATCH TRACKER</div>
     <div class="sidebar-logo-sub">Tennis Performance Tracker</div>
   </div>
   <nav class="sidebar-nav">
@@ -709,14 +695,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
       <span class="nav-icon">⚙️</span> Valid Entries
     </div>
   </nav>
-  <div style="padding:0 12px 8px">
-    <a href="user_guide.html" target="_blank"
-      style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:500;text-decoration:none;transition:background 0.15s;cursor:pointer"
-      onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''">
-      <span style="font-size:16px">📖</span> User Guide
-    </a>
-    <div style="height:1px;background:rgba(255,255,255,0.1);margin:4px 0"></div>
-  </div>
   <div class="sidebar-footer">
     <div class="dark-toggle-row">
       <span class="dark-toggle-label">Dark Mode</span>
@@ -729,7 +707,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
       Click to connect your sheet
     </div>
     <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:10px;line-height:1.4">
-      © 2026 Match Tracker Pro.<br>All rights reserved.
+      © 2026 Tennis Performance Tracker.<br>All rights reserved.
     </div>
   </div>
 </aside>
@@ -754,7 +732,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <div class="spinner-wrap"><div class="spinner"></div><div>Loading…</div></div>
   </div>
   <div style="text-align:center;padding:12px 16px 20px;font-size:10px;color:var(--muted)">
-    © 2026 Match Tracker Pro. All rights reserved.
+    © 2026 Tennis Performance Tracker. All rights reserved.
   </div>
 </main>
 
@@ -765,18 +743,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   <div class="modal-box" id="modal-box">
     <div class="modal-header" id="modal-header"></div>
     <div class="modal-body" id="modal-body"></div>
-  </div>
-</div>
-
-<!-- Another Match Prompt -->
-<div class="confirm-overlay" id="another-match-overlay">
-  <div class="confirm-box">
-    <div class="confirm-title">✅ Match Submitted!</div>
-    <div class="confirm-body">Would you like to enter another match?</div>
-    <div class="confirm-actions">
-      <button class="btn btn-ghost" onclick="anotherMatchNo()">No, I'm done</button>
-      <button class="btn btn-primary" onclick="anotherMatchYes()">Yes, enter another</button>
-    </div>
   </div>
 </div>
 
@@ -815,7 +781,7 @@ const filterState = {
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5 },
-  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
+  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest' },
   histPartnerMin: 5
 };
 
@@ -872,16 +838,7 @@ async function loadAll() {
     const histData  = await histRes.json();
     const validData = await validRes.json();
     if (histData.success)  allMatches   = histData.matches;
-    if (validData.success) {
-      validEntries = validData.validEntries;
-      // Also pre-populate veEntries so Valid Entries page doesn't need a second fetch
-      if (validData.entries)    veEntries    = validData.entries;
-      if (validData.thresholds) {
-        veThresholds = validData.thresholds;
-        localStorage.setItem('thresholdGreat', veThresholds.great);
-        localStorage.setItem('thresholdPoor',  veThresholds.poor);
-      }
-    }
+    if (validData.success) validEntries = validData.validEntries;
     showPage('dashboard');
   } catch(e) {
     setContent(`<div class="spinner-wrap" style="color:var(--danger)">Failed to load data. <button class="btn btn-ghost" onclick="loadAll()" style="margin-top:12px">Retry</button></div>`);
@@ -910,57 +867,14 @@ function closeSidebar() {
 // ═══════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════
-function showSaving(msg) {
-  let el = document.getElementById('saving-overlay');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'saving-overlay';
-    el.className = 'saving-overlay';
-    document.body.appendChild(el);
-  }
-  el.innerHTML = '<div class="saving-box"><div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0"></div><span>' + (msg||'Saving…') + '</span></div>';
-  el.style.display = 'flex';
-}
-function hideSaving() {
-  const el = document.getElementById('saving-overlay');
-  if (el) el.style.display = 'none';
-}
-
-// ── Dropdown sort helpers ────────────────────────────────────
-function sortedPartners(arr) {
-  return [...(arr||[])].sort((a,b) => {
-    const la = a.trim().split(' ').pop().toLowerCase();
-    const lb = b.trim().split(' ').pop().toLowerCase();
-    return la.localeCompare(lb);
-  });
-}
-function sortedLeagues(arr) { return [...(arr||[])].sort((a,b) => a.localeCompare(b)); }
-function sortedLevels(arr) {
-  // "Letter group" = starts with a letter (e.g. A-8, B-1, B-2)
-  // "Number group" = starts with a digit or dash+digit (e.g. 3.0, 3.0-, 4.0)
-  function startsWithLetter(v) { return /^[A-Za-z]/.test(v.trim()); }
-  function levelNum(v) { const n = parseFloat(v.replace(/[^0-9.]/g,'')); return isNaN(n) ? Infinity : n; }
-  function hasDash(v) { return /-/.test(v); }
-
-  const letterGroup = (arr||[]).filter(startsWithLetter).sort((a,b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
-  const numberGroup = (arr||[]).filter(v => !startsWithLetter(v)).sort((a,b) => {
-    const na = levelNum(a), nb = levelNum(b);
-    if (na !== nb) return na - nb;
-    // Same number: dash variant first (3.0- before 3.0)
-    return hasDash(a) ? -1 : hasDash(b) ? 1 : a.localeCompare(b);
-  });
-  return [...letterGroup, ...numberGroup];
-}
-
 function showPage(page) {
   currentPage = page;
-  window.scrollTo(0, 0);
   closeSidebar();
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
   const titles = {
-    dashboard:    'Performance Dashboard',
+    dashboard:    'Tennis Performance Tracker Dashboard',
     history:      'Match History',
     entry:        'Match Entry',
     validEntries: 'Valid Entries'
@@ -1628,34 +1542,37 @@ function renderChart(keys, labels, pcts, dataMap, mode, chartYear) {
   // Biggest improvement — skip for all-years calendar month mode (months aren't sequential)
   const isCalendarMonthMode = mode === 'month' && !chartYear;
   let biggestJump = 0, jumpFromLabel = '', jumpToLabel = '', jumpFromPct = 0, jumpToPct = 0;
-  // Biggest Improvement — all modes
-  for (let i = 1; i < keys.length; i++) {
-    const jump = pcts[i] - pcts[i-1];
-    if (jump > biggestJump) {
-      biggestJump = jump;
-      jumpFromLabel = fmtKey(keys[i-1]);
-      jumpToLabel   = fmtKey(keys[i]);
-      jumpFromPct   = pcts[i-1];
-      jumpToPct     = pcts[i];
+  if (!isCalendarMonthMode) {
+    for (let i = 1; i < keys.length; i++) {
+      const jump = pcts[i] - pcts[i-1];
+      if (jump > biggestJump) {
+        biggestJump = jump;
+        jumpFromLabel = fmtKey(keys[i-1]);
+        jumpToLabel   = fmtKey(keys[i]);
+        jumpFromPct   = pcts[i-1];
+        jumpToPct     = pcts[i];
+      }
     }
   }
 
-  // Recent trend — all modes
+  // Recent trend — also skip for calendar month mode
   let trendHtml = '';
-  if (keys.length >= 4) {
-    const recent2Avg = (pcts[keys.length-1] + pcts[keys.length-2]) / 2;
-    const prev2Avg   = (pcts[keys.length-3] + pcts[keys.length-4]) / 2;
-    const diff = recent2Avg - prev2Avg;
-    const dir  = diff >= 0 ? '↑' : '↓';
-    const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
-    const period = mode === 'year' ? 'years' : 'months';
-    trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff).toFixed(0)}%</strong> vs prior 2 ${period}`;
-  } else if (keys.length >= 2) {
-    const diff = pcts[keys.length-1] - pcts[keys.length-2];
-    const dir  = diff >= 0 ? '↑' : '↓';
-    const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
-    const period = mode === 'year' ? 'year' : 'month';
-    trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff)}%</strong> vs previous ${period}`;
+  if (!isCalendarMonthMode) {
+    if (keys.length >= 4) {
+      const recent2Avg = (pcts[keys.length-1] + pcts[keys.length-2]) / 2;
+      const prev2Avg   = (pcts[keys.length-3] + pcts[keys.length-4]) / 2;
+      const diff = recent2Avg - prev2Avg;
+      const dir  = diff >= 0 ? '↑' : '↓';
+      const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
+      const period = mode === 'year' ? 'years' : 'months';
+      trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff).toFixed(0)}%</strong> vs prior 2 ${period}`;
+    } else if (keys.length >= 2) {
+      const diff = pcts[keys.length-1] - pcts[keys.length-2];
+      const dir  = diff >= 0 ? '↑' : '↓';
+      const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
+      const period = mode === 'year' ? 'year' : 'month';
+      trendHtml = `<strong style="color:${col}">${dir} ${Math.abs(diff)}%</strong> vs previous ${period}`;
+    }
   }
 
   panel.innerHTML = `
@@ -1667,6 +1584,18 @@ function renderChart(keys, labels, pcts, dataMap, mode, chartYear) {
       <div class="chart-insight-label">📉 Worst ${mode==='year'?'Year':'Month'}</div>
       <div class="chart-insight-value"><strong>${fmtKey(keys[worstIdx])}</strong> — ${pcts[worstIdx]}% (${wW}W–${wL}L)</div>
     </div>
+    ${isCalendarMonthMode ? (() => {
+      // Find the month with the most matches played
+      const busiest = keys.reduce((a,b) => (dataMap[a].w+dataMap[a].l) >= (dataMap[b].w+dataMap[b].l) ? a : b);
+      const {w:bW, l:bL} = dataMap[busiest];
+      const MFULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const bName = MFULL[parseInt(busiest)];
+      return `
+    <div class="chart-insight-card">
+      <div class="chart-insight-label">🎾 Most Active Month</div>
+      <div class="chart-insight-value"><strong>${bName}</strong> — ${bW+bL} matches (${bW}W–${bL}L)</div>
+    </div>`;
+    })() : ''}
     ${biggestJump > 0 ? `
     <div class="chart-insight-card">
       <div class="chart-insight-label">⚡ Biggest Improvement</div>
@@ -1718,11 +1647,7 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
   // Sort
   const dir = sortDir === 'desc' ? -1 : 1;
   partners.sort((a,b) => dir * (a[sortCol] > b[sortCol] ? 1 : a[sortCol] < b[sortCol] ? -1 : 0));
-  // Don't slice — show all in allPartners, display first 5 by default
-  const allPartners = partners;
-  const SHOW_P = 10;
-  const visiblePartners = allPartners.slice(0, SHOW_P);
-  const extraCount = allPartners.length - SHOW_P;
+  partners = partners.slice(0,10);
 
   if (!partners.length) {
     const isSingles = filterState.dash.type && filterState.dash.type.toLowerCase().includes('singles');
@@ -1736,57 +1661,34 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
       ${label}<span class="sort-arrow ${isActive?'active':''}">${arrow}</span></th>`;
   }
 
-  function buildRow(p, i) {
-    const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
-    const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
-    const rate  = p.total > 0 ? p.w / p.total : 0;
-    const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
-    return '<tr>'
-      + '<td style="display:flex;align-items:center">'
-      + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
-      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px">' + escHtml(p.name) + '</span>'
-      + '</td>'
-      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.w + '</td>'
-      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.l + '</td>'
-      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + pct(p.w,p.l) + '</td>'
-      + '</tr>';
-  }
-
-  var visibleRows = visiblePartners.map(function(p,i){ return buildRow(p,i); }).join('');
-  var hiddenRows  = allPartners.slice(SHOW_P).map(function(p,i){ return buildRow(p, i+SHOW_P); }).join('');
-  var showMorePill = extraCount > 0
-    ? '<div style="display:flex;justify-content:center;margin-top:8px">'
-      + '<button id="partners-show-more-btn" onclick="togglePartnersExpand()"'
-      + ' style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
-      + '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
-      + 'Show more</button></div>'
-    : '';
-
-  return '<table class="partners-table">'
-    + '<thead><tr>'
-    + '<th class="sortable-th" onclick="sortPartners(\'name\')" style="text-align:left;cursor:pointer">'
-    + 'Partner<span class="sort-arrow ' + (sortCol==='name'?'active':'') + '"> '
-    + (sortCol==='name'?(sortDir==='desc'?'↓':'↑'):'↕') + '</span></th>'
-    + thSort('w','W') + thSort('l','L') + thSort('pctVal','W%')
-    + '</tr></thead>'
-    + '<tbody id="partners-visible-body">' + visibleRows + '</tbody>'
-    + (extraCount > 0 ? '<tbody id="partners-hidden-body" style="display:none">' + hiddenRows + '</tbody>' : '')
-    + '</table>'
-    + showMorePill;
-}
-
-
-function togglePartnersExpand() {
-  const hidden = document.getElementById('partners-hidden-body');
-  const btn    = document.getElementById('partners-show-more-btn');
-  if (!hidden) return;
-  const isOpen = hidden.style.display !== 'none';
-  hidden.style.display = isOpen ? 'none' : '';
-  if (btn) {
-    var arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
-    var arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
-    btn.innerHTML = isOpen ? arrowDown + 'Show more' : arrowUp + 'Show less';
-  }
+  return `
+    <table class="partners-table">
+      <thead><tr>
+        <th class="sortable-th" onclick="sortPartners('name')" style="text-align:left;cursor:pointer">
+          Partner<span class="sort-arrow ${sortCol==='name'?'active':''}"> ${sortCol==='name'?(sortDir==='desc'?'↓':'↑'):'↕'}</span>
+        </th>
+        ${thSort('w','W')}
+        ${thSort('l','L')}
+        ${thSort('pctVal','W%')}
+        <th></th>
+      </tr></thead>
+      <tbody>
+        ${partners.map((p,i) => {
+            const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+            const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+            const rate  = p.total > 0 ? p.w / p.total : 0;
+            const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
+            return `
+          <tr>
+            <td><span class="rank-num">${i+1}.</span>${escHtml(p.name)}</td>
+            <td style="text-align:right;color:${col};font-weight:600">${p.w}</td>
+            <td style="text-align:right;color:${col};font-weight:600">${p.l}</td>
+            <td style="text-align:right;color:${col};font-weight:600">${pct(p.w,p.l)}</td>
+            <td><button class="partner-drill-btn" onclick="drillPartner('${escHtml(p.name)}')">View →</button></td>
+          </tr>`;}).join('')}
+      </tbody>
+    </table>
+  `;
 }
 
 function sortPartners(col) {
@@ -1800,9 +1702,6 @@ function sortPartners(col) {
 }
 
 function drillPartner(name) {
-  // Collapse any show-more expansion before sliding
-  const hidden = document.getElementById('partners-hidden-body');
-  if (hidden) hidden.style.display = 'none';
   const typeFilter = filterState.dash.type;
   let matches = allMatches.filter(m => {
     if (typeFilter && m.type !== typeFilter) return false;
@@ -1812,7 +1711,7 @@ function drillPartner(name) {
   // Update header — just show "Splits with [name]", no "Partner:" prefix
   document.getElementById('partners-card-title').textContent = `Performance with ${name}`;
   document.getElementById('partner-header-controls').innerHTML = `
-    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">History</button>
+    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">View History</button>
     <button class="back-btn" onclick="resetPartners()" style="margin-bottom:0">← Back</button>
   `;
 
@@ -1864,21 +1763,11 @@ function renderHistory(page, preFilterPartner) {
   const lvEl  = document.getElementById('hist-level');
   const tyEl  = document.getElementById('hist-type');
   const soEl  = document.getElementById('hist-sort');
-  const poEl  = document.getElementById('hist-playoff');
-  const lgEl  = document.getElementById('hist-league');
-  const liEl  = document.getElementById('hist-line');
-  const sfEl  = document.getElementById('hist-surface');
-  const tmEl  = document.getElementById('hist-time');
-  if (yrEl) filterState.history.year    = yrEl.value;
-  if (seEl) filterState.history.season  = seEl.value;
-  if (lvEl) filterState.history.level   = lvEl.value;
-  if (tyEl) filterState.history.type    = tyEl.value;
-  if (soEl) filterState.history.sort    = soEl.value;
-  if (poEl) filterState.history.playoff = poEl.checked;
-  if (lgEl) filterState.history.league  = lgEl.value;
-  if (liEl) filterState.history.line    = liEl.value;
-  if (sfEl) filterState.history.surface = sfEl.value;
-  if (tmEl) filterState.history.time    = tmEl.value;
+  if (yrEl) filterState.history.year   = yrEl.value;
+  if (seEl) filterState.history.season = seEl.value;
+  if (lvEl) filterState.history.level  = lvEl.value;
+  if (tyEl) filterState.history.type   = tyEl.value;
+  if (soEl) filterState.history.sort   = soEl.value;
 
   // preFilterPartner overrides partner state (coming from dashboard drill)
   if (preFilterPartner) filterState.history.partner = preFilterPartner;
@@ -1889,12 +1778,11 @@ function renderHistory(page, preFilterPartner) {
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
   const opponentFilter = filterState.history.opponent;
-  const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
 
   const years   = ['', ...new Set(allMatches.map(m=>m.year).filter(Boolean)).values()].sort((a,b)=>b-a);
   const seasons = ['', ...(validEntries.season||[])];
-  const levels  = ['', ...sortedLevels(validEntries.level)];
+  const levels  = ['', ...(validEntries.level||[])];
   const types   = ['', ...(validEntries.type||[])];
 
   // Dynamic topbar title
@@ -1906,13 +1794,12 @@ function renderHistory(page, preFilterPartner) {
 
   document.getElementById('mobile-filters').innerHTML = '';
   document.getElementById('topbar-right').innerHTML = `
-    <div class="topbar-filter-group">
-      <span class="topbar-label">Sort:</span>
       <select class="topbar-select" id="hist-sort" onchange="renderHistory()">
         <option value="newest" ${sortOrder==='newest'?'selected':''}>Newest First</option>
         <option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest First</option>
       </select>
     </div>
+    <button class="btn btn-ghost" onclick="clearHistoryFilters()">Clear Filters</button>
   `;
 
   let filtered = allMatches.filter(m => {
@@ -1922,23 +1809,12 @@ function renderHistory(page, preFilterPartner) {
     if (typeFilter     && m.type   !== typeFilter)   return false;
     if (partnerFilter  && !m.partner?.toLowerCase().includes(partnerFilter.toLowerCase())) return false;
     if (opponentFilter && !(m.opp1+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
-    if (playoffFilter  && !m.playoff) return false;
-    if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
-    if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
-    if (filterState.history.surface && m.surface !== filterState.history.surface) return false;
-    if (filterState.history.time    && m.time    !== filterState.history.time)    return false;
     return true;
   }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
 
   const total = filtered.length;
 
-  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter,
-    filterState.history.league,filterState.history.line,filterState.history.surface,filterState.history.time].filter(Boolean).length + (playoffFilter?1:0);
-
-  const leagues  = ['', ...sortedLeagues(validEntries.league||[])];
-  const lines    = ['', ...(validEntries.line||[])];
-  const surfaces = ['', ...(validEntries.surface||[])];
-  const times    = ['', ...(validEntries.time||[])];
+  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter].filter(Boolean).length;
 
   const content = document.getElementById('content');
   content.innerHTML = `
@@ -1947,15 +1823,15 @@ function renderHistory(page, preFilterPartner) {
       <div class="hist-search-row" style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
           oninput="onHistOpponentInput(this.value)"
-          style="flex:1 1 100px;min-width:0">
+          style="flex:1 1 120px;min-width:0">
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
-          style="flex:1 1 80px;min-width:0">
-        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap">Clear</button>
+          style="flex:1 1 100px;min-width:0">
+        <span id="hist-match-count" style="font-size:12px;color:var(--muted);align-self:center;white-space:nowrap">${total} match${total!==1?'es':''}</span>
       </div>
-      <!-- Collapsible dropdowns -->
+      <!-- Collapsible dropdowns — collapsed by default -->
       <div id="hist-filter-body" style="display:none;padding:10px 14px 0;border-bottom:1px solid var(--border)">
-        <div class="history-controls" style="margin-bottom:10px;flex-wrap:wrap">
+        <div class="history-controls" style="margin-bottom:10px">
           <select class="filter-select" id="hist-year" onchange="renderHistory()">
             ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
           </select>
@@ -1968,22 +1844,7 @@ function renderHistory(page, preFilterPartner) {
           <select class="filter-select" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-league" onchange="renderHistory()">
-            ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-line" onchange="renderHistory()">
-            ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-surface" onchange="renderHistory()">
-            ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-time" onchange="renderHistory()">
-            ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
-          </select>
-          <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
-            <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
-            <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
-          </div>
+          <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear All</button>
         </div>
       </div>
       <!-- Toggle row at bottom -->
@@ -2145,14 +2006,15 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var tbColor = wlColor(tbW, tbL);
 
-  // Build type breakdown rows for Record Breakdown
-  var typeMap = {};
-  filtered.forEach(function(m){ if (m.type) { if (!typeMap[m.type]) typeMap[m.type]={w:0,l:0}; if(m.result==='W') typeMap[m.type].w++; else typeMap[m.type].l++; } });
-  var typeRows = Object.keys(typeMap).sort().map(function(t){ return insightRow(t, filtered.filter(function(m){ return m.type===t; })); }).join('');
-
   var card1Body =
       insightRow('Overall', filtered)
-    + typeRows;
+    + insightRow('Singles', singles)
+    + insightRow('Doubles', doubles)
+    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;gap:8px;flex-wrap:wrap;">'
+    + '<span style="font-size:12px;color:var(--label);white-space:nowrap">Tiebreaks</span>'
+    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap">' + tbW + '–' + tbL
+    + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
+    + '</div>';
 
   var card3Header = '<div style="display:flex;align-items:center;gap:4px;margin-left:8px">'
     + '<span style="font-size:10px;color:var(--muted)">Min</span>'
@@ -2163,19 +2025,12 @@ function buildHistoryResults(filtered, sortOrder) {
       '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px;word-break:break-word;">' + partnerText + '</div>'
     + partnerListHtml;
 
-  var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;gap:8px;flex-wrap:wrap;">'
-    + '<span style="font-size:12px;color:var(--label);white-space:nowrap">Tiebreaks</span>'
-    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap">' + tbW + '–' + tbL
-    + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
-    + '</div>';
-
   var card2Body =
       insightRow('Home',      filtered.filter(function(m){ return m.homeaway === 'Home'; }))
     + insightRow('Away',      filtered.filter(function(m){ return m.homeaway === 'Away'; }))
     + insightRow('Morning',   filtered.filter(function(m){ return m.time === 'Morning' || m.time === 'Day'; }))
     + insightRow('Afternoon', filtered.filter(function(m){ return m.time === 'Afternoon'; }))
-    + insightRow('Night',     filtered.filter(function(m){ return m.time === 'Night'; }))
-    + tbRow;
+    + insightRow('Night',     filtered.filter(function(m){ return m.time === 'Night'; }));
 
   // Table rows — wrap partner + score on mobile
   var tableRows = paged.map(function(m) {
@@ -2192,7 +2047,6 @@ function buildHistoryResults(filtered, sortOrder) {
       scoresHtml += '<span class="set-score ' + cls + '">' + w + '–' + l + '</span>';
     });
     var noteInd = m.notes ? '<span class="note-indicator" title="' + escHtml(m.notes) + '" style="cursor:help"></span>' : '';
-    var playoffStar = m.playoff ? '<span title="Playoff' + (m.playoffround ? ', Round: ' + escHtml(m.playoffround) : '') + '" style="color:#f59e0b;font-size:13px;margin-left:5px;cursor:help">★</span>' : '';
     var isMob = window.innerWidth <= 768;
     if (isMob) {
       // Mobile: opponent line 1, partner line 2, scores line 3
@@ -2200,17 +2054,17 @@ function buildHistoryResults(filtered, sortOrder) {
         + '<td style="white-space:nowrap;font-size:12px;color:var(--text);vertical-align:top;padding-top:11px">' + (m.date || '') + '</td>'
         + '<td style="vertical-align:top;padding-top:9px"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
         + '<td>'
-          + '<div style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + playoffStar + '</div>'
+          + '<div style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + '</div>'
           + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">w/ ' + partner + '</div>' : '')
           + '<div class="hist-scores" style="margin-top:5px">' + scoresHtml + retired + noteInd + '</div>'
         + '</td>'
         + '</tr>';
     }
-    // Desktop: 5 columns
+    // Desktop: 5 columns — Date, Result, Opponent, Partner, Score
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + playoffStar + '</td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + '</td>'
       + '<td style="font-size:13px;color:var(--muted)">' + (partner || '—') + '</td>'
       + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
@@ -2232,7 +2086,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + 'style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;'
     + 'font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
     + '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
-    + 'Show less</button></div>';
+    + '</button></div>';
 
   return (isMob ? '<div style="margin-bottom:12px">' + cardsHtml + '</div>'
                 : '<div style="margin-bottom:6px">' + cardsHtml + desktopToggle + '</div>')
@@ -2252,7 +2106,6 @@ function buildHistoryResults(filtered, sortOrder) {
 
 
 var _histTimer = null;
-var histFiltersOpen = false; // persists across re-renders
 
 function onHistOpponentInput(val) {
   filterState.history.opponent = val.trim().toLowerCase();
@@ -2281,7 +2134,6 @@ function applyHistoryFilter() {
   var sea  = filterState.history.season    || '';
   var lev  = filterState.history.level     || '';
   var typ  = filterState.history.type      || '';
-  var po   = filterState.history.playoff   || false;
   var srt  = filterState.history.sort      || 'newest';
 
   var filtered = allMatches.filter(function(m) {
@@ -2291,11 +2143,6 @@ function applyHistoryFilter() {
     if (typ  && m.type   !== typ)  return false;
     if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
     if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
-    if (po   && !m.playoff) return false;
-      if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
-      if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
-      if (filterState.history.surface && m.surface !== filterState.history.surface) return false;
-      if (filterState.history.time    && m.time    !== filterState.history.time)    return false;
     return true;
   });
 
@@ -2344,11 +2191,12 @@ function toggleAllHistCards() {
     if (body) body.style.display = isOpen ? 'none' : 'block';
     if (chev) chev.textContent = isOpen ? '▼' : '▲';
   });
+  // Flip the pill arrow
   var btn = document.getElementById('hist-cards-toggle-btn');
   if (btn) {
-    var arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
     var arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
-    btn.innerHTML = isOpen ? arrowDown + 'Show more' : arrowUp + 'Show less';
+    var arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    btn.innerHTML = isOpen ? arrowDown : arrowUp;
   }
 }
 
@@ -2358,40 +2206,27 @@ function toggleHistFilters() {
   const chevron = document.getElementById('hist-filter-chevron');
   if (!body) return;
   const isOpen = body.style.display !== 'none';
-  histFiltersOpen = !isOpen; // persist state
   body.style.display = isOpen ? 'none' : 'block';
   if (label)   label.textContent   = isOpen ? 'More Filters' : 'Less Filters';
   if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
 
-// Restore filter open/close state after every re-render
+// Auto-open filters on desktop after render
 function autoOpenHistFilters() {
-  const shouldOpen = histFiltersOpen ||
-    !!(filterState.history.year || filterState.history.season ||
-       filterState.history.level || filterState.history.type ||
-       filterState.history.playoff);
-  const body    = document.getElementById('hist-filter-body');
-  const label   = document.getElementById('hist-filter-label');
-  const chevron = document.getElementById('hist-filter-chevron');
-  if (shouldOpen) {
-    if (body)    body.style.display      = 'block';
-    if (label)   label.textContent       = 'Less Filters';
+  const hasDropdownFilters = !!(filterState.history.year || filterState.history.season ||
+    filterState.history.level || filterState.history.type);
+  if (window.innerWidth > 768 && hasDropdownFilters) {
+    const body    = document.getElementById('hist-filter-body');
+    const label   = document.getElementById('hist-filter-label');
+    const chevron = document.getElementById('hist-filter-chevron');
+    if (body)    body.style.display    = 'block';
+    if (label)   label.textContent     = 'Less Filters';
     if (chevron) chevron.style.transform = 'rotate(180deg)';
   }
 }
 
 function clearHistoryFilters() {
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'' };
-  ['hist-year','hist-season','hist-level','hist-type','hist-sort','hist-league','hist-line','hist-surface','hist-time'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = id === 'hist-sort' ? 'newest' : '';
-  });
-  const oppEl = document.getElementById('hist-opponent');
-  const parEl = document.getElementById('hist-partner');
-  if (oppEl) oppEl.value = '';
-  if (parEl) parEl.value = '';
-  const poEl = document.getElementById('hist-playoff');
-  if (poEl) poEl.checked = false;
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest' };
   renderHistory(1);
 }
 
@@ -2536,8 +2371,8 @@ function openEditMode(idx) {
     <div class="edit-grid">
       <div class="field"><div class="field-label">Date</div>${inp('date', formatDateISO(m.date), 'date')}</div>
       <div class="field"><div class="field-label">Season</div>${sel('season','season',validEntries.season||[],m.season)}</div>
-      <div class="field"><div class="field-label">League</div>${sel('league','league',sortedLeagues(validEntries.league||[]),m.league)}</div>
-      <div class="field"><div class="field-label">Level</div>${sel('level','level',sortedLevels(validEntries.level||[]),m.level)}</div>
+      <div class="field"><div class="field-label">League</div>${sel('league','league',validEntries.league||[],m.league)}</div>
+      <div class="field"><div class="field-label">Level</div>${sel('level','level',validEntries.level||[],m.level)}</div>
       <div class="field"><div class="field-label">Type</div><select id="edit-type" ${onTypeChange}><option value="">— Select —</option>${typeOpts.map(t=>`<option value="${t}" ${t===m.type?'selected':''}>${t}</option>`).join('')}</select></div>
       <div class="field"><div class="field-label">Line</div>${sel('line','line',validEntries.line||[],m.line)}</div>
       <div class="field"><div class="field-label">Home / Away</div>${sel('homeaway','homeaway',validEntries.homeaway||[],m.homeaway)}</div>
@@ -2549,7 +2384,7 @@ function openEditMode(idx) {
     <div class="edit-grid">
       <div class="field"><div class="field-label">Opponent 1 <span class="required-dot"></span></div>${inp('opp1', m.opp1)}</div>
       <div class="field"><div class="field-label">Opponent 2</div>${inp('opp2', m.opp2)}</div>
-      <div class="field"><div class="field-label">Partner</div>${sel('partner','partner',sortedPartners(validEntries.partner||[]),m.partner)}</div>
+      <div class="field"><div class="field-label">Partner</div>${sel('partner','partner',validEntries.partner||[],m.partner)}</div>
     </div>
     <div class="modal-section-title">Scores</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
@@ -2581,7 +2416,6 @@ function openEditMode(idx) {
 }
 
 async function saveEdit(idx) {
-  showSaving('Saving changes…');
   const m = allMatches[idx];
   const get = id => { const el = document.getElementById('edit-'+id); return el ? el.value : ''; };
   const getCheck = id => { const el = document.getElementById('edit-'+id); return el ? el.checked : false; };
@@ -2615,6 +2449,7 @@ async function saveEdit(idx) {
     });
     const data = await res.json();
     if (data.success) {
+      // Update local state
       allMatches[idx] = { ...allMatches[idx], ...{
         date: dateFormatted, season: updated.season, league: updated.league,
         level: updated.level, type: updated.type, line: updated.line,
@@ -2626,16 +2461,13 @@ async function saveEdit(idx) {
         oppRet: updated.opponentretired, weRet: updated.weretired,
         notes: updated.notes
       }};
-      hideSaving();
       closeModal();
       showToast('Match updated successfully');
       if (currentPage === 'history') renderHistory(historyPage);
     } else {
-      hideSaving();
       showToast(data.error || 'Update failed', true);
     }
   } catch(e) {
-    hideSaving();
     showToast('Network error: ' + e.message, true);
   }
 }
@@ -2657,13 +2489,6 @@ let vePendingRename = null;
 async function renderValidEntries() {
   document.getElementById('topbar-right').innerHTML = '';
   document.getElementById('mobile-filters').innerHTML = '';
-
-  // Use cached data if we already have entries loaded — no need to re-fetch
-  if (veEntries && Object.keys(veEntries).length > 0) {
-    renderVEContent();
-    return;
-  }
-
   setContent(`<div class="spinner-wrap"><div class="spinner"></div><div>Loading valid entries…</div></div>`);
   try {
     const res  = await fetch(`${webAppUrl}?action=getValidEntries`);
@@ -2693,19 +2518,9 @@ function renderVEContent() {
       });
     }
     if (field === 'level') {
-      function slv(v) { return /^[A-Za-z]/.test(v.trim()); }
-      function lNum(v) { const n=parseFloat(v.replace(/[^0-9.]/g,'')); return isNaN(n)?Infinity:n; }
-      function lDash(v) { return /-/.test(v); }
-      const lg = vals.filter(slv).sort((a,b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
-      const ng = vals.filter(v => !slv(v)).sort((a,b) => {
-        const na=lNum(a), nb=lNum(b);
-        if (na!==nb) return na-nb;
-        return lDash(a)?-1:lDash(b)?1:a.localeCompare(b);
-      });
-      return [...lg, ...ng];
-    }
-    if (field === 'league') {
-      return [...vals].sort((a, b) => a.localeCompare(b));
+      const letters = vals.filter(v => isNaN(parseFloat(v))).sort((a,b) => a.localeCompare(b));
+      const numbers = vals.filter(v => !isNaN(parseFloat(v))).sort((a,b) => parseFloat(a)-parseFloat(b));
+      return [...letters, ...numbers];
     }
     return vals;
   }
@@ -2726,19 +2541,15 @@ function renderVEContent() {
     const extra = vals.length > SHOW;
     const visible = vals.slice(0, SHOW).map((v,i) => buildItem(field,v,i)).join('');
     const hidden  = vals.slice(SHOW).map((v,i) => buildItem(field,v,i+SHOW)).join('');
-    // Always reserve the same space for the expand button row so Add aligns across cards
-    const expandRow = extra
-      ? `<ul class="ve-list" id="ve-list-${field}-extra" style="display:none;margin-top:0">${hidden}</ul>
-        <button onclick="veToggleExpand('${field}')" id="ve-expand-${field}"
-          style="background:none;border:none;color:var(--accent2);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px">
-          &#x2193; Show ${vals.length - SHOW} more</button>`
-      : '';
     return `
       <div class="ve-card">
         <div class="ve-card-title">${VE_FIELD_LABELS[field]}<span class="ve-count">${vals.length}</span></div>
         <ul class="ve-list">${visible || '<li style="font-size:12px;color:var(--muted);padding:6px 0">No entries yet</li>'}</ul>
-        ${expandRow}
-        <div class="ve-add-row" style="margin-top:auto;padding-top:8px">
+        ${extra ? `<ul class="ve-list" id="ve-list-${field}-extra" style="display:none">${hidden}</ul>
+        <button onclick="veToggleExpand('${field}')" id="ve-expand-${field}"
+          style="background:none;border:none;color:var(--accent2);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px">
+          &#x2193; Show ${vals.length - SHOW} more</button>` : ''}
+        <div class="ve-add-row">
           <input type="text" class="ve-add-input" id="ve-add-${field}" placeholder="Add new&hellip;"
             onkeydown="if(event.key==='Enter') veAddEntry('${field}')">
           <button class="ve-add-btn" onclick="veAddEntry('${field}')">+ Add</button>
@@ -2760,8 +2571,8 @@ function renderVEContent() {
       .ve-chip-red{background:var(--loss-bg);color:var(--loss)}
       .ve-save-threshold{background:var(--accent2);border:2px solid var(--accent);border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;white-space:nowrap}
       .ve-save-threshold:hover{background:var(--accent)}
-      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;width:100%;max-width:100%;box-sizing:border-box;grid-auto-rows:1fr;align-items:stretch}
-      .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);min-width:0;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column}
+      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;width:100%;max-width:100%;box-sizing:border-box}
+      .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);min-width:0;overflow:hidden;box-sizing:border-box}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
       .ve-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
       .ve-count{background:var(--surface2);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--muted);font-weight:500}
@@ -2782,31 +2593,32 @@ function renderVEContent() {
     </style>
     <div class="ve-cards-grid">
       ${cardsHtml}
-      <div class="ve-card">
+      <div class="ve-card" style="grid-column:1/-1">
         <div class="ve-card-title">Performance Thresholds</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.5">
-          Controls row coloring — green above Great %, red below Poor %.
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">
+          These thresholds control row coloring across the app. Win rates above the Great threshold turn green, below Poor turn red, and everything in between turns orange.
         </div>
-        <div style="display:flex;gap:24px;justify-content:center;margin-bottom:16px">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--win);text-align:center">Great (Green) &ge;</div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" class="ve-threshold-input" id="ve-t-great" value="${great}" min="0" max="100" oninput="veAutoSave()">
+        <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+          <div class="ve-threshold-field">
+            <div class="ve-threshold-label" style="color:var(--win)">Great (Green) &ge;</div>
+            <div class="ve-threshold-wrap">
+              <input type="number" class="ve-threshold-input" id="ve-t-great" value="${great}" min="0" max="100" oninput="veUpdatePreview()">
               <span style="font-size:14px;color:var(--muted)">%</span>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--danger);text-align:center">Poor (Red) &le;</div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" class="ve-threshold-input" id="ve-t-poor" value="${poor}" min="0" max="100" oninput="veAutoSave()">
+          <div class="ve-threshold-field">
+            <div class="ve-threshold-label" style="color:var(--danger)">Poor (Red) &le;</div>
+            <div class="ve-threshold-wrap">
+              <input type="number" class="ve-threshold-input" id="ve-t-poor" value="${poor}" min="0" max="100" oninput="veUpdatePreview()">
               <span style="font-size:14px;color:var(--muted)">%</span>
             </div>
           </div>
-        </div>
-        <div id="ve-t-preview" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
-          <span class="ve-chip ve-chip-green">&ge; ${great}%</span>
-          <span class="ve-chip ve-chip-orange">${poor}&ndash;${great}%</span>
-          <span class="ve-chip ve-chip-red">&le; ${poor}%</span>
+          <div class="ve-preview" id="ve-t-preview">
+            <span class="ve-chip ve-chip-green">&ge; ${great}%</span>
+            <span class="ve-chip ve-chip-orange">${poor}&ndash;${great}%</span>
+            <span class="ve-chip ve-chip-red">&le; ${poor}%</span>
+          </div>
+          <button class="ve-save-threshold" onclick="veSaveThresholds()">Save</button>
         </div>
       </div>
     </div>
@@ -2835,39 +2647,43 @@ function renderVEContent() {
 
 
 function veToggleExpand(field) {
+  const extra = document.getElementById(`ve-list-${field}-extra`);
+  const btn   = document.getElementById(`ve-expand-${field}`);
+  if (!extra) return;
+  const open = extra.style.display !== "none";
+  extra.style.display = open ? "none" : "block";
+  if (btn) btn.innerHTML = open ? btn.innerHTML.replace("&#x2191;","&#x2193;").replace("Hide","Show ") : btn.innerHTML.replace("&#x2193;","&#x2191;").replace(/Show.*/, "Hide extra");
+}
+
+
+function veToggleExpand(field) {
   const extra = document.getElementById('ve-list-' + field + '-extra');
   const btn   = document.getElementById('ve-expand-' + field);
   if (!extra) return;
   const open = extra.style.display !== 'none';
   extra.style.display = open ? 'none' : 'block';
-  extra.style.marginTop = '0';
   if (btn) {
-    const hidden = (veEntries[field] || []).length - 3;
-    btn.innerHTML = open ? '&#x2193; Show ' + hidden + ' more' : '&#x2191; Show less';
+    const rawVals = veEntries[field] || [];
+    const hidden  = rawVals.length - 3;
+    btn.innerHTML = open
+      ? '&#x2193; Show ' + hidden + ' more'
+      : '&#x2191; Show less';
   }
 }
 
 function veUpdatePreview() {
   const g = parseInt(document.getElementById('ve-t-great').value) || 55;
   const p = parseInt(document.getElementById('ve-t-poor').value)  || 45;
-  const prev = document.getElementById('ve-t-preview');
-  if (prev) prev.innerHTML = `
+  document.getElementById('ve-t-preview').innerHTML = `
     <span class="ve-chip ve-chip-green">≥ ${g}%</span>
     <span class="ve-chip ve-chip-orange">${p}–${g}%</span>
     <span class="ve-chip ve-chip-red">≤ ${p}%</span>`;
 }
 
-let _threshTimer = null;
-function veAutoSave() {
-  veUpdatePreview();
-  clearTimeout(_threshTimer);
-  _threshTimer = setTimeout(veSaveThresholds, 800);
-}
-
 async function veSaveThresholds() {
-  const great = parseInt(document.getElementById('ve-t-great')?.value);
-  const poor  = parseInt(document.getElementById('ve-t-poor')?.value);
-  if (isNaN(great)||isNaN(poor)) return;
+  const great = parseInt(document.getElementById('ve-t-great').value);
+  const poor  = parseInt(document.getElementById('ve-t-poor').value);
+  if (isNaN(great)||isNaN(poor)) { showToast('Please enter valid numbers',true); return; }
   if (great <= poor) { showToast('Great threshold must be higher than Poor',true); return; }
   try {
     const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'updateThresholds',great,poor})});
@@ -2881,7 +2697,6 @@ async function veSaveThresholds() {
 }
 
 async function veAddEntry(field) {
-  showSaving('Adding…');
   const input = document.getElementById('ve-add-'+field);
   const value = input.value.trim();
   if (!value) return;
@@ -2931,7 +2746,6 @@ async function veTriggerRename(field, idx) {
 }
 
 async function veConfirmRename() {
-  showSaving('Renaming…');
   document.getElementById('ve-confirm-rename').classList.remove('visible');
   if (!vePendingRename) return;
   const {field, oldValue, newValue} = vePendingRename;
@@ -2966,7 +2780,6 @@ function veTriggerDelete(field, value) {
 }
 
 async function veConfirmDelete() {
-  showSaving('Deleting…');
   document.getElementById('ve-confirm-delete').classList.remove('visible');
   if (!vePendingDelete) return;
   const {field, value} = vePendingDelete;
@@ -3017,7 +2830,6 @@ async function confirmDelete() {
   const idx = pendingDeleteIdx;
   closeConfirm();
   closeModal();
-  showSaving('Deleting match…');
   try {
     const res = await fetch(webAppUrl, {
       method: 'POST',
@@ -3034,8 +2846,6 @@ async function confirmDelete() {
     }
   } catch(e) {
     showToast('Network error: ' + e.message, true);
-  } finally {
-    hideSaving();
   }
 }
 
@@ -3070,9 +2880,9 @@ function renderEntry() {
     return `<div class="field">
       <div class="field-label">${label}</div>
       <div class="score-row">
-        <div><div class="score-label">My / Our</div><input type="number" id="e-${id}w" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center" onchange="onEntryScoreChange()"></div>
+        <div><div class="score-label">My / Our</div><input type="number" id="e-${id}w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center" onchange="onEntryScoreChange()"></div>
         <div class="score-divider">–</div>
-        <div><div class="score-label">Opp.</div><input type="number" id="e-${id}l" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center" onchange="onEntryScoreChange()"></div>
+        <div><div class="score-label">Opp.</div><input type="number" id="e-${id}l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center" onchange="onEntryScoreChange()"></div>
       </div>
       <div class="field-error" id="err-${id}">Required</div>
     </div>`;
@@ -3104,7 +2914,7 @@ function renderEntry() {
             <div class="field-label">Type <span class="required-dot"></span></div>
             <select id="e-type" onchange="onEntryTypeChange();onEntryNewSelect('type')">
               <option value="">— Select —</option>
-              ${(validEntries.type||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.type||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
             <div class="field-error" id="err-type">Required</div>
@@ -3113,9 +2923,6 @@ function renderEntry() {
         <div class="field hidden" id="field-type-new">
           <div class="field-label">New Type Name</div>
           <input type="text" id="e-type-new" placeholder="Enter type name">
-          <div style="margin-top:5px;font-size:11px;color:var(--muted);line-height:1.4;font-style:italic">
-            💡 For optimal results, include the word "doubles" for any doubles type — e.g. Men's Doubles, Mixed Doubles.
-          </div>
         </div>
 
         <!-- Opponents -->
@@ -3128,9 +2935,8 @@ function renderEntry() {
           </div>
           <div id="e-opp2-field" class="cond cond-hidden">
             <div class="field">
-              <div class="field-label">Opponent 2 <span class="required-dot"></span></div>
+              <div class="field-label">Opponent 2</div>
               <input type="text" id="e-opp2" placeholder="First Last">
-              <div class="field-error" id="err-opp2">Opponent 2 is required for doubles</div>
             </div>
           </div>
         </div>
@@ -3139,13 +2945,12 @@ function renderEntry() {
         <div id="e-doubles-fields" class="cond cond-hidden" style="margin-top:6px">
           <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Partner</div>
           <div class="field">
-            <div class="field-label">Partner <span class="required-dot"></span></div>
+            <div class="field-label">Partner</div>
             <select id="e-partner" onchange="onEntryNewSelect('partner')">
               <option value="">— Select —</option>
-              ${sortedPartners(validEntries.partner).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.partner||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
-            <div class="field-error" id="err-partner">Partner is required for doubles</div>
           </div>
           <div class="field hidden" id="field-partner-new">
             <div class="field-label">New Partner</div>
@@ -3156,26 +2961,26 @@ function renderEntry() {
         <!-- Scores -->
         <div style="margin-top:10px">
           <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Score</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;min-width:0">
-            <div id="e-s1-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 1 <span class="required-dot"></span></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
-            <div id="e-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+            <div style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" min="0" max="99" placeholder="0" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
             <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
-              <div id="e-s3-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
           </div>
@@ -3203,7 +3008,7 @@ function renderEntry() {
             <div class="field-label">Season</div>
             <select id="e-season" onchange="onEntryNewSelect('season')">
               <option value="">— Select —</option>
-              ${(validEntries.season||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.season||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3211,7 +3016,7 @@ function renderEntry() {
             <div class="field-label">League</div>
             <select id="e-league" onchange="onEntryNewSelect('league')">
               <option value="">— Select —</option>
-              ${sortedLeagues(validEntries.league).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.league||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3225,7 +3030,7 @@ function renderEntry() {
             <div class="field-label">Level</div>
             <select id="e-level" onchange="onEntryNewSelect('level')">
               <option value="">— Select —</option>
-              ${sortedLevels(validEntries.level).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3233,7 +3038,7 @@ function renderEntry() {
             <div class="field-label">Line</div>
             <select id="e-line" onchange="onEntryNewSelect('line')">
               <option value="">— Select —</option>
-              ${(validEntries.line||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.line||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3247,7 +3052,7 @@ function renderEntry() {
             <div class="field-label">Home / Away</div>
             <select id="e-homeaway" onchange="onEntryNewSelect('homeaway')">
               <option value="">— Select —</option>
-              ${(validEntries.homeaway||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.homeaway||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3255,7 +3060,7 @@ function renderEntry() {
             <div class="field-label">Surface</div>
             <select id="e-surface" onchange="onEntryNewSelect('surface')">
               <option value="">— Select —</option>
-              ${(validEntries.surface||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.surface||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3269,7 +3074,7 @@ function renderEntry() {
             <div class="field-label">Time</div>
             <select id="e-time">
               <option value="">— Select —</option>
-              ${(validEntries.time||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.time||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
             </select>
           </div>
           <div class="field">
@@ -3286,7 +3091,7 @@ function renderEntry() {
             <div class="field-label">Playoff Round</div>
             <select id="e-playoffround" onchange="onEntryNewSelect('playoffround')">
               <option value="">— Select —</option>
-              ${(validEntries.playoffround||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              ${(validEntries.playoffround||[]).map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('')}
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
@@ -3369,9 +3174,6 @@ function onEntryScoreChange() {
     s3El.style.opacity = needS3 ? '1' : '0.3';
     s3El.style.pointerEvents = needS3 ? '' : 'none';
   }
-  // Add/remove required dot on Set 3 label
-  const s3label = document.getElementById('e-s3-label');
-  if (s3label) s3label.innerHTML = needS3 ? 'Set 3 <span class="required-dot"></span>' : 'Set 3';
   if (!needS3) {
     const s3w = document.getElementById('e-s3w');
     const s3l = document.getElementById('e-s3l');
@@ -3385,88 +3187,35 @@ async function submitEntry() {
   const getCheck = id => document.getElementById('e-'+id)?.checked || false;
   const resolve = key => { const v=get(key); return v==='__new__' ? (get(key+'-new')||'') : v; };
 
+  // Validate
   const type = resolve('type');
   const isDb = type.toLowerCase().includes('doubles');
-  const retired = getCheck('opp-ret') || getCheck('we-ret');
   let valid = true;
-
-  const setErr = (id, show, msg) => {
-    // Show/hide error text
-    const errEl = document.getElementById('err-'+id);
-    if (errEl) {
-      errEl.style.display = show ? 'block' : 'none';
-      if (msg && show) errEl.textContent = msg;
-    }
-    // Score set boxes (s1, s2) have container divs with -box suffix
-    const boxId = id === 's3' ? 'e-s3-container' : 'e-'+id+'-box';
-    const boxEl = document.getElementById(boxId);
-    if (boxEl) {
-      boxEl.style.borderColor = show ? 'var(--danger)' : 'var(--border)';
-      return; // box handles the visual — done
-    }
-    // Regular fields: outline the input/select directly
-    const fieldEl = document.getElementById('e-'+id);
-    if (fieldEl) {
-      fieldEl.style.borderColor = show ? 'var(--danger)' : '';
-    }
+  const setErr = (id, show) => {
+    const el = document.getElementById('err-'+id);
+    if (el) el.classList.toggle('visible', show);
   };
 
-  function validSetScore(w, l, isThird) {
-    const nw = parseInt(w), nl = parseInt(l);
-    if (isNaN(nw) || isNaN(nl)) return false;
-    if (isThird && ((nw===1&&nl===0)||(nw===0&&nl===1))) return true;
-    if ((nw===7&&nl===6)||(nw===6&&nl===7)) return true;
-    const hi=Math.max(nw,nl), lo=Math.min(nw,nl);
-    return hi>=6 && hi-lo>=2;
-  }
+  if (!type) { setErr('type',true); valid=false; }
+  if (!get('opp1').trim()) { setErr('opp1',true); valid=false; }
+  if (isDb && !get('opp2').trim()) { setErr('opp2',true); valid=false; }
 
-  // Always validate ALL fields — setErr clears when valid, sets when not
-  // Type
-  if (!type) { setErr('type',true,'Required'); valid=false; } else { setErr('type',false); }
-
-  // Opponents
-  if (!get('opp1').trim()) { setErr('opp1',true,'Required'); valid=false; } else { setErr('opp1',false); }
-  if (isDb && !get('opp2').trim()) { setErr('opp2',true,'Opponent 2 is required for doubles'); valid=false; } else { setErr('opp2',false); }
-
-  // Partner (doubles only)
-  if (isDb) {
-    const partnerVal = resolve('partner');
-    if (!partnerVal.trim()) { setErr('partner',true,'Partner is required for doubles'); valid=false; } else { setErr('partner',false); }
-  } else { setErr('partner',false); }
-
-  function setBoxErr(boxId, errId, show, msg) {
-    const box = document.getElementById(boxId);
-    if (box) box.style.setProperty('border-color', show ? 'var(--danger)' : 'var(--border)', 'important');
-    const err = document.getElementById(errId);
-    if (err) { err.style.display = show ? 'block' : 'none'; if (msg && show) err.textContent = msg; }
-  }
-
-  const s1w = get('s1w'), s1l = get('s1l');
-  const s2w = get('s2w'), s2l = get('s2l');
-  const s3w = get('s3w'), s3l = get('s3l');
+  const retired = getCheck('opp-ret') || getCheck('we-ret');
 
   // Set 1 always required
-  if (s1w===''||s1l==='') { setBoxErr('e-s1-box','err-s1',true,'Set 1 is required'); valid=false; }
-  else if (!retired && !validSetScore(s1w,s1l,false)) { setBoxErr('e-s1-box','err-s1',true,'Invalid score (e.g. 6–0, 7–6)'); valid=false; }
-  else { setBoxErr('e-s1-box','err-s1',false); }
+  if (get('s1w')===''||get('s1l')==='') { setErr('s1',true); valid=false; }
 
-  // Set 2 required unless retired
-  if (retired) { setBoxErr('e-s2-box','err-s2',false); }
-  else if (s2w===''||s2l==='') { setBoxErr('e-s2-box','err-s2',true,'Set 2 is required'); valid=false; }
-  else if (!validSetScore(s2w,s2l,false)) { setBoxErr('e-s2-box','err-s2',true,'Invalid score (e.g. 6–4, 7–6)'); valid=false; }
-  else { setBoxErr('e-s2-box','err-s2',false); }
+  // Set 2 required unless someone retired
+  if (!retired && (get('s2w')===''||get('s2l')==='')) { setErr('s2',true); valid=false; }
 
-  // Set 3 — required only if sets are split
-  let needsS3 = false;
-  if (!retired && s1w!==''&&s1l!==''&&s2w!==''&&s2l!=='') {
-    const n1w=parseInt(s1w),n1l=parseInt(s1l),n2w=parseInt(s2w),n2l=parseInt(s2l);
-    if (!isNaN(n1w)&&!isNaN(n1l)&&!isNaN(n2w)&&!isNaN(n2l) && (n1w>n1l)!==(n2w>n2l)) needsS3 = true;
+  // Set 3 required if sets 1 and 2 were split (different winner) unless someone retired
+  if (!retired && get('s1w')!==''&&get('s1l')!==''&&get('s2w')!==''&&get('s2l')!=='') {
+    const s1w=parseInt(get('s1w')),s1l=parseInt(get('s1l'));
+    const s2w=parseInt(get('s2w')),s2l=parseInt(get('s2l'));
+    if (!isNaN(s1w)&&!isNaN(s1l)&&!isNaN(s2w)&&!isNaN(s2l) && (s1w>s1l)!==(s2w>s2l)) {
+      if (get('s3w')===''||get('s3l')==='') { setErr('s3',true); valid=false; }
+    }
   }
-  if (!needsS3) { setBoxErr('e-s3-container','err-s3',false); }
-  else if (s3w===''||s3l==='') { setBoxErr('e-s3-container','err-s3',true,'Set 3 required — sets were split'); valid=false; }
-  else if (!validSetScore(s3w,s3l,true)) { setBoxErr('e-s3-container','err-s3',true,'Invalid (e.g. 6–4, 7–6, or 1–0)'); valid=false; }
-  else { setBoxErr('e-s3-container','err-s3',false); }
-
   if (!valid) return;
 
   const dateRaw = get('date');
@@ -3493,7 +3242,8 @@ async function submitEntry() {
     notes: document.getElementById('e-notes')?.value?.trim() || ''
   };
 
-  showSaving('Saving match…');
+  const statusEl = document.getElementById('entry-status');
+  if (statusEl) statusEl.textContent = 'Saving…';
 
   try {
     if (Object.keys(newEntries).length > 0) {
@@ -3506,74 +3256,19 @@ async function submitEntry() {
     const res = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({match}) });
     const data = await res.json();
     if (data.success) {
-      hideSaving();
-      showToast('Match submitted!');
-      // Capture the fields to preserve for next entry
-      const keepFields = {
-        type:       resolve('type'),
-        season:     resolve('season'),
-        league:     resolve('league'),
-        level:      resolve('level'),
-        line:       resolve('line'),
-        homeaway:   resolve('homeaway'),
-        surface:    resolve('surface'),
-        time:       get('time'),
-      };
-      showAnotherMatchPrompt(keepFields);
+      showToast('Match submitted successfully!');
+      if (statusEl) statusEl.textContent = '';
+      resetEntryForm();
+      // Add to local state so history updates without refresh
+      await loadAll();
     } else {
-      hideSaving();
       showToast(data.error||'Submission failed', true);
+      if (statusEl) statusEl.textContent = '';
     }
   } catch(e) {
-    hideSaving();
     showToast('Network error: '+e.message, true);
     if (statusEl) statusEl.textContent = '';
   }
-}
-
-var _anotherMatchKeep = null;
-
-function showAnotherMatchPrompt(keepFields) {
-  _anotherMatchKeep = keepFields;
-  document.getElementById('another-match-overlay').classList.add('visible');
-}
-
-async function anotherMatchNo() {
-  document.getElementById('another-match-overlay').classList.remove('visible');
-  _anotherMatchKeep = null;
-  await loadAll();
-}
-
-function anotherMatchYes() {
-  document.getElementById('another-match-overlay').classList.remove('visible');
-  const keep = _anotherMatchKeep;
-  _anotherMatchKeep = null;
-  // Re-render the entry form fresh then restore kept fields
-  renderEntry();
-  if (!keep) return;
-  // Use requestAnimationFrame to wait for renderEntry to finish painting
-  requestAnimationFrame(() => {
-    const fields = {
-      'e-type':     keep.type,
-      'e-season':   keep.season,
-      'e-league':   keep.league,
-      'e-level':    keep.level,
-      'e-line':     keep.line,
-      'e-homeaway': keep.homeaway,
-      'e-surface':  keep.surface,
-      'e-time':     keep.time,
-    };
-    Object.entries(fields).forEach(([id, val]) => {
-      const el = document.getElementById(id);
-      if (el && val) el.value = val;
-    });
-    // Trigger type change to show/hide doubles fields correctly
-    onEntryTypeChange();
-    // Set today's date
-    const today = new Date();
-    const dateEl = document.getElementById('e-date');
-    if (dateEl) dateEl.value = today.toISOString().split('T')[0];
-  });
 }
 
 function resetEntryForm() {
