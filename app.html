@@ -3423,29 +3423,34 @@ async function submitEntry() {
     if (!partnerVal.trim()) { setErr('partner',true,'Partner is required for doubles'); valid=false; } else { setErr('partner',false); }
   } else { setErr('partner',false); }
 
+  function setBoxErr(boxId, errId, show, msg) {
+    const box = document.getElementById(boxId);
+    if (box) box.style.setProperty('border-color', show ? 'var(--danger)' : 'var(--border)', 'important');
+    const err = document.getElementById(errId);
+    if (err) { err.style.display = show ? 'block' : 'none'; if (msg && show) err.textContent = msg; }
+  }
+
   // Set 1 always required
-  if (s1w===''||s1l==='') { setErr('s1',true,'Set 1 is required'); valid=false; }
-  else if (!retired && !validSetScore(s1w,s1l,false)) { setErr('s1',true,'Invalid score (e.g. 6–0, 7–6)'); valid=false; }
-  else { setErr('s1',false); }
+  if (s1w===''||s1l==='') { setBoxErr('e-s1-box','err-s1',true,'Set 1 is required'); valid=false; }
+  else if (!retired && !validSetScore(s1w,s1l,false)) { setBoxErr('e-s1-box','err-s1',true,'Invalid score (e.g. 6–0, 7–6)'); valid=false; }
+  else { setBoxErr('e-s1-box','err-s1',false); }
 
   // Set 2 required unless retired
-  if (retired) { setErr('s2',false); }
-  else if (s2w===''||s2l==='') { setErr('s2',true,'Set 2 is required'); valid=false; }
-  else if (!validSetScore(s2w,s2l,false)) { setErr('s2',true,'Invalid score (e.g. 6–4, 7–6)'); valid=false; }
-  else { setErr('s2',false); }
+  if (retired) { setBoxErr('e-s2-box','err-s2',false); }
+  else if (s2w===''||s2l==='') { setBoxErr('e-s2-box','err-s2',true,'Set 2 is required'); valid=false; }
+  else if (!validSetScore(s2w,s2l,false)) { setBoxErr('e-s2-box','err-s2',true,'Invalid score (e.g. 6–4, 7–6)'); valid=false; }
+  else { setBoxErr('e-s2-box','err-s2',false); }
 
-  // Set 3 — only required if sets are split; otherwise always clear
+  // Set 3 — required only if sets are split
   let needsS3 = false;
   if (!retired && s1w!==''&&s1l!==''&&s2w!==''&&s2l!=='') {
     const n1w=parseInt(s1w),n1l=parseInt(s1l),n2w=parseInt(s2w),n2l=parseInt(s2l);
-    if (!isNaN(n1w)&&!isNaN(n1l)&&!isNaN(n2w)&&!isNaN(n2l) && (n1w>n1l)!==(n2w>n2l)) {
-      needsS3 = true;
-    }
+    if (!isNaN(n1w)&&!isNaN(n1l)&&!isNaN(n2w)&&!isNaN(n2l) && (n1w>n1l)!==(n2w>n2l)) needsS3 = true;
   }
-  if (!needsS3) { setErr('s3',false); }
-  else if (s3w===''||s3l==='') { setErr('s3',true,'Set 3 required — sets were split'); valid=false; }
-  else if (!validSetScore(s3w,s3l,true)) { setErr('s3',true,'Invalid (e.g. 6–4, 7–6, or 1–0)'); valid=false; }
-  else { setErr('s3',false); }
+  if (!needsS3) { setBoxErr('e-s3-container','err-s3',false); }
+  else if (s3w===''||s3l==='') { setBoxErr('e-s3-container','err-s3',true,'Set 3 required — sets were split'); valid=false; }
+  else if (!validSetScore(s3w,s3l,true)) { setBoxErr('e-s3-container','err-s3',true,'Invalid (e.g. 6–4, 7–6, or 1–0)'); valid=false; }
+  else { setBoxErr('e-s3-container','err-s3',false); }
 
   if (!valid) return;
 
