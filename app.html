@@ -92,19 +92,19 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   margin-bottom: 12px;
 }
 .dark-toggle-label { font-size: 12px; color: rgba(255,255,255,0.6); }
-.toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
 .toggle input { opacity: 0; width: 0; height: 0; }
 .toggle-slider {
   position: absolute; inset: 0; background: rgba(255,255,255,0.2);
-  border-radius: 11px; cursor: pointer; transition: background 0.2s;
+  border-radius: 9px; cursor: pointer; transition: background 0.2s;
 }
 .toggle-slider::before {
-  content: ''; position: absolute; width: 16px; height: 16px;
-  left: 3px; top: 3px; background: rgba(255,255,255,0.6);
+  content: ''; position: absolute; width: 13px; height: 13px;
+  left: 2.5px; top: 2.5px; background: rgba(255,255,255,0.6);
   border-radius: 50%; transition: transform 0.2s, background 0.2s;
 }
 .toggle input:checked + .toggle-slider { background: var(--accent2); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: white; }
+.toggle input:checked + .toggle-slider::before { transform: translateX(14px); background: white; }
 .url-display {
   font-size: 10px; color: rgba(255,255,255,0.3);
   word-break: break-all; line-height: 1.4; cursor: pointer;
@@ -312,6 +312,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 }
 .partner-drill-btn:hover { background: var(--accent2); color: #fff; border-color: var(--accent2); }
 .rank-num { color: var(--muted); font-size: 12px; margin-right: 4px; }
+@media (max-width: 768px) { .partners-view-col { display: none; } }
 
 /* ── Insight blurb ──────────────────────────────────────── */
 .insight-blurb {
@@ -380,19 +381,19 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .score-divider { color: var(--muted); font-size: 18px; text-align: center; }
 .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; margin-bottom: 12px; }
 .toggle-row-label { font-size: 13px; color: var(--text); }
-.form-toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.form-toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
 .form-toggle input { opacity: 0; width: 0; height: 0; }
 .form-toggle-slider {
-  position: absolute; inset: 0; background: var(--border); border-radius: 11px;
+  position: absolute; inset: 0; background: var(--border); border-radius: 9px;
   cursor: pointer; transition: background 0.2s;
 }
 .form-toggle-slider::before {
-  content: ''; position: absolute; width: 16px; height: 16px;
-  left: 3px; top: 3px; background: var(--muted);
+  content: ''; position: absolute; width: 13px; height: 13px;
+  left: 2.5px; top: 2.5px; background: var(--muted);
   border-radius: 50%; transition: transform 0.2s, background 0.2s;
 }
 .form-toggle input:checked + .form-toggle-slider { background: var(--accent2); }
-.form-toggle input:checked + .form-toggle-slider::before { transform: translateX(18px); background: white; }
+.form-toggle input:checked + .form-toggle-slider::before { transform: translateX(14px); background: white; }
 .cond { transition: opacity 0.2s; }
 .cond.cond-hidden { opacity: 0.3; pointer-events: none; }
 .hidden { display: none !important; }
@@ -756,6 +757,18 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   <div class="modal-box" id="modal-box">
     <div class="modal-header" id="modal-header"></div>
     <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Another Match Prompt -->
+<div class="confirm-overlay" id="another-match-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title">✅ Match Submitted!</div>
+    <div class="confirm-body">Would you like to enter another match?</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="anotherMatchNo()">No, I'm done</button>
+      <button class="btn btn-primary" onclick="anotherMatchYes()">Yes, enter another</button>
+    </div>
   </div>
 </div>
 
@@ -1719,7 +1732,6 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
         ${thSort('w','W')}
         ${thSort('l','L')}
         ${thSort('pctVal','W%')}
-        <th></th>
       </tr></thead>
       <tbody>
         ${partners.map((p,i) => {
@@ -1729,11 +1741,13 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
             const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
             return `
           <tr>
-            <td><span class="rank-num">${i+1}.</span>${escHtml(p.name)}</td>
+            <td>
+              <span class="rank-num">${i+1}.</span>
+              <span onclick="drillPartner('${escHtml(p.name)}')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px">${escHtml(p.name)}</span>
+            </td>
             <td style="text-align:right;color:${col};font-weight:600">${p.w}</td>
             <td style="text-align:right;color:${col};font-weight:600">${p.l}</td>
             <td style="text-align:right;color:${col};font-weight:600">${pct(p.w,p.l)}</td>
-            <td><button class="partner-drill-btn" onclick="drillPartner('${escHtml(p.name)}')">View →</button></td>
           </tr>`;}).join('')}
       </tbody>
     </table>
@@ -1760,7 +1774,7 @@ function drillPartner(name) {
   // Update header — just show "Splits with [name]", no "Partner:" prefix
   document.getElementById('partners-card-title').textContent = `Performance with ${name}`;
   document.getElementById('partner-header-controls').innerHTML = `
-    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">View History</button>
+    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">History</button>
     <button class="back-btn" onclick="resetPartners()" style="margin-bottom:0">← Back</button>
   `;
 
@@ -2447,8 +2461,8 @@ function openEditMode(idx) {
     <div class="edit-grid">
       <div class="field"><div class="field-label">Date</div>${inp('date', formatDateISO(m.date), 'date')}</div>
       <div class="field"><div class="field-label">Season</div>${sel('season','season',validEntries.season||[],m.season)}</div>
-      <div class="field"><div class="field-label">League</div>${sel('league','league',validEntries.league||[],m.league)}</div>
-      <div class="field"><div class="field-label">Level</div>${sel('level','level',validEntries.level||[],m.level)}</div>
+      <div class="field"><div class="field-label">League</div>${sel('league','league',sortedLeagues(validEntries.league||[]),m.league)}</div>
+      <div class="field"><div class="field-label">Level</div>${sel('level','level',sortedLevels(validEntries.level||[]),m.level)}</div>
       <div class="field"><div class="field-label">Type</div><select id="edit-type" ${onTypeChange}><option value="">— Select —</option>${typeOpts.map(t=>`<option value="${t}" ${t===m.type?'selected':''}>${t}</option>`).join('')}</select></div>
       <div class="field"><div class="field-label">Line</div>${sel('line','line',validEntries.line||[],m.line)}</div>
       <div class="field"><div class="field-label">Home / Away</div>${sel('homeaway','homeaway',validEntries.homeaway||[],m.homeaway)}</div>
@@ -2460,7 +2474,7 @@ function openEditMode(idx) {
     <div class="edit-grid">
       <div class="field"><div class="field-label">Opponent 1 <span class="required-dot"></span></div>${inp('opp1', m.opp1)}</div>
       <div class="field"><div class="field-label">Opponent 2</div>${inp('opp2', m.opp2)}</div>
-      <div class="field"><div class="field-label">Partner</div>${sel('partner','partner',validEntries.partner||[],m.partner)}</div>
+      <div class="field"><div class="field-label">Partner</div>${sel('partner','partner',sortedPartners(validEntries.partner||[]),m.partner)}</div>
     </div>
     <div class="modal-section-title">Scores</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
@@ -2671,7 +2685,7 @@ function renderVEContent() {
       .ve-chip-red{background:var(--loss-bg);color:var(--loss)}
       .ve-save-threshold{background:var(--accent2);border:2px solid var(--accent);border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;white-space:nowrap}
       .ve-save-threshold:hover{background:var(--accent)}
-      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;width:100%;max-width:100%;box-sizing:border-box;grid-auto-rows:1fr}
+      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;width:100%;max-width:100%;box-sizing:border-box;align-items:start}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);min-width:0;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
       .ve-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
@@ -2935,7 +2949,6 @@ async function confirmDelete() {
       body: JSON.stringify({ action: 'deleteMatch', matchIndex: idx })
     });
     const data = await res.json();
-    hideSaving();
     if (data.success) {
       allMatches.splice(idx, 1);
       showToast('Match deleted');
@@ -2945,8 +2958,9 @@ async function confirmDelete() {
       showToast(data.error || 'Delete failed', true);
     }
   } catch(e) {
-    hideSaving();
     showToast('Network error: ' + e.message, true);
+  } finally {
+    hideSaving();
   }
 }
 
@@ -3326,9 +3340,9 @@ async function submitEntry() {
     return hi>=6 && hi-lo>=2;
   }
 
-  const s1w=get('s1w'), s1l=get('s1l');
-  const s2w=get('s2w'), s2l=get('s2l');
-  const s3w=get('s3w'), s3l=get('s3l');
+  const s1w = get('s1w') || '0', s1l = get('s1l') || '0';
+  const s2w = get('s2w') || '0', s2l = get('s2l') || '0';
+  const s3w = get('s3w') || '0', s3l = get('s3l') || '0';
 
   // Set 1 always required
   if (s1w===''||s1l==='') { setErr('s1',true,'Set 1 is required'); valid=false; }
@@ -3372,8 +3386,8 @@ async function submitEntry() {
     playoff: getCheck('playoff'), playoffround: resolve('playoffround'),
     opponent1: get('opp1').trim(), opponent2: isDb?get('opp2').trim():'',
     partner: isDb?resolve('partner'):'',
-    set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
-    set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
+    set1wins: get('s1w')||'0', set1losses: get('s1l')||'0', set2wins: get('s2w')||'0',
+    set2losses: get('s2l')||'0', set3wins: get('s3w')||'0', set3losses: get('s3l')||'0',
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
     notes: document.getElementById('e-notes')?.value?.trim() || ''
   };
@@ -3392,9 +3406,19 @@ async function submitEntry() {
     const data = await res.json();
     if (data.success) {
       hideSaving();
-      showToast('Match submitted successfully!');
-      resetEntryForm();
-      await loadAll();
+      showToast('Match submitted!');
+      // Capture the fields to preserve for next entry
+      const keepFields = {
+        type:       resolve('type'),
+        season:     resolve('season'),
+        league:     resolve('league'),
+        level:      resolve('level'),
+        line:       resolve('line'),
+        homeaway:   resolve('homeaway'),
+        surface:    resolve('surface'),
+        time:       get('time'),
+      };
+      showAnotherMatchPrompt(keepFields);
     } else {
       hideSaving();
       showToast(data.error||'Submission failed', true);
@@ -3404,6 +3428,51 @@ async function submitEntry() {
     showToast('Network error: '+e.message, true);
     if (statusEl) statusEl.textContent = '';
   }
+}
+
+var _anotherMatchKeep = null;
+
+function showAnotherMatchPrompt(keepFields) {
+  _anotherMatchKeep = keepFields;
+  document.getElementById('another-match-overlay').classList.add('visible');
+}
+
+async function anotherMatchNo() {
+  document.getElementById('another-match-overlay').classList.remove('visible');
+  _anotherMatchKeep = null;
+  await loadAll();
+}
+
+function anotherMatchYes() {
+  document.getElementById('another-match-overlay').classList.remove('visible');
+  const keep = _anotherMatchKeep;
+  _anotherMatchKeep = null;
+  // Re-render the entry form fresh then restore kept fields
+  renderEntry();
+  if (!keep) return;
+  // Use requestAnimationFrame to wait for renderEntry to finish painting
+  requestAnimationFrame(() => {
+    const fields = {
+      'e-type':     keep.type,
+      'e-season':   keep.season,
+      'e-league':   keep.league,
+      'e-level':    keep.level,
+      'e-line':     keep.line,
+      'e-homeaway': keep.homeaway,
+      'e-surface':  keep.surface,
+      'e-time':     keep.time,
+    };
+    Object.entries(fields).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val) el.value = val;
+    });
+    // Trigger type change to show/hide doubles fields correctly
+    onEntryTypeChange();
+    // Set today's date
+    const today = new Date();
+    const dateEl = document.getElementById('e-date');
+    if (dateEl) dateEl.value = today.toISOString().split('T')[0];
+  });
 }
 
 function resetEntryForm() {
