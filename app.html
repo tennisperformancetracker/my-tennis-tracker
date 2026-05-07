@@ -710,11 +710,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     </div>
   </nav>
   <div style="padding:0 12px 8px">
-    <a href="user_guide.html" target="_blank"
-      style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:500;text-decoration:none;transition:background 0.15s;cursor:pointer"
+    <div onclick="openUserGuide()"
+      style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s"
       onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''">
       <span style="font-size:16px">📖</span> User Guide
-    </a>
+    </div>
     <div style="height:1px;background:rgba(255,255,255,0.1);margin:4px 0"></div>
   </div>
   <div class="sidebar-footer">
@@ -777,6 +777,26 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
       <button class="btn btn-ghost" onclick="anotherMatchNo()">No, I'm done</button>
       <button class="btn btn-primary" onclick="anotherMatchYes()">Yes, enter another</button>
     </div>
+  </div>
+</div>
+
+<!-- User Guide Overlay -->
+<div id="user-guide-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeUserGuide()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:860px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.3);overflow:hidden">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <div style="font-size:15px;font-weight:700;color:var(--text)">📖 User Guide</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <a href="user_guide.html" target="_blank"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--label);font-family:var(--font);font-size:12px;font-weight:600;padding:6px 14px;cursor:pointer;text-decoration:none;white-space:nowrap">
+          ↗ Open in New Tab
+        </a>
+        <button onclick="closeUserGuide()"
+          style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:0 4px;line-height:1">×</button>
+      </div>
+    </div>
+    <!-- iframe content -->
+    <iframe src="user_guide.html" style="flex:1;border:none;width:100%;min-height:0" title="User Guide"></iframe>
   </div>
 </div>
 
@@ -910,6 +930,16 @@ function closeSidebar() {
 // ═══════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════
+function openUserGuide() {
+  closeSidebar();
+  const el = document.getElementById('user-guide-overlay');
+  if (el) { el.style.display = 'flex'; }
+}
+function closeUserGuide() {
+  const el = document.getElementById('user-guide-overlay');
+  if (el) el.style.display = 'none';
+}
+
 function showSaving(msg) {
   let el = document.getElementById('saving-overlay');
   if (!el) {
