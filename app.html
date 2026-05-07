@@ -807,7 +807,7 @@ const filterState = {
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5 },
-  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest', playoff: false },
+  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
   histPartnerMin: 5
 };
 
@@ -946,6 +946,7 @@ function sortedLevels(arr) {
 
 function showPage(page) {
   currentPage = page;
+  window.scrollTo(0, 0);
   closeSidebar();
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
@@ -1709,7 +1710,11 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
   // Sort
   const dir = sortDir === 'desc' ? -1 : 1;
   partners.sort((a,b) => dir * (a[sortCol] > b[sortCol] ? 1 : a[sortCol] < b[sortCol] ? -1 : 0));
-  partners = partners.slice(0,10);
+  // Don't slice — show all in allPartners, display first 5 by default
+  const allPartners = partners;
+  const SHOW_P = 5;
+  const visiblePartners = allPartners.slice(0, SHOW_P);
+  const extraCount = allPartners.length - SHOW_P;
 
   if (!partners.length) {
     const isSingles = filterState.dash.type && filterState.dash.type.toLowerCase().includes('singles');
@@ -1723,35 +1728,57 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
       ${label}<span class="sort-arrow ${isActive?'active':''}">${arrow}</span></th>`;
   }
 
-  return `
-    <table class="partners-table">
-      <thead><tr>
-        <th class="sortable-th" onclick="sortPartners('name')" style="text-align:left;cursor:pointer">
-          Partner<span class="sort-arrow ${sortCol==='name'?'active':''}"> ${sortCol==='name'?(sortDir==='desc'?'↓':'↑'):'↕'}</span>
-        </th>
-        ${thSort('w','W')}
-        ${thSort('l','L')}
-        ${thSort('pctVal','W%')}
-      </tr></thead>
-      <tbody>
-        ${partners.map((p,i) => {
-            const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
-            const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
-            const rate  = p.total > 0 ? p.w / p.total : 0;
-            const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
-            return `
-          <tr>
-            <td>
-              <span class="rank-num">${i+1}.</span>
-              <span onclick="drillPartner('${escHtml(p.name)}')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px">${escHtml(p.name)}</span>
-            </td>
-            <td style="text-align:right;color:${col};font-weight:600">${p.w}</td>
-            <td style="text-align:right;color:${col};font-weight:600">${p.l}</td>
-            <td style="text-align:right;color:${col};font-weight:600">${pct(p.w,p.l)}</td>
-          </tr>`;}).join('')}
-      </tbody>
-    </table>
-  `;
+  function buildRow(p, i) {
+    const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+    const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+    const rate  = p.total > 0 ? p.w / p.total : 0;
+    const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
+    return '<tr>'
+      + '<td style="display:flex;align-items:center">'
+      + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
+      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px">' + escHtml(p.name) + '</span>'
+      + '</td>'
+      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.w + '</td>'
+      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.l + '</td>'
+      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + pct(p.w,p.l) + '</td>'
+      + '</tr>';
+  }
+
+  var visibleRows = visiblePartners.map(function(p,i){ return buildRow(p,i); }).join('');
+  var hiddenRows  = allPartners.slice(SHOW_P).map(function(p,i){ return buildRow(p, i+SHOW_P); }).join('');
+  var showMorePill = extraCount > 0
+    ? '<div style="display:flex;justify-content:center;margin-top:8px">'
+      + '<button id="partners-show-more-btn" onclick="togglePartnersExpand()"'
+      + ' style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
+      + '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
+      + extraCount + ' more</button></div>'
+    : '';
+
+  return '<table class="partners-table">'
+    + '<thead><tr>'
+    + '<th class="sortable-th" onclick="sortPartners(\'name\')" style="text-align:left;cursor:pointer">'
+    + 'Partner<span class="sort-arrow ' + (sortCol==='name'?'active':'') + '"> '
+    + (sortCol==='name'?(sortDir==='desc'?'↓':'↑'):'↕') + '</span></th>'
+    + thSort('w','W') + thSort('l','L') + thSort('pctVal','W%')
+    + '</tr></thead>'
+    + '<tbody id="partners-visible-body">' + visibleRows + '</tbody>'
+    + (extraCount > 0 ? '<tbody id="partners-hidden-body" style="display:none">' + hiddenRows + '</tbody>' : '')
+    + '</table>'
+    + showMorePill;
+}
+
+
+function togglePartnersExpand() {
+  const hidden = document.getElementById('partners-hidden-body');
+  const btn    = document.getElementById('partners-show-more-btn');
+  if (!hidden) return;
+  const isOpen = hidden.style.display !== 'none';
+  hidden.style.display = isOpen ? 'none' : '';
+  if (btn) {
+    const svg = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 ' + (isOpen?'1L4.5 4L8 1':'4L4.5 1L8 4') + '" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    const count = document.querySelectorAll('#partners-hidden-body tr').length;
+    btn.innerHTML = svg + (isOpen ? count + ' more' : 'Show less');
+  }
 }
 
 function sortPartners(col) {
@@ -1765,6 +1792,9 @@ function sortPartners(col) {
 }
 
 function drillPartner(name) {
+  // Collapse any show-more expansion before sliding
+  const hidden = document.getElementById('partners-hidden-body');
+  if (hidden) hidden.style.display = 'none';
   const typeFilter = filterState.dash.type;
   let matches = allMatches.filter(m => {
     if (typeFilter && m.type !== typeFilter) return false;
@@ -1827,12 +1857,20 @@ function renderHistory(page, preFilterPartner) {
   const tyEl  = document.getElementById('hist-type');
   const soEl  = document.getElementById('hist-sort');
   const poEl  = document.getElementById('hist-playoff');
-  if (yrEl) filterState.history.year   = yrEl.value;
-  if (seEl) filterState.history.season = seEl.value;
-  if (lvEl) filterState.history.level  = lvEl.value;
-  if (tyEl) filterState.history.type   = tyEl.value;
-  if (soEl) filterState.history.sort   = soEl.value;
+  const lgEl  = document.getElementById('hist-league');
+  const liEl  = document.getElementById('hist-line');
+  const sfEl  = document.getElementById('hist-surface');
+  const tmEl  = document.getElementById('hist-time');
+  if (yrEl) filterState.history.year    = yrEl.value;
+  if (seEl) filterState.history.season  = seEl.value;
+  if (lvEl) filterState.history.level   = lvEl.value;
+  if (tyEl) filterState.history.type    = tyEl.value;
+  if (soEl) filterState.history.sort    = soEl.value;
   if (poEl) filterState.history.playoff = poEl.checked;
+  if (lgEl) filterState.history.league  = lgEl.value;
+  if (liEl) filterState.history.line    = liEl.value;
+  if (sfEl) filterState.history.surface = sfEl.value;
+  if (tmEl) filterState.history.time    = tmEl.value;
 
   // preFilterPartner overrides partner state (coming from dashboard drill)
   if (preFilterPartner) filterState.history.partner = preFilterPartner;
@@ -1877,12 +1915,22 @@ function renderHistory(page, preFilterPartner) {
     if (partnerFilter  && !m.partner?.toLowerCase().includes(partnerFilter.toLowerCase())) return false;
     if (opponentFilter && !(m.opp1+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
     if (playoffFilter  && !m.playoff) return false;
+    if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
+    if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
+    if (filterState.history.surface && m.surface !== filterState.history.surface) return false;
+    if (filterState.history.time    && m.time    !== filterState.history.time)    return false;
     return true;
   }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
 
   const total = filtered.length;
 
-  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter].filter(Boolean).length + (playoffFilter?1:0);
+  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter,
+    filterState.history.league,filterState.history.line,filterState.history.surface,filterState.history.time].filter(Boolean).length + (playoffFilter?1:0);
+
+  const leagues  = ['', ...sortedLeagues(validEntries.league||[])];
+  const lines    = ['', ...(validEntries.line||[])];
+  const surfaces = ['', ...(validEntries.surface||[])];
+  const times    = ['', ...(validEntries.time||[])];
 
   const content = document.getElementById('content');
   content.innerHTML = `
@@ -1891,15 +1939,15 @@ function renderHistory(page, preFilterPartner) {
       <div class="hist-search-row" style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
           oninput="onHistOpponentInput(this.value)"
-          style="flex:1 1 120px;min-width:0">
+          style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
-          style="flex:1 1 100px;min-width:0">
-        <span id="hist-match-count" style="font-size:12px;color:var(--muted);align-self:center;white-space:nowrap">${total} match${total!==1?'es':''}</span>
+          style="flex:1 1 80px;min-width:0">
+        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap">Clear</button>
       </div>
-      <!-- Collapsible dropdowns — collapsed by default -->
+      <!-- Collapsible dropdowns -->
       <div id="hist-filter-body" style="display:none;padding:10px 14px 0;border-bottom:1px solid var(--border)">
-        <div class="history-controls" style="margin-bottom:10px">
+        <div class="history-controls" style="margin-bottom:10px;flex-wrap:wrap">
           <select class="filter-select" id="hist-year" onchange="renderHistory()">
             ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
           </select>
@@ -1912,11 +1960,22 @@ function renderHistory(page, preFilterPartner) {
           <select class="filter-select" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;gap:12px">
-            <span style="font-size:13px;color:var(--text)">Playoff Only</span>
+          <select class="filter-select" id="hist-league" onchange="renderHistory()">
+            ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-line" onchange="renderHistory()">
+            ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-surface" onchange="renderHistory()">
+            ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-time" onchange="renderHistory()">
+            ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
+          </select>
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+            <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
             <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
           </div>
-          <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:6px 12px">Clear Filters</button>
         </div>
       </div>
       <!-- Toggle row at bottom -->
@@ -2078,15 +2137,14 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var tbColor = wlColor(tbW, tbL);
 
+  // Build type breakdown rows for Record Breakdown
+  var typeMap = {};
+  filtered.forEach(function(m){ if (m.type) { if (!typeMap[m.type]) typeMap[m.type]={w:0,l:0}; if(m.result==='W') typeMap[m.type].w++; else typeMap[m.type].l++; } });
+  var typeRows = Object.keys(typeMap).sort().map(function(t){ return insightRow(t, filtered.filter(function(m){ return m.type===t; })); }).join('');
+
   var card1Body =
       insightRow('Overall', filtered)
-    + insightRow('Singles', singles)
-    + insightRow('Doubles', doubles)
-    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;gap:8px;flex-wrap:wrap;">'
-    + '<span style="font-size:12px;color:var(--label);white-space:nowrap">Tiebreaks</span>'
-    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap">' + tbW + '–' + tbL
-    + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
-    + '</div>';
+    + typeRows;
 
   var card3Header = '<div style="display:flex;align-items:center;gap:4px;margin-left:8px">'
     + '<span style="font-size:10px;color:var(--muted)">Min</span>'
@@ -2097,12 +2155,19 @@ function buildHistoryResults(filtered, sortOrder) {
       '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px;word-break:break-word;">' + partnerText + '</div>'
     + partnerListHtml;
 
+  var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;gap:8px;flex-wrap:wrap;">'
+    + '<span style="font-size:12px;color:var(--label);white-space:nowrap">Tiebreaks</span>'
+    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap">' + tbW + '–' + tbL
+    + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
+    + '</div>';
+
   var card2Body =
       insightRow('Home',      filtered.filter(function(m){ return m.homeaway === 'Home'; }))
     + insightRow('Away',      filtered.filter(function(m){ return m.homeaway === 'Away'; }))
     + insightRow('Morning',   filtered.filter(function(m){ return m.time === 'Morning' || m.time === 'Day'; }))
     + insightRow('Afternoon', filtered.filter(function(m){ return m.time === 'Afternoon'; }))
-    + insightRow('Night',     filtered.filter(function(m){ return m.time === 'Night'; }));
+    + insightRow('Night',     filtered.filter(function(m){ return m.time === 'Night'; }))
+    + tbRow;
 
   // Table rows — wrap partner + score on mobile
   var tableRows = paged.map(function(m) {
@@ -2219,6 +2284,10 @@ function applyHistoryFilter() {
     if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
     if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
     if (po   && !m.playoff) return false;
+      if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
+      if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
+      if (filterState.history.surface && m.surface !== filterState.history.surface) return false;
+      if (filterState.history.time    && m.time    !== filterState.history.time)    return false;
     return true;
   });
 
@@ -2305,9 +2374,8 @@ function autoOpenHistFilters() {
 }
 
 function clearHistoryFilters() {
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest' };
-  // Clear all DOM inputs/selects immediately so renderHistory reads empty values
-  ['hist-year','hist-season','hist-level','hist-type','hist-sort'].forEach(id => {
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'' };
+  ['hist-year','hist-season','hist-level','hist-type','hist-sort','hist-league','hist-line','hist-surface','hist-time'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = id === 'hist-sort' ? 'newest' : '';
   });
@@ -2685,7 +2753,7 @@ function renderVEContent() {
       .ve-chip-red{background:var(--loss-bg);color:var(--loss)}
       .ve-save-threshold{background:var(--accent2);border:2px solid var(--accent);border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;white-space:nowrap}
       .ve-save-threshold:hover{background:var(--accent)}
-      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;width:100%;max-width:100%;box-sizing:border-box;align-items:start}
+      .ve-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;width:100%;max-width:100%;box-sizing:border-box;grid-auto-rows:1fr;align-items:stretch}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);min-width:0;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
       .ve-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
@@ -3315,6 +3383,9 @@ async function submitEntry() {
   const setErr = (id, show, msg) => {
     const el = document.getElementById('err-'+id);
     if (el) { el.classList.toggle('visible', show); if (msg && show) el.textContent = msg; }
+    // Add/remove red border on the field input or select
+    const field = document.getElementById('e-'+id) || document.querySelector(`[id^="e-${id}"]`);
+    if (field) field.classList.toggle('error', show);
   };
 
   if (!type) { setErr('type',true); valid=false; }
@@ -3340,9 +3411,9 @@ async function submitEntry() {
     return hi>=6 && hi-lo>=2;
   }
 
-  const s1w = get('s1w') || '0', s1l = get('s1l') || '0';
-  const s2w = get('s2w') || '0', s2l = get('s2l') || '0';
-  const s3w = get('s3w') || '0', s3l = get('s3l') || '0';
+  const s1w = get('s1w'), s1l = get('s1l');
+  const s2w = get('s2w'), s2l = get('s2l');
+  const s3w = get('s3w'), s3l = get('s3l');
 
   // Set 1 always required
   if (s1w===''||s1l==='') { setErr('s1',true,'Set 1 is required'); valid=false; }
@@ -3386,8 +3457,8 @@ async function submitEntry() {
     playoff: getCheck('playoff'), playoffround: resolve('playoffround'),
     opponent1: get('opp1').trim(), opponent2: isDb?get('opp2').trim():'',
     partner: isDb?resolve('partner'):'',
-    set1wins: get('s1w')||'0', set1losses: get('s1l')||'0', set2wins: get('s2w')||'0',
-    set2losses: get('s2l')||'0', set3wins: get('s3w')||'0', set3losses: get('s3l')||'0',
+    set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
+    set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
     notes: document.getElementById('e-notes')?.value?.trim() || ''
   };
