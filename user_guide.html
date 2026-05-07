@@ -547,6 +547,36 @@
       font-weight: 400;
       margin-left: 6px;
     }
+    
+    /* ── IMPORT GRID ── */
+.import-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.import-grid div {
+  background: #f9fbfd;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text-body);
+  font-weight: 500;
+}
+
+.import-steps {
+  margin: 16px 0 10px 22px;
+}
+
+.import-steps li {
+  margin-bottom: 10px;
+  color: var(--text-body);
+  line-height: 1.7;
+  font-size: 13.5px;
+}
+/* ── CLOSE IMPORT GRID ── */
 
     @media (max-width: 768px) {
       .sidebar { display: none; }
@@ -576,6 +606,7 @@
     <a href="#match-history"><span class="icon">📋</span> Match History</a>
     <a href="#match-entry"><span class="icon">🎾</span> Match Entry</a>
     <a href="#valid-entries"><span class="icon">⚙️</span> Valid Entries</a>
+    <a href="#importing-matches"><span class="icon">📥</span> Importing Matches</a>
   </nav>
 
   <div class="sidebar-footer">
@@ -605,6 +636,7 @@
       <li><a href="#match-history">Match History</a> <span>Search, filter, and analyze your record</span></li>
       <li><a href="#match-entry">Match Entry</a> <span>Logging every match, every detail</span></li>
       <li><a href="#valid-entries">Valid Entries</a> <span>Managing dropdown lists and thresholds</span></li>
+      <li><a href="#importing-matches">Importing Matches</a> <span>Bringing in data from another spreadsheet</span></li>
     </ol>
   </div>
 
@@ -1100,6 +1132,183 @@
     </div>
 
   </section>
+  
+  <hr class="divider">
+
+<!-- ══════════════════════════════════════════
+     SECTION 6 — IMPORTING MATCHES
+═══════════════════════════════════════════ -->
+<section class="section" id="importing-matches">
+  <div class="section-header">
+    <div class="section-icon">📥</div>
+    <h2>Importing Matches from Another Spreadsheet</h2>
+  </div>
+
+  <p class="section-intro">
+    The Match Import tool allows you to quickly bring existing tennis data into Match Tracker Pro from another spreadsheet. 
+    This is the only reason you ever need to access the Google Sheet directly — and once you complete the import one time, 
+    you never need to use the spreadsheet again.
+  </p>
+
+  <div class="page-label">
+    <span>📥</span> Match Import Tool
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="card">
+    <div class="card-title">Where Match Imports Happen</div>
+
+    <p>
+      All imports are performed on the <strong>Match Import</strong> tab inside your Google Sheet.
+    </p>
+
+    <div class="note note-tip">
+      <strong>One-time setup:</strong> Once your historical matches are imported, you can go right back to using Match Tracker Pro normally. You never need to return to the spreadsheet unless you want to import additional historical data later.
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <div class="card-title">Step 1 — Reformat Your Existing Spreadsheet</div>
+
+    <p>
+      The easiest and most reliable way to import matches is to reorganize your existing spreadsheet so the columns match the exact layout of the <strong>Match Import</strong> tab.
+    </p>
+
+    <ul class="guide-list">
+      <li>Move columns in your original spreadsheet as needed so they line up correctly.</li>
+      <li>Add any missing columns required by Match Import.</li>
+      <li>If you do not have data for a particular column, simply leave it blank.</li>
+      <li><p><strong>Playoff</strong> (Column K) and <strong>Retired</strong> (Columns V and W) must contain either TRUE or FALSE values.</p></li>
+    </ul>
+
+    <div class="note">
+      <strong>Formatting matters.</strong> Match Import expects the columns to appear in the exact same order as the Match Import tab.
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <div class="card-title">Required Match Import Column Layout</div>
+
+      <div class="import-grid">
+        <div>A - Date</div>
+        <div>B - Season</div>
+        <div>C - League</div>
+        <div>D - Level</div>
+        <div>E - Type</div>
+        <div>F - Line</div>
+        <div>G - Location</div>
+        <div>H - Home/Away</div>
+        <div>I - Surface</div>
+        <div>J - Time</div>
+        <div>K - Playoff</div>
+        <div>L - Playoff Round</div>
+        <div>M - Opponent 1</div>
+        <div>N - Opponent 2</div>
+        <div>O - Partner</div>
+        <div>P - Set 1 Wins</div>
+        <div>Q - Set 1 Losses</div>
+        <div>R - Set 2 Wins</div>
+        <div>S - Set 2 Losses</div>
+        <div>T - Set 3 Wins</div>
+        <div>U - Set 3 Losses</div>
+        <div>V - Opp Retired</div>
+        <div>W - I/We Retired</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <div class="card-title">Step 2 — Paste Your Match Data</div>
+
+    <p>
+      Once your original spreadsheet matches the Match Import layout:
+    </p>
+
+    <ol class="import-steps">
+      <li>Copy all match rows from your original spreadsheet.</li>
+      <li>Open the <strong>Match Import</strong> tab.</li>
+      <li>Click cell <strong>A4</strong>.</li>
+      <li>Press <strong>CTRL + SHIFT + V</strong> to paste values only.</li>
+    </ol>
+
+    <div class="note note-tip">
+      <strong>Use CTRL + SHIFT + V.</strong> This pastes raw values only and avoids bringing over formatting or formulas that can interfere with the import process.
+    </div>
+    
+    <!-- VALID ENTRIES -->
+    <div class="card-title">Valid Entries During Import</div>
+
+    <p>
+      There is no need to manually add entries on the <strong>Valid Entries</strong> page before importing.
+    </p>
+
+    <p>
+      Any leagues, levels, partners, surfaces, playoff rounds, or other values not already present in Valid Entries are automatically detected and added during the import process.
+    </p>
+
+    <p>
+      After analyzing data, the Import Wizard displays all entries that will be added automatically.
+    </p>
+
+    <div class="note">
+      <strong>Need to adjust an entry?</strong> Click the <strong>Pencil icon</strong> beside any detected entry to edit or correct it before importing the matches.
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card">
+    <div class="card-title">Step 3 — Run the Import Wizard</div>
+
+    <p>
+      After your data has been pasted:
+    </p>
+
+    <ol class="import-steps">
+      <li>Click the <strong>Import Matches</strong> button.</li>
+      <li>The Import Wizard opens.</li>
+      <li>Click <strong>Analyze Data</strong> to scan the data for issues.</li>
+    </ol>
+
+    <p>
+      If errors are found:
+    </p>
+
+    <ul class="guide-list">
+      <li>Rows with issues are highlighted in red.</li>
+      <li>Fix the highlighted data problems.</li>
+      <li>Click <strong>Re-analyze</strong> to check the updated data again.</li>
+    </ul>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card">
+    <div class="card-title">Step 4 — Import the Matches</div>
+
+    <p>
+      Once the data is ready:
+    </p>
+
+    <ol class="import-steps">
+      <li>Click the <strong>Import</strong> button.</li>
+      <li>All error-free rows are imported automatically.</li>
+      <li>Rows that still contain errors are skipped and remain highlighted in red.</li>
+    </ol>
+
+    <p>
+      You can optionally fix the remaining rows and import them afterward.
+    </p>
+
+    <div class="note note-tip">
+      <strong>Refresh Match Tracker Pro</strong> after importing to immediately see all imported matches and updated statistics.
+    </div>
+  </div>  
+
+<div style="text-align:center;padding:12px 16px 20px;font-size:10px;color:var(--muted)">
+    © 2026 Match Tracker Pro. All rights reserved.
+  </div>
+
+</section>
 
 </main>
 
