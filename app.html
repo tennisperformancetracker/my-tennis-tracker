@@ -2273,8 +2273,8 @@ function applyHistoryFilter() {
   var sea  = filterState.history.season    || '';
   var lev  = filterState.history.level     || '';
   var typ  = filterState.history.type      || '';
-  var typ  = filterState.history.type      || '';
   var po   = filterState.history.playoff   || false;
+  var srt  = filterState.history.sort      || 'newest';
 
   var filtered = allMatches.filter(function(m) {
     if (yr  && String(m.year) !== String(yr)) return false;
