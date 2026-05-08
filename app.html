@@ -3120,7 +3120,6 @@ function renderEntry() {
 
         <!-- Opponents -->
         <div style="margin-top:10px">
-          <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Opponent(s)</div>
           <div class="field">
             <div class="field-label">Opponent 1 <span class="required-dot"></span></div>
             <input type="text" id="e-opp1" placeholder="First Last">
@@ -3137,7 +3136,6 @@ function renderEntry() {
 
         <!-- Partner (doubles only) -->
         <div id="e-doubles-fields" class="cond cond-hidden" style="margin-top:6px">
-          <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Partner</div>
           <div class="field">
             <div class="field-label">Partner <span class="required-dot"></span></div>
             <select id="e-partner" onchange="onEntryNewSelect('partner')">
@@ -3279,7 +3277,6 @@ function renderEntry() {
         </div>
 
         <!-- Playoff -->
-        <div class="section-title" style="margin-top:14px">Playoff</div>
         <div class="toggle-row"><span class="toggle-row-label">Playoff Match</span><label class="form-toggle"><input type="checkbox" id="e-playoff" onchange="onEntryPlayoffChange()"><span class="form-toggle-slider"></span></label></div>
         <div class="cond cond-hidden" id="e-playoff-row" style="margin-top:4px">
           <div class="field">
