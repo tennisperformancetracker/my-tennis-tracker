@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Match Tracker Pro — User Guide</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,
+<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
+<text y=%22.9em%22 font-size=%2290%22>🎾</text>
+</svg>">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -21,7 +25,7 @@
       --accent-orange: #e67e22;
       --border: #dce8f2;
       --sidebar-bg: #2f4157;
-      --sidebar-width: 220px;
+      --sidebar-width: 240px;
     }
 
     html { scroll-behavior: smooth; }
@@ -42,31 +46,24 @@
       position: fixed;
       top: 0; left: 0;
       height: 100vh;
-      overflow-y: auto;
-      padding: 28px 0 40px;
+      
       z-index: 100;
       display: flex;
       flex-direction: column;
     }
 
     .sidebar-brand {
-      padding: 0 22px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 20px;
+       padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.1)
     }
 
     .sidebar-brand .app-name {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
+      font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 1px;
       text-transform: uppercase;
-      color: #fff;
+      
     }
 
     .sidebar-brand .app-sub {
-      font-size: 11px;
-      color: rgba(255,255,255,0.55);
-      margin-top: 2px;
+      font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px;
     }
 
     .sidebar-label {
@@ -595,7 +592,9 @@
 <!-- ── SIDEBAR ── -->
 <nav class="sidebar">
   <div class="sidebar-brand">
-    <div class="app-name">Match Tracker Pro</div>
+    <div class="app-name">
+  Match Tracker <span style="color:#7ecba1;">Pro</span>
+</div>
     <div class="app-sub">Tennis Performance Tracker</div>
   </div>
 
@@ -620,7 +619,7 @@
   <!-- COVER -->
   <div class="cover">
     <span class="cover-racket">🎾</span>
-    <h1>Match Tracker Pro<br>User Guide</h1>
+    <h1>Match Tracker <span style="color:#7ecba1;">Pro</span><br>User Guide</h1>
     <p class="cover-sub">
       Everything you need to connect your spreadsheet, log your matches, and gain real insights into your game. <br><br>This guide walks you through setup and each section of the app so you can start logging your matches now!
     </p>
