@@ -1272,7 +1272,7 @@ function buildKPIs(matches, curYearMatches) {
             ${streak.current === 0 ? '—' : (streak.current > 0 ? 'W' : 'L') + Math.abs(streak.current)}
           </div>
         </div>
-        <div class="kpi-sub">Longest: ${streak.longest > 0 ? 'W' : ''}${Math.abs(streak.longest)} ${streak.longest !== 0 ? 'wins' : '—'}</div>
+        <div class="kpi-sub">Longest: ${streak.longest !== 0 ? Math.abs(streak.longest) + ' wins' : '—'}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Last 10 Matches</div>
