@@ -315,7 +315,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   padding: 3px 8px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .partner-drill-btn:hover { background: var(--accent2); color: #fff; border-color: var(--accent2); }
-.rank-num { color: var(--muted); font-size: 12px; margin-right: 4px; }
+.rank-num { color: var(--muted); font-size: 12px; margin-right: 4px; display: inline-block; width: 24px; text-align: right; }
 @media (max-width: 768px) { .partners-view-col { display: none; } }
 
 /* ── Insight blurb ──────────────────────────────────────── */
@@ -1746,10 +1746,10 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     const rate  = p.total > 0 ? p.w / p.total : 0;
     const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
     return '<tr>'
-      + '<td style="display:flex;align-items:center">'
-      + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
-      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px">' + escHtml(p.name) + '</span>'
-      + '</td>'
+      + '<td>'
+      + '<span class="rank-num">' + (i+1) + '.</span>'
+      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px">' + escHtml(p.name) + '</span>'
+    + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.w + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.l + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + pct(p.w,p.l) + '</td>'
