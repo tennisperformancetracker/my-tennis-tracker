@@ -2456,7 +2456,11 @@ function openMatchDetail(idx) {
 
   // Chips — only show fields that have values
   function chip(label, value) {
-    if (!value && value !== false) return '';
+    if (!value || value === 'false' || value === 'true') {
+      // Handle booleans that slipped through
+      if (value === true || value === 'true') value = 'Yes';
+      else return '';
+    }
     return `<div class="detail-chip"><strong>${label}:</strong> ${escHtml(String(value))}</div>`;
   }
   const playoffVal = m.playoff
@@ -2477,7 +2481,7 @@ function openMatchDetail(idx) {
       ${chip('Type',      m.type)}
       ${chip('Line',      m.line)}
       ${chip('Location',  m.location)}
-      ${chip('Home/Away', m.homeaway === true ? 'Home' : m.homeaway === false ? 'Away' : m.homeaway)}
+      ${chip('Home/Away', m.homeaway === true || m.homeaway === 'true' ? 'Home' : m.homeaway === false || m.homeaway === 'false' ? 'Away' : m.homeaway)}
       ${chip('Surface',   m.surface)}
       ${chip('Time',      m.time)}
       ${chip('Playoff',   playoffVal)}
@@ -2827,7 +2831,7 @@ function renderVEContent() {
         <div class="confirm-body" id="ve-confirm-delete-body"></div>
         <div class="confirm-actions">
           <button class="btn btn-ghost" onclick="document.getElementById('ve-confirm-delete').classList.remove('visible')">Cancel</button>
-          <button class="btn btn-danger" onclick="veConfirmDelete()">Delete</button>
+          <button class="btn btn-modal-delete" onclick="veConfirmDelete()">Delete</button>
         </div>
       </div>
     </div>
@@ -3357,22 +3361,21 @@ function onEntryRetiredChange() { onEntryScoreChange(); }
 
 function scoreAutoAdvance(currentId, nextId) {
   const el = document.getElementById(currentId);
-  if (!el) return;
-  const val = el.value;
-  // Advance after 1 digit if it's a valid single-digit tennis score start (0-9)
-  // or after any entry if the value is already valid (6,7) or if 2 chars entered
-  if (val.length >= 1) {
-    const n = parseInt(val);
-    // Auto-advance immediately on: 0,1,2,3,4,5,6 (valid set scores start)
-    // For 7: wait — could be 7-6 tiebreak so advance immediately
-    // Never valid to enter >7 in a set (except super tiebreak but that's set 3)
-    // Simple rule: advance after any single digit
-    const next = document.getElementById(nextId);
-    if (next && val.length === 1) {
-      next.focus();
-      next.select();
-    }
+  if (!el || el.value.length !== 1) return;
+  // If trying to advance to Set 3, only do so if sets are split
+  if (nextId === 'e-s3w') {
+    const s1w = parseInt(document.getElementById('e-s1w')?.value || '');
+    const s1l = parseInt(document.getElementById('e-s1l')?.value || '');
+    const s2w = parseInt(document.getElementById('e-s2w')?.value || '');
+    const s2l = parseInt(document.getElementById('e-s2l')?.value || '');
+    const s3container = document.getElementById('e-s3-container');
+    // Only jump to s3 if sets are split (different winner) and s3 is enabled
+    if (isNaN(s1w)||isNaN(s1l)||isNaN(s2w)||isNaN(s2l)) return;
+    const split = (s1w > s1l) !== (s2w > s2l);
+    if (!split || (s3container && s3container.style.opacity === '0.3')) return;
   }
+  const next = document.getElementById(nextId);
+  if (next) { next.focus(); next.select(); }
 }
 function onEntryNewSelect(key) {
   const val = document.getElementById('e-'+key)?.value;
