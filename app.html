@@ -142,6 +142,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .btn-primary:hover { background: var(--accent); }
 .btn-danger { background: var(--loss-bg); color: var(--loss); border: 2px solid var(--loss); }
 .btn-danger:hover { background: var(--loss); color: #fff; }
+.btn-modal-delete { background: #fef2f2; color: #c0392b; border: 1px solid #f5c2c2; border-radius: 10px; font-family: var(--font); font-size: 13px; font-weight: 600; padding: 9px 18px; cursor: pointer; transition: background 0.15s; }
+.btn-modal-delete:hover { background: #fde8e8; }
+.btn-modal-edit   { background: #f0f4fb; color: #3b6ea8; border: 1px solid #c2d3ef; border-radius: 10px; font-family: var(--font); font-size: 13px; font-weight: 600; padding: 9px 18px; cursor: pointer; transition: background 0.15s; }
+.btn-modal-edit:hover   { background: #e4ecf8; }
+.btn-modal-save   { background: #f0f4fb; color: var(--label); border: 1px solid #c8d6e8; border-radius: 10px; font-family: var(--font); font-size: 13px; font-weight: 600; padding: 9px 18px; cursor: pointer; transition: background 0.15s; }
+.btn-modal-save:hover   { background: #e4ecf8; }
 .btn-ghost { background: var(--surface2); color: var(--label); border: 1px solid var(--border); }
 .btn-ghost:hover { background: var(--border); }
 
@@ -1990,13 +1996,14 @@ function renderHistory(page, preFilterPartner) {
           </div>
         </div>
       </div>
-      <!-- Toggle row at bottom -->
-      <div onclick="toggleHistFilters()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;user-select:none;background:var(--surface2)">
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--label)">
+      <!-- Toggle pill — centered, matches insights pill -->
+      <div style="display:flex;justify-content:center;padding:10px 14px;background:var(--surface2);border-top:1px solid var(--border)">
+        <button id="hist-filter-pill" onclick="toggleHistFilters()"
+          style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:4px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">
+          <svg id="hist-filter-chevron" width="9" height="5" viewBox="0 0 9 5" fill="none" style="transition:transform 0.2s"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
           <span id="hist-filter-label">More Filters</span>
-          ${activeFilterCount > 0 ? `<span style="background:var(--accent2);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700">${activeFilterCount}</span>` : ''}
-        </div>
-        <span id="hist-filter-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;display:inline-block">▼</span>
+          ${activeFilterCount > 0 ? `<span style="background:var(--accent2);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:2px">${activeFilterCount}</span>` : ''}
+        </button>
       </div>
     </div>
   `;
@@ -2362,9 +2369,9 @@ function toggleHistFilters() {
   const chevron = document.getElementById('hist-filter-chevron');
   if (!body) return;
   const isOpen = body.style.display !== 'none';
-  histFiltersOpen = !isOpen; // persist state
+  histFiltersOpen = !isOpen;
   body.style.display = isOpen ? 'none' : 'block';
-  if (label)   label.textContent   = isOpen ? 'More Filters' : 'Less Filters';
+  if (label)   label.textContent = isOpen ? 'More Filters' : 'Less Filters';
   if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
 
@@ -2470,7 +2477,7 @@ function openMatchDetail(idx) {
       ${chip('Type',      m.type)}
       ${chip('Line',      m.line)}
       ${chip('Location',  m.location)}
-      ${chip('Home/Away', m.homeaway)}
+      ${chip('Home/Away', m.homeaway === true ? 'Home' : m.homeaway === false ? 'Away' : m.homeaway)}
       ${chip('Surface',   m.surface)}
       ${chip('Time',      m.time)}
       ${chip('Playoff',   playoffVal)}
@@ -2482,9 +2489,11 @@ function openMatchDetail(idx) {
     </div>
     <hr class="detail-divider">
     <div class="detail-modal-footer">
-      <button class="btn btn-danger" onclick="openConfirmDelete(${idx})">🗑 Delete</button>
-      <button class="btn btn-ghost" onclick="saveNote(${idx})">💾 Save</button>
-      <button class="btn btn-primary" onclick="openEditMode(${idx})">✏️ Edit</button>
+      <button class="btn btn-modal-delete" onclick="openConfirmDelete(${idx})">🗑 Delete</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-modal-edit" onclick="openEditMode(${idx})">✏️ Edit</button>
+        <button class="btn btn-modal-save" onclick="saveNote(${idx})">💾 Save</button>
+      </div>
     </div>
   `;
 
@@ -2971,7 +2980,7 @@ function veTriggerDelete(field, value) {
 async function veConfirmDelete() {
   showSaving('Deleting…');
   document.getElementById('ve-confirm-delete').classList.remove('visible');
-  if (!vePendingDelete) return;
+  if (!vePendingDelete) { hideSaving(); return; }
   const {field, value} = vePendingDelete;
   vePendingDelete = null;
   try {
@@ -2982,6 +2991,7 @@ async function veConfirmDelete() {
     renderVEContent();
     showToast(`Deleted "${value}"`);
   } catch(e) { showToast('Delete failed: '+e.message,true); }
+  finally { hideSaving(); }
 }
 
 // ═══════════════════════════════════════════════════════════
