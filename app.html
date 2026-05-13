@@ -797,7 +797,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <div class="confirm-body" id="confirm-body">This match will be permanently removed from your sheet. This cannot be undone.</div>
     <div class="confirm-actions">
       <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-modal-delete" onclick="confirmDelete()">Delete</button>
     </div>
   </div>
 </div>
@@ -2522,75 +2522,134 @@ function openEditMode(idx) {
       <div class="modal-date">${m.date||''}</div>
     </div>
     <div class="modal-header-actions">
-      <button class="btn btn-primary" onclick="saveEdit(${idx})">💾 Save</button>
+      <button class="btn btn-modal-save" onclick="saveEdit(${idx})">💾 Save</button>
       <button class="btn btn-ghost" onclick="openMatchDetail(${idx})">Cancel</button>
     </div>
   `;
 
-  function sel(id, field, values, cur) {
+  function sel(id, values, cur) {
     const opts = values.map(v=>`<option value="${escHtml(v)}" ${v===cur?'selected':''}>${escHtml(v)}</option>`).join('');
-    return `<select id="edit-${id}"><option value="">— Select —</option>${opts}</select>`;
+    return `<select id="edit-${id}" class="field-input"><option value="">— Select —</option>${opts}</select>`;
   }
   function inp(id, val, type='text') {
-    return `<input type="${type}" id="edit-${id}" value="${escHtml(String(val||''))}" ${type==='date'?'style="color-scheme:light"':''}>`;
+    return `<input type="${type}" id="edit-${id}" value="${escHtml(String(val||''))}" ${type==='date'?'style="color-scheme:light"':''} class="field-input">`;
   }
-  function scoreInp(id, val) {
-    return `<input type="number" id="edit-${id}" value="${val!==''?val:''}" min="0" max="99" placeholder="0" inputmode="numeric" style="text-align:center">`;
-  }
-  function tog(id, val, label) {
-    return `<div class="toggle-row"><span class="toggle-row-label">${label}</span>
-      <label class="form-toggle"><input type="checkbox" id="edit-${id}" ${val?'checked':''}><span class="form-toggle-slider"></span></label></div>`;
+  function scoreBox(id, val) {
+    return `<input type="number" id="edit-${id}" value="${val!==''&&val!=null?val:''}" min="0" max="99" placeholder="" inputmode="numeric"
+      style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none;box-sizing:border-box">`;
   }
 
   const isDb = m.opp2 && m.opp2 !== '';
-  const typeOpts = validEntries.type||[];
-  const onTypeChange = `onchange="(function(){const t=document.getElementById('edit-type').value.toLowerCase();const db=t.includes('doubles');document.getElementById('edit-doubles-row').style.display=db?'grid':'none';})()"`
+  const typeOpts = sortedLevels ? validEntries.type||[] : validEntries.type||[];
+  const onTypeChange = `onchange="(function(){ const t=document.getElementById('edit-type').value.toLowerCase(); const db=t.includes('doubles'); document.getElementById('edit-opp2-row').style.display=db?'':'none'; document.getElementById('edit-partner-row').style.display=db?'':'none'; })()"`;
+
+  // Determine if set 3 is needed
+  const s1w=parseInt(m.s1w), s1l=parseInt(m.s1l), s2w=parseInt(m.s2w), s2l=parseInt(m.s2l);
+  const setsSplit = !isNaN(s1w)&&!isNaN(s1l)&&!isNaN(s2w)&&!isNaN(s2l) && (s1w>s1l) !== (s2w>s2l);
+  const s3Disabled = !setsSplit ? 'opacity:0.3;pointer-events:none;' : '';
 
   document.getElementById('modal-body').innerHTML = `
-    <div class="modal-section-title">Match Details</div>
-    <div class="edit-grid">
-      <div class="field"><div class="field-label">Date</div>${inp('date', formatDateISO(m.date), 'date')}</div>
-      <div class="field"><div class="field-label">Season</div>${sel('season','season',validEntries.season||[],m.season)}</div>
-      <div class="field"><div class="field-label">League</div>${sel('league','league',sortedLeagues(validEntries.league||[]),m.league)}</div>
-      <div class="field"><div class="field-label">Level</div>${sel('level','level',sortedLevels(validEntries.level||[]),m.level)}</div>
-      <div class="field"><div class="field-label">Type</div><select id="edit-type" ${onTypeChange}><option value="">— Select —</option>${typeOpts.map(t=>`<option value="${t}" ${t===m.type?'selected':''}>${t}</option>`).join('')}</select></div>
-      <div class="field"><div class="field-label">Line</div>${sel('line','line',validEntries.line||[],m.line)}</div>
-      <div class="field"><div class="field-label">Home / Away</div>${sel('homeaway','homeaway',validEntries.homeaway||[],m.homeaway)}</div>
-      <div class="field"><div class="field-label">Surface</div>${sel('surface','surface',validEntries.surface||[],m.surface)}</div>
-      <div class="field"><div class="field-label">Time</div>${sel('time','time',validEntries.time||[],m.time)}</div>
-      <div class="field" style="grid-column:1/-1"><div class="field-label">Location</div>${inp('location', m.location)}</div>
-    </div>
-    <div class="modal-section-title">Players</div>
-    <div class="edit-grid">
-      <div class="field"><div class="field-label">Opponent 1 <span class="required-dot"></span></div>${inp('opp1', m.opp1)}</div>
-      <div class="field"><div class="field-label">Opponent 2</div>${inp('opp2', m.opp2)}</div>
-      <div class="field"><div class="field-label">Partner</div>${sel('partner','partner',sortedPartners(validEntries.partner||[]),m.partner)}</div>
-    </div>
-    <div class="modal-section-title">Scores</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-      <div>
-        <div class="field-label" style="text-align:center;margin-bottom:4px">Set 1</div>
-        <div class="score-row"><div>${scoreInp('s1w',m.s1w)}</div><div class="score-divider">–</div><div>${scoreInp('s1l',m.s1l)}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:4px 0">
+
+      <!-- LEFT: Match Basics -->
+      <div class="form-section">
+        <div class="section-title">Match Basics</div>
+
+        <div class="entry-pair">
+          <div class="field">
+            <div class="field-label">Date</div>
+            ${inp('date', formatDateISO(m.date), 'date')}
+          </div>
+          <div class="field">
+            <div class="field-label">Type</div>
+            <select id="edit-type" class="field-input" ${onTypeChange}>
+              <option value="">— Select —</option>
+              ${typeOpts.map(t=>`<option value="${escHtml(t)}" ${t===m.type?'selected':''}>${escHtml(t)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Opponent 1 <span class="required-dot"></span></div>
+          ${inp('opp1', m.opp1)}
+        </div>
+        <div class="field" id="edit-opp2-row" style="${isDb?'':'display:none'}">
+          <div class="field-label">Opponent 2</div>
+          ${inp('opp2', m.opp2)}
+        </div>
+        <div class="field" id="edit-partner-row" style="${isDb?'':'display:none'}">
+          <div class="field-label">Partner</div>
+          ${sel('partner', sortedPartners(validEntries.partner||[]), m.partner)}
+        </div>
+
+        <div style="margin-top:6px">
+          <div class="field-label" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">Score</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <div id="edit-s1-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 1 <span class="required-dot"></span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s1w',m.s1w)}</div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s1l',m.s1l)}</div>
+              </div>
+            </div>
+            <div id="edit-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s2w',m.s2w)}</div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s2l',m.s2l)}</div>
+              </div>
+            </div>
+            <div id="edit-s3-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box;${s3Disabled}">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s3w',setsSplit?m.s3w:'')}</div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s3l',setsSplit?m.s3l:'')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="toggle-row"><span class="toggle-row-label">Opponent Retired</span><label class="form-toggle"><input type="checkbox" id="edit-opp-ret" ${m.oppRet?'checked':''}><span class="form-toggle-slider"></span></label></div>
+          <div class="toggle-row"><span class="toggle-row-label">I / We Retired</span><label class="form-toggle"><input type="checkbox" id="edit-we-ret" ${m.weRet?'checked':''}><span class="form-toggle-slider"></span></label></div>
+        </div>
       </div>
-      <div>
-        <div class="field-label" style="text-align:center;margin-bottom:4px">Set 2</div>
-        <div class="score-row"><div>${scoreInp('s2w',m.s2w)}</div><div class="score-divider">–</div><div>${scoreInp('s2l',m.s2l)}</div></div>
+
+      <!-- RIGHT: Other Details -->
+      <div class="form-section">
+        <div class="section-title">Other Match Details</div>
+
+        <div class="entry-pair">
+          <div class="field"><div class="field-label">Season</div>${sel('season', validEntries.season||[], m.season)}</div>
+          <div class="field"><div class="field-label">League</div>${sel('league', sortedLeagues(validEntries.league||[]), m.league)}</div>
+        </div>
+        <div class="entry-pair" style="margin-top:4px">
+          <div class="field"><div class="field-label">Level</div>${sel('level', sortedLevels(validEntries.level||[]), m.level)}</div>
+          <div class="field"><div class="field-label">Line</div>${sel('line', validEntries.line||[], m.line)}</div>
+        </div>
+        <div class="entry-pair" style="margin-top:4px">
+          <div class="field"><div class="field-label">Home / Away</div>${sel('homeaway', validEntries.homeaway||[], m.homeaway)}</div>
+          <div class="field"><div class="field-label">Surface</div>${sel('surface', validEntries.surface||[], m.surface)}</div>
+        </div>
+        <div class="entry-pair" style="margin-top:4px">
+          <div class="field"><div class="field-label">Time</div>${sel('time', validEntries.time||[], m.time)}</div>
+          <div class="field"><div class="field-label">Location</div>${inp('location', m.location)}</div>
+        </div>
+
+        <div class="section-title" style="margin-top:14px">Playoff</div>
+        <div class="toggle-row"><span class="toggle-row-label">Playoff Match</span><label class="form-toggle"><input type="checkbox" id="edit-playoff" ${m.playoff?'checked':''}><span class="form-toggle-slider"></span></label></div>
+        <div class="field" style="margin-top:6px">
+          <div class="field-label">Playoff Round</div>
+          ${sel('playoffround', validEntries.playoffround||[], m.playoffround)}
+        </div>
+
+        <div class="section-title" style="margin-top:14px">Notes</div>
+        <div class="field">
+          <textarea id="edit-notes" rows="4"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
+            placeholder="Add any notes about this match…">${escHtml(m.notes || '')}</textarea>
+        </div>
       </div>
-      <div>
-        <div class="field-label" style="text-align:center;margin-bottom:4px">Set 3</div>
-        <div class="score-row"><div>${scoreInp('s3w',m.s3w)}</div><div class="score-divider">–</div><div>${scoreInp('s3l',m.s3l)}</div></div>
-      </div>
-    </div>
-    ${tog('opp-ret', m.oppRet, 'Opponent Retired')}
-    ${tog('we-ret', m.weRet, 'I / We Retired')}
-    <div class="modal-section-title">Playoff</div>
-    ${tog('playoff', m.playoff, 'Playoff Match')}
-    <div class="field"><div class="field-label">Playoff Round</div>${sel('playoffround','playoffround',validEntries.playoffround||[],m.playoffround)}</div>
-    <div class="modal-section-title">Notes</div>
-    <div class="field">
-      <textarea id="edit-notes" rows="3"
-        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5"
-        placeholder="Add any notes about this match…">${escHtml(m.notes || '')}</textarea>
     </div>
   `;
 }
@@ -3189,8 +3248,8 @@ function renderEntry() {
             <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
               <div id="e-s3-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" oninput="scoreAutoAdvance('e-s3w','e-s3l')" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" oninput="scoreAutoAdvance('e-s3w','e-s3l')" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
           </div>
@@ -3401,6 +3460,11 @@ function onEntryScoreChange() {
   if (s3El) {
     s3El.style.opacity = needS3 ? '1' : '0.3';
     s3El.style.pointerEvents = needS3 ? '' : 'none';
+    // Prevent tabbing into Set 3 when not needed
+    ['e-s3w','e-s3l'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.tabIndex = needS3 ? 0 : -1;
+    });
   }
   // Add/remove required dot on Set 3 label
   const s3label = document.getElementById('e-s3-label');
