@@ -419,7 +419,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .modal-overlay.visible { opacity: 1; pointer-events: all; }
 .modal-box {
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-  width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto;
+  width: 100%; max-width: 940px; max-height: 90vh; overflow-y: auto;
   transform: translateY(20px); transition: transform 0.2s;
 }
 .modal-overlay.visible .modal-box { transform: translateY(0); }
@@ -439,6 +439,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .modal-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .modal-header-actions { display: flex; gap: 8px; }
 .modal-body { padding: 20px; }
+.modal-body.edit-mode { padding: 16px; }
 .modal-scores-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
 .modal-set {
   background: var(--surface2); border-radius: 6px; padding: 8px 14px; text-align: center;
@@ -494,8 +495,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 }
 .detail-chip strong { color: var(--text); font-weight: 600; }
 .detail-modal-footer {
-  display: flex; justify-content: flex-end; gap: 8px;
+  display: flex; align-items: center;
   padding: 12px 20px; border-top: 1px solid var(--border);
+}
+.edit-modal-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-top: 1px solid var(--border); gap: 8px;
 }
 .edit-grid .field { margin-bottom: 0; }
 
@@ -657,9 +662,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
   /* Modal: bottom sheet on mobile */
   .modal-overlay { align-items: flex-end; padding: 0; }
-  .modal-box { border-radius: 12px 12px 0 0; max-height: 92vh; border-bottom: none; }
+  .modal-box { border-radius: 12px 12px 0 0; max-height: 92vh; border-bottom: none; max-width: 100%; }
   .modal-detail-grid { grid-template-columns: 1fr 1fr; }
   .edit-grid { grid-template-columns: 1fr 1fr; }
+  /* Edit modal panels stack on mobile */
+  #modal-body .form-section { width: 100%; }
+  #modal-body > div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
 
   /* Partners slide */
   .partners-slide-inner { width: 200%; }
@@ -2467,6 +2475,7 @@ function openMatchDetail(idx) {
     ? `Yes${m.playoffround ? ' — Rd ' + m.playoffround : ''}`
     : 'No';
 
+  document.getElementById('modal-body').className = 'modal-body';
   document.getElementById('modal-body').innerHTML = `
     <hr class="detail-divider">
     <div class="detail-score-line">
@@ -2521,10 +2530,7 @@ function openEditMode(idx) {
       <div class="modal-opponent">Editing: ${escHtml(opponent)}</div>
       <div class="modal-date">${m.date||''}</div>
     </div>
-    <div class="modal-header-actions">
-      <button class="btn btn-modal-save" onclick="saveEdit(${idx})">💾 Save</button>
-      <button class="btn btn-ghost" onclick="openMatchDetail(${idx})">Cancel</button>
-    </div>
+    <button class="btn btn-ghost" style="padding:4px 8px;font-size:16px;line-height:1;margin-left:auto" onclick="closeModal()">✕</button>
   `;
 
   function sel(id, values, cur) {
@@ -2548,8 +2554,9 @@ function openEditMode(idx) {
   const setsSplit = !isNaN(s1w)&&!isNaN(s1l)&&!isNaN(s2w)&&!isNaN(s2l) && (s1w>s1l) !== (s2w>s2l);
   const s3Disabled = !setsSplit ? 'opacity:0.3;pointer-events:none;' : '';
 
+  document.getElementById('modal-body').className = 'modal-body edit-mode';
   document.getElementById('modal-body').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:4px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
 
       <!-- LEFT: Match Basics -->
       <div class="form-section">
@@ -2650,6 +2657,10 @@ function openEditMode(idx) {
             placeholder="Add any notes about this match…">${escHtml(m.notes || '')}</textarea>
         </div>
       </div>
+    </div>
+    <div class="edit-modal-footer">
+      <button class="btn btn-ghost" onclick="openMatchDetail(${idx})">Cancel</button>
+      <button class="btn btn-modal-save" onclick="saveEdit(${idx})">💾 Save</button>
     </div>
   `;
 }
