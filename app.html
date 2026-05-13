@@ -315,7 +315,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   padding: 3px 8px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .partner-drill-btn:hover { background: var(--accent2); color: #fff; border-color: var(--accent2); }
-.rank-num { color: var(--muted); font-size: 12px; margin-right: 4px; display: inline-block; width: 24px; text-align: right; }
+.rank-num { color: var(--muted); font-size: 12px; margin-right: 4px; }
 @media (max-width: 768px) { .partners-view-col { display: none; } }
 
 /* ── Insight blurb ──────────────────────────────────────── */
@@ -1746,10 +1746,10 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     const rate  = p.total > 0 ? p.w / p.total : 0;
     const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
     return '<tr>'
-      + '<td>'
-      + '<span class="rank-num">' + (i+1) + '.</span>'
-      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px">' + escHtml(p.name) + '</span>'
-    + '</td>'
+      + '<td style="display:flex;align-items:center">'
+      + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
+      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px">' + escHtml(p.name) + '</span>'
+      + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.w + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.l + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + pct(p.w,p.l) + '</td>'
@@ -2107,7 +2107,7 @@ function buildHistoryResults(filtered, sortOrder) {
   // Build partner list rows
   var partnerListHtml = '';
   if (pQual.length >= 1) {
-    var sorted = pQual.slice().sort((a,b) => b.pv - a.pv).slice(0,5);
+    var sorted = pQual.slice().sort((a,b) => b.pv - a.pv).slice(0,6);
     partnerListHtml = '<div style="border-top:1px solid var(--border);padding-top:8px">'
       + sorted.map(function(p) {
           return '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:12px;min-width:0;">'
@@ -2158,15 +2158,13 @@ function buildHistoryResults(filtered, sortOrder) {
       insightRow('Overall', filtered)
     + typeRows;
 
-  var card3Header = '';
-  var minControl = '<div style="display:flex;align-items:center;gap:4px;margin-bottom:10px">'
-    + '<span style="font-size:11px;color:var(--muted)">Min matches:</span>'
+  var card3Header = '<div style="display:flex;align-items:center;gap:4px;margin-left:8px">'
+    + '<span style="font-size:10px;color:var(--muted)">Min</span>'
     + '<select onchange="filterState.histPartnerMin=parseInt(this.value);renderHistoryFiltered()" onclick="event.stopPropagation()" style="font-size:11px;padding:2px 16px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);outline:none">'
     + minOpts + '</select></div>';
 
   var card3Body =
-      minControl
-    + '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px;word-break:break-word;">' + partnerText + '</div>'
+      '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px;word-break:break-word;">' + partnerText + '</div>'
     + partnerListHtml;
 
   var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;gap:8px;flex-wrap:wrap;">'
@@ -2481,13 +2479,11 @@ function openMatchDetail(idx) {
     <div style="padding:14px 20px">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Notes</div>
       <textarea class="note-textarea" id="detail-notes-input">${escHtml(m.notes || '')}</textarea>
-      <div style="display:flex;justify-content:flex-end;margin-top:6px">
-        <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="saveNote(${idx})">Save Note</button>
-      </div>
     </div>
     <hr class="detail-divider">
     <div class="detail-modal-footer">
       <button class="btn btn-danger" onclick="openConfirmDelete(${idx})">🗑 Delete</button>
+      <button class="btn btn-ghost" onclick="saveNote(${idx})">💾 Save</button>
       <button class="btn btn-primary" onclick="openEditMode(${idx})">✏️ Edit</button>
     </div>
   `;
@@ -2887,11 +2883,11 @@ async function veSaveThresholds() {
 }
 
 async function veAddEntry(field) {
-  showSaving('Adding…');
   const input = document.getElementById('ve-add-'+field);
   const value = input.value.trim();
-  if (!value) return;
-  if ((veEntries[field]||[]).includes(value)) { showToast('That value already exists',true); return; }
+  if (!value) { showToast('Please enter a value first', true); return; }
+  if ((veEntries[field]||[]).includes(value)) { showToast('That value already exists', true); return; }
+  showSaving('Adding…');
   try {
     const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'addValidEntries',newEntries:{[field]:value}})});
     const data = await res.json();
@@ -2901,6 +2897,7 @@ async function veAddEntry(field) {
     renderVEContent();
     showToast(`Added "${value}"`);
   } catch(e) { showToast('Failed: '+e.message,true); }
+  finally { hideSaving(); }
 }
 
 function veOnInput(inputEl, field, idx) {
@@ -3164,21 +3161,21 @@ function renderEntry() {
             <div id="e-s1-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 1 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" oninput="scoreAutoAdvance('e-s1w','e-s1l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" oninput="scoreAutoAdvance('e-s1l','e-s2w')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
             <div id="e-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" oninput="scoreAutoAdvance('e-s2w','e-s2l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" oninput="scoreAutoAdvance('e-s2l','e-s3w')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
             <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
               <div id="e-s3-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" oninput="scoreAutoAdvance('e-s3w','e-s3l')" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
             </div>
@@ -3347,6 +3344,26 @@ function onEntryPlayoffChange() {
   document.getElementById('e-playoff-row')?.classList.toggle('cond-hidden', !checked);
 }
 function onEntryRetiredChange() { onEntryScoreChange(); }
+
+function scoreAutoAdvance(currentId, nextId) {
+  const el = document.getElementById(currentId);
+  if (!el) return;
+  const val = el.value;
+  // Advance after 1 digit if it's a valid single-digit tennis score start (0-9)
+  // or after any entry if the value is already valid (6,7) or if 2 chars entered
+  if (val.length >= 1) {
+    const n = parseInt(val);
+    // Auto-advance immediately on: 0,1,2,3,4,5,6 (valid set scores start)
+    // For 7: wait — could be 7-6 tiebreak so advance immediately
+    // Never valid to enter >7 in a set (except super tiebreak but that's set 3)
+    // Simple rule: advance after any single digit
+    const next = document.getElementById(nextId);
+    if (next && val.length === 1) {
+      next.focus();
+      next.select();
+    }
+  }
+}
 function onEntryNewSelect(key) {
   const val = document.getElementById('e-'+key)?.value;
   const newField = document.getElementById('field-'+key+'-new');
