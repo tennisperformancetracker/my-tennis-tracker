@@ -2057,7 +2057,7 @@ function buildHistoryResults(filtered, sortOrder) {
     if (!w && !l) return '';
     const col = wlColor(w, l);
     const p = pct(w, l);
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);gap:8px;min-width:0;">'
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
       + '<span style="font-size:12px;color:var(--label);flex-shrink:0">' + label + '</span>'
       + '<span style="font-size:12px;font-weight:600;color:' + col + ';white-space:nowrap">' + w + '–' + l
       + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + p + '</span></span>'
@@ -3142,7 +3142,7 @@ function renderSettings() {
 
   function catRow(c) {
     const on = enabledCats.includes(c.key);
-    return `<label style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--border);cursor:pointer;gap:8px">
+    return `<label style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;gap:8px">
       <span style="font-size:14px;font-weight:500;color:var(--text)">${c.label}</span>
       <label class="form-toggle">
         <input type="checkbox" data-cat="${c.key}" ${on?'checked':''}
@@ -3765,21 +3765,17 @@ function onEntryRetiredChange() { onEntryScoreChange(); }
 function scoreAutoAdvance(currentId, nextId) {
   const el = document.getElementById(currentId);
   if (!el || el.value.length !== 1) return;
-  // If trying to advance to Set 3, only do so if sets are split
+  // Before advancing to s3, run score change to enable it if sets are split
   if (nextId === 'e-s3w') {
-    const s1w = parseInt(document.getElementById('e-s1w')?.value || '');
-    const s1l = parseInt(document.getElementById('e-s1l')?.value || '');
-    const s2w = parseInt(document.getElementById('e-s2w')?.value || '');
-    const s2l = parseInt(document.getElementById('e-s2l')?.value || '');
-    const s3container = document.getElementById('e-s3-container');
-    // Only jump to s3 if sets are split (different winner) and s3 is enabled
-    if (isNaN(s1w)||isNaN(s1l)||isNaN(s2w)||isNaN(s2l)) return;
-    const split = (s1w > s1l) !== (s2w > s2l);
-    if (!split || (s3container && s3container.style.opacity === '0.3')) return;
+    onEntryScoreChange();
+    // Only advance if s3 is now enabled
+    const s3 = document.getElementById('e-s3-container');
+    if (!s3 || s3.style.opacity === '0.3') return;
   }
   const next = document.getElementById(nextId);
   if (next) { next.focus(); next.select(); }
 }
+
 function onEntryNewSelect(key) {
   const val = document.getElementById('e-'+key)?.value;
   const newField = document.getElementById('field-'+key+'-new');
