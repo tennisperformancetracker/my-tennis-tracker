@@ -602,9 +602,10 @@
   <nav class="sidebar-nav">
     <a href="#setup"><span class="icon">🔗</span> Initial Setup</a>
     <a href="#dashboard"><span class="icon">📊</span> Dashboard</a>
-    <a href="#match-history"><span class="icon">📋</span> Match History</a>
-    <a href="#match-entry"><span class="icon">🎾</span> Match Entry</a>
-    <a href="#valid-entries"><span class="icon">⚙️</span> Valid Entries</a>
+    <a href="#match-history"><span class="icon">🎾</span> Match History</a>
+    <a href="#match-entry"><span class="icon">📝</span> Match Entry</a>
+    <a href="#valid-entries"><span class="icon">🗂️</span> Valid Entries</a>
+    <a href="#settings"><span class="icon">⚙️</span> Settings</a>
     <a href="#importing-matches"><span class="icon">📥</span> Importing Matches</a>
   </nav>
 
@@ -618,7 +619,7 @@
 
   <!-- COVER -->
   <div class="cover">
-    <span class="cover-racket">🎾</span>
+    
     <h1>Match Tracker <span style="color:#7ecba1;">Pro</span><br>User Guide</h1>
     <p class="cover-sub">
       Everything you need to connect your spreadsheet, log your matches, and gain real insights into your game. <br><br>This guide walks you through setup and each section of the app so you can start logging your matches now!
@@ -634,7 +635,8 @@
       <li><a href="#dashboard">Dashboard</a> <span>Your performance command center</span></li>
       <li><a href="#match-history">Match History</a> <span>Search, filter, and analyze your record</span></li>
       <li><a href="#match-entry">Match Entry</a> <span>Logging every match, every detail</span></li>
-      <li><a href="#valid-entries">Valid Entries</a> <span>Managing dropdown lists and thresholds</span></li>
+      <li><a href="#valid-entries">Valid Entries</a> <span>Managing dropdown lists</span></li>
+      <li><a href="#settings">Settings</a> <span>Thresholds, breakdown categories, notifications &amp; connection</span></li>
       <li><a href="#importing-matches">Importing Matches</a> <span>Bringing in data from another spreadsheet</span></li>
     </ol>
   </div>
@@ -801,7 +803,7 @@
           <tr><td>2-Set Matches</td><td>Record when your match only lasts two-sets.</td></tr>
           <tr><td>3-Set Matches</td><td>Record when your match goes to three-sets.</td></tr>
           <tr><td>Tiebreaks</td><td>Win/loss record in all tiebreaks played — a direct measure of how you perform under the highest-pressure single-game situations.</td></tr>
-          <tr><td>Close Matches</td><td><p>Matches decided by a tight margin. Helps you understand how often you convert pressure matches versus let them slip.</p><p>A match is considered "close" if it went to three sets, if a tiebreak was played, or if the losing player(s) total games won was at least 60% of the winning player(s).</p></td></tr>
+          <tr><td>Close Matches</td><td><p>Matches decided by a tight margin. Helps you understand how often you convert pressure matches versus let them slip.</p><p>A match is considered "close" if the losing player(s) total games won was at least 60% of the winning player(s).</p><p>For example, 6-4, 6-4 (%67) is considered "Close" but 6-3, 6-3 (50%) is not.</td></tr>
           <tr><td>Playoffs</td><td>Record specifically in playoff matches.</td></tr>
         </tbody>
       </table>
@@ -877,7 +879,7 @@
           </tr>
           <tr>
             <td>Performance<br>Breakdown</td>
-            <td>Home/Away and Morning/Afternoon/Night records for the filtered set. Useful for quickly checking contextual performance within a specific opponent or partner filter.</td>
+            <td>Insight categories for the filtered set, such as Home vs Away, Close Matches, Tiebreaks, etc. Up to six categories display in this section. <p>You can customize what displays on the Settings screen, allowing you to view what matters most.</td>
           </tr>
           <tr>
             <td>Partner<br>Performance</td>
@@ -902,7 +904,7 @@
 	</tbody>
       </table>
 
-      <p style="margin-top: 12px;">Matches are paginated — use the <strong>Prev / Next</strong> buttons at the bottom of the list to navigate between pages, or jump directly to a page number. </p>
+      <p style="margin-top: 12px;">Click any row to open the <strong>Match Details</strong> panel for that match. It shows the full score, opponents, partner, other match details and any notes. From this panel you can edit or delete the match, if needed.</p>
     </div>
 
   </section>
@@ -1111,31 +1113,104 @@
       </div>
     </div>
 
-    <!-- PERFORMANCE THRESHOLDS -->
-    <div class="card">
-      <div class="card-title">Performance Thresholds</div>
-      <p>At the bottom of the Valid Entries page is the <strong>Performance Thresholds</strong> section. These settings control the color-coding system used throughout the app — in the Performance Breakdown table on the Dashboard and in Match History statistics — to give you an at-a-glance read on how strong or weak a particular result is.</p>
-
-      <div class="threshold-row">
-        <div class="threshold-pill pill-green">Great (Green) ≥ 55%</div>
-        <div class="threshold-pill pill-orange">Average (Orange) 45–55%</div>
-        <div class="threshold-pill pill-red">Poor (Red) ≤ 45%</div>
-      </div>
-
-      <p>The defaults are set at <strong>55%</strong> for Great (green) and <strong>45%</strong> for Poor (red). Any win percentage at or above the Great threshold displays in green; at or below the Poor threshold displays in red; anything in between displays in orange.</p>
-      <p>To adjust the thresholds, change the values in the <strong>Great (Green) ≥</strong> and <strong>Poor (Red) ≤</strong> fields and click <strong>Save</strong>. The color-coding across the entire app will update to reflect your new settings immediately.</p>
-
-      <div class="note note-tip">
-        <strong>Calibrating to your level:</strong> If you're a competitive player with a naturally high win percentage, raising the Great threshold to 65% or 70% gives you a more meaningful green benchmark. If you're newer to competitive play, lowering it to 50% might be more motivating and accurate to your progress.
-      </div>
-    </div>
+    
 
   </section>
   
   <hr class="divider">
 
 <!-- ══════════════════════════════════════════
-     SECTION 6 — IMPORTING MATCHES
+     SECTION 6 — SETTINGS
+═══════════════════════════════════════════ -->
+<section class="section" id="settings">
+  <div class="section-header">
+    <div class="section-icon">⚙️</div>
+    <h2>Settings</h2>
+  </div>
+
+  <p class="section-intro">
+    The Settings page is where you personalize how Match Tracker Pro behaves across the entire app. It covers four areas: how win percentages are color-coded, which categories appear in your Performance Breakdown, update notifications, and your Google Sheet connection. Changes here affect every page — click the <strong>Save Settings</strong> button at the top-right corner when you're done. Nothing persists until you save.
+  </p>
+
+  <div class="page-label">
+    <span>⚙️</span> Settings Page
+  </div>
+
+  <!-- PERFORMANCE THRESHOLDS -->
+  <div class="card">
+    <div class="card-title">Performance Thresholds</div>
+    <p>Controls how win percentages are color-coded throughout the app — on the Dashboard, in Match History, and anywhere a win percentage appears. Set your <strong>Great Threshold</strong> (the minimum % to display in green) and your <strong>Poor Threshold</strong> (the ceiling below which a % displays in red). Anything between the two values shows in orange. A live preview bar updates as you type so you can see the color split in real time before saving.</p>
+
+    <div class="threshold-row">
+      <div class="threshold-pill pill-green">Great (Green) ≥ 55%</div>
+      <div class="threshold-pill pill-orange">Neutral (Orange) 45–55%</div>
+      <div class="threshold-pill pill-red">Poor (Red) ≤ 45%</div>
+    </div>
+
+    <p>The defaults are <strong>55%</strong> for Great and <strong>45%</strong> for Poor, but you should calibrate these to your own level. If you're a strong competitive player winning 70%+ of matches, raising the Great threshold to 65 or 70 makes the green signal more meaningful. If you're newer to league play, a 50% Great threshold might be more realistic and motivating.</p>
+
+    <div class="note note-warn">
+      <strong>The Great threshold must always be higher than the Poor threshold.</strong> If they're set incorrectly, the app will flag the error when you try to save.
+    </div>
+  </div>
+
+  <!-- PERFORMANCE BREAKDOWN CATEGORIES -->
+  <div class="card">
+    <div class="card-title">Performance Breakdown Categories</div>
+    <p>Controls which categories appear in the Performance Breakdown table on Match History. There are 13 available categories and you can enable up to <strong>6 at a time</strong>. Toggle each on or off using the switches — a counter at the bottom of the panel shows how many are currently enabled. Once you hit 6, additional toggles are blocked until you turn one off.</p>
+
+    <table class="field-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>What It Tracks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Matches</td><td>Overall win/loss record and win percentage.</td></tr>
+        <tr><td>Sets</td><td>How often you win individual sets, regardless of match outcome.</td></tr>
+        <tr><td>Games</td><td>Total games won vs. lost across all sets and matches.</td></tr>
+        <tr><td>Home</td><td>Your record when playing at your home courts.</td></tr>
+        <tr><td>Away</td><td>Your record when playing at opponent venues.</td></tr>
+        <tr><td>Morning</td><td>Performance in morning matches.</td></tr>
+        <tr><td>Afternoon</td><td>Performance in afternoon matches.</td></tr>
+        <tr><td>Night</td><td>Performance in night matches.</td></tr>
+        <tr><td>2-Set Matches</td><td>Record in two-set matches.</td></tr>
+        <tr><td>3-Set Matches</td><td>Record in three-set matches.</td></tr>
+        <tr><td>Tiebreaks</td><td>Win/loss record in all tiebreaks played.</td></tr>
+        <tr><td>Close Matches</td><td>Matches decided by a tight margin.</td></tr>
+        <tr><td>Playoffs</td><td>Record specifically in playoff-designated matches.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note note-tip">
+      <strong>Choose the categories most relevant to your game.</strong> If you only play day matches, Morning/Afternoon/Night may not be useful to you; however, you may want to focus on if you play better at home or on the road. If clutch performance is a big focus, you may want to enable Tiebreaks, Close Matches, and Playoffs.
+    </div>
+  </div>
+
+  <!-- UPDATE NOTIFICATIONS -->
+  <div class="card">
+    <div class="card-title">Update Notifications</div>
+    <p>Opt in to receive occasional emails when new features are released. Enter your email address in the field and toggle <strong>Opt in to receive updates</strong> on. This is entirely optional and free — no account required.</p>
+    <p>Your current opt-in status is shown beneath the toggle: either <strong>✓ Opted in</strong> or <strong>Not opted in</strong>. To opt out at any time, return to this page, toggle it off, and save.</p>
+  </div>
+
+  <!-- GOOGLE SHEET CONNECTION -->
+  <div class="card">
+    <div class="card-title">Google Sheet Connection</div>
+    <p>Displays your current Google Apps Script Web App URL — the link that connects Match Tracker Pro to your Google Sheet. You shouldn't need to change this after initial setup, but if you ever redeploy your Apps Script (for example, if you move to a new spreadsheet or need to reauthorize access), paste the updated URL here and save. The app will reconnect and reload your data automatically.</p>
+
+    <div class="note">
+      <strong>Not sure if your URL is still valid?</strong> If the app stops loading data or shows connection errors, this is the first place to check. A valid URL always starts with <code style="background:var(--light-blue);color:var(--navy);padding:1px 6px;border-radius:4px;font-family:'Courier New',monospace;font-size:12px">https://script.google.com/macros/s/</code> and ends with <code style="background:var(--light-blue);color:var(--navy);padding:1px 6px;border-radius:4px;font-family:'Courier New',monospace;font-size:12px">/exec</code>.
+    </div>
+  </div>
+
+</section>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════
+     SECTION 7 — IMPORTING MATCHES
 ═══════════════════════════════════════════ -->
 <section class="section" id="importing-matches">
   <div class="section-header">
