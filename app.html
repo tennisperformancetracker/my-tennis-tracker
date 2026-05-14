@@ -1060,15 +1060,26 @@ function formatDateISO(str) {
   if (p.length === 3) return `${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;
   return str;
 }
-function isDoubles(m) { return m.type && m.type.toLowerCase().includes('doubles'); }
+function isDoubles(m) {
+  return m.type && m.type.toLowerCase().includes('doubles');
+}
+
 function isClose(m) {
-  // 3-set match OR game score ratio >= 60%
-  const s3played = m.s3w !== '' && m.s3l !== '';
-  if (s3played) return true;
-  const gamesW = (num(m.s1w)||0) + (num(m.s2w)||0) + (num(m.s3w)||0);
-  const gamesL = (num(m.s1l)||0) + (num(m.s2l)||0) + (num(m.s3l)||0);
+  // Close match = losing side won at least 60% as many games
+  const gamesW =
+    (num(m.s1w) || 0) +
+    (num(m.s2w) || 0) +
+    (num(m.s3w) || 0);
+
+  const gamesL =
+    (num(m.s1l) || 0) +
+    (num(m.s2l) || 0) +
+    (num(m.s3l) || 0);
+
   const total = gamesW + gamesL;
+
   if (total === 0) return false;
+
   return Math.min(gamesW, gamesL) / Math.max(gamesW, gamesL) >= 0.6;
 }
 function countSets(m) {
@@ -3119,7 +3130,6 @@ function savePerfCats(keys) { localStorage.setItem('perfCats', JSON.stringify(ke
 let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true';
 
 function renderSettings() {
-  document.getElementById('topbar-right').innerHTML = '';
   document.getElementById('mobile-filters').innerHTML = '';
   const content = document.getElementById('content');
   const enabledCats = getPerfCats();
@@ -3127,7 +3137,11 @@ function renderSettings() {
   const poor  = parseInt(localStorage.getItem('thresholdPoor')  || '45');
   const currentUrl = webAppUrl || '';
 
-  // Split cats into two columns: 7 left, 6 right
+  // Save button in topbar
+  document.getElementById('topbar-right').innerHTML = `
+    <button onclick="saveAllSettings()" class="btn btn-primary" style="padding:8px 24px;font-size:13px">Save Settings</button>
+  `;
+
   const col1 = PERF_CATS_ALL.slice(0, 7);
   const col2 = PERF_CATS_ALL.slice(7);
 
@@ -3153,18 +3167,20 @@ function renderSettings() {
           Controls how win percentages are color-coded across the app.
         </div>
 
-        <!-- Slim preview bar -->
-        <div style="display:flex;gap:6px;align-items:center;margin-bottom:20px;font-size:12px;font-weight:600">
-          <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
-          <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
-          <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor}–${great}%</span></span>
-          <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
-          <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
-        </div>
-        <div style="height:6px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:24px">
-          <div id="thresh-bar-green"  style="background:var(--win);    transition:width 0.3s;width:${100-great}%"></div>
-          <div id="thresh-bar-orange" style="background:#d4820a;        transition:width 0.3s;width:${great-poor}%"></div>
-          <div id="thresh-bar-red"    style="background:var(--danger);  transition:width 0.3s;width:${poor}%"></div>
+        <!-- Legend + slim bar constrained to text width -->
+        <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:24px">
+          <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
+            <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
+            <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
+            <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor}–${great}%</span></span>
+            <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
+            <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
+          </div>
+          <div style="height:5px;border-radius:4px;overflow:hidden;display:flex">
+            <div id="thresh-bar-green"  style="background:var(--win);     transition:width 0.3s;width:${100-great}%"></div>
+            <div id="thresh-bar-orange" style="background:#d4820a;         transition:width 0.3s;width:${great-poor}%"></div>
+            <div id="thresh-bar-red"    style="background:var(--danger);   transition:width 0.3s;width:${poor}%"></div>
+          </div>
         </div>
 
         <!-- Compact inputs -->
@@ -3187,9 +3203,8 @@ function renderSettings() {
               <span style="font-size:12px;color:var(--muted)">%</span>
             </div>
           </div>
-          <button onclick="saveSettingsThresholds()" class="btn btn-primary" style="padding:7px 22px;font-size:13px;margin-bottom:1px">Save Changes</button>
-          <div id="settings-thresh-msg" style="display:none;font-size:12px;align-self:center"></div>
         </div>
+        <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px"></div>
       </div>
 
       <!-- ── Performance Breakdown Categories ── -->
@@ -3202,11 +3217,8 @@ function renderSettings() {
           <div>${col1.map(catRow).join('')}</div>
           <div>${col2.map(catRow).join('')}</div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
-          <div id="perf-cats-count" style="font-size:12px;color:var(--muted)">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 7)</div>
-          <button onclick="saveSettingsPerfCats()" class="btn btn-primary" style="padding:8px 28px;font-size:13px">Save</button>
-        </div>
-        <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:8px"></div>
+        <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 7)</div>
+        <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
       </div>
 
       <!-- ── Update Notifications ── -->
@@ -3252,11 +3264,11 @@ function renderSettings() {
             placeholder="Paste your Apps Script URL here…"
             style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box"
             onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
-          <button onclick="saveSettingsUrl()" class="btn btn-primary" style="white-space:nowrap;padding:10px 20px;font-size:13px">Save & Reload</button>
         </div>
         <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
       </div>
 
+      <div id="settings-save-msg" style="display:none;font-size:13px;font-weight:600;padding:12px 0;text-align:right"></div>
     </div>
   `;
 }
@@ -3343,67 +3355,75 @@ async function settingsHandleOptIn() {
   }
 }
 
-async function saveSettingsThresholds() {
-  const great = parseInt(document.getElementById('settings-t-great')?.value);
-  const poor  = parseInt(document.getElementById('settings-t-poor')?.value);
-  const msg   = document.getElementById('settings-thresh-msg');
-  if (isNaN(great)||isNaN(poor)) return;
-  if (great <= poor) {
-    msg.style.display='block'; msg.style.color='var(--danger)';
-    msg.textContent='Great threshold must be higher than Poor.'; return;
-  }
-  showSaving('Saving thresholds…');
-  try {
-    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'updateThresholds',great,poor})});
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error);
-    localStorage.setItem('thresholdGreat', great);
-    localStorage.setItem('thresholdPoor',  poor);
-    msg.style.display='block'; msg.style.color='var(--win)';
-    msg.textContent='✓ Thresholds saved.';
-    setTimeout(()=>{ msg.style.display='none'; }, 3000);
-  } catch(e) {
-    msg.style.display='block'; msg.style.color='var(--danger)';
-    msg.textContent='Failed: '+e.message;
-  } finally { hideSaving(); }
-}
 
 function settingsPerfCatChange() {
-  const checked = document.querySelectorAll('#perf-cats-list input[data-cat]:checked');
+  const checked = document.querySelectorAll('[data-cat]:checked');
   const countEl = document.getElementById('perf-cats-count');
-  if (countEl) countEl.textContent = checked.length + ' of 7 enabled';
-  // If over 7, uncheck the one just clicked (the last checked)
-  if (checked.length > 7) {
+  const count = checked.length;
+  if (countEl) countEl.textContent = count + ' of ' + PERF_CATS_ALL.length + ' enabled (max 7)';
+  if (count > 7) {
+    // Uncheck the most recently checked one
     checked[checked.length-1].checked = false;
-    if (countEl) countEl.textContent = '7 of 7 enabled';
+    if (countEl) countEl.textContent = '7 of ' + PERF_CATS_ALL.length + ' enabled (max 7)';
   }
 }
 
-function saveSettingsPerfCats() {
-  const checked = Array.from(document.querySelectorAll('#perf-cats-list input[data-cat]:checked'))
-    .map(el => el.dataset.cat);
-  if (checked.length === 0) { showToast('Please enable at least one category', true); return; }
-  savePerfCats(checked);
-  const msg = document.getElementById('settings-cats-msg');
-  msg.style.display='block'; msg.style.color='var(--win)';
-  msg.textContent='✓ Categories saved.';
-  setTimeout(()=>{ msg.style.display='none'; }, 3000);
+async function saveAllSettings() {
+  const btn = document.querySelector('#topbar-right .btn-primary');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  const msgEl = document.getElementById('settings-save-msg');
+  const errors = [];
+
+  // 1. Thresholds
+  const great = parseInt(document.getElementById('settings-t-great')?.value);
+  const poor  = parseInt(document.getElementById('settings-t-poor')?.value);
+  if (!isNaN(great) && !isNaN(poor)) {
+    if (great <= poor) {
+      errors.push('Great threshold must be higher than Poor.');
+    } else {
+      try {
+        const res  = await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'updateThresholds',great,poor})});
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        localStorage.setItem('thresholdGreat', great);
+        localStorage.setItem('thresholdPoor',  poor);
+      } catch(e) { errors.push('Thresholds: ' + e.message); }
+    }
+  }
+
+  // 2. Perf cats
+  const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
+  if (checked.length === 0) {
+    errors.push('Please enable at least one Performance Breakdown category.');
+  } else {
+    savePerfCats(checked);
+  }
+
+  // 3. URL
+  const urlVal = document.getElementById('settings-url')?.value.trim();
+  if (urlVal && urlVal !== webAppUrl) {
+    if (!urlVal.startsWith('https://')) {
+      errors.push('Google Sheet URL must start with https://');
+    } else {
+      webAppUrl = urlVal;
+      localStorage.setItem('webAppUrl', urlVal);
+      updateUrlDisplay();
+    }
+  }
+
+  if (btn) { btn.textContent = 'Save Settings'; btn.disabled = false; }
+
+  if (errors.length > 0) {
+    showToast(errors[0], true);
+  } else {
+    showToast('Settings saved!');
+    // Reload data if URL changed
+    if (urlVal && urlVal !== (localStorage.getItem('webAppUrl') || '') && urlVal.startsWith('https://')) {
+      setTimeout(() => loadAll(), 600);
+    }
+  }
 }
 
-function saveSettingsUrl() {
-  const val = document.getElementById('settings-url')?.value.trim();
-  const msg = document.getElementById('settings-url-msg');
-  if (!val || !val.startsWith('https://')) {
-    msg.style.display='block'; msg.style.color='var(--danger)';
-    msg.textContent='Please enter a valid HTTPS URL.'; return;
-  }
-  webAppUrl = val;
-  localStorage.setItem('webAppUrl', val);
-  updateUrlDisplay();
-  msg.style.display='block'; msg.style.color='var(--win)';
-  msg.textContent='✓ Saved. Reloading data…';
-  setTimeout(()=>loadAll(), 800);
-}
 
 function openConfirmDelete(idx) {
   pendingDeleteIdx = idx;
