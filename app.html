@@ -2903,12 +2903,7 @@ function renderVEContent() {
     </style>
     <div class="ve-cards-grid">
       ${cardsHtml}
-      <div class="ve-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;background:var(--surface2)">
-        <div style="font-size:28px">⚙️</div>
-        <div style="font-size:14px;font-weight:600;color:var(--navy2)">Performance Thresholds</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.6">Threshold settings have moved to Settings.</div>
-        <button onclick="showPage('settings')" class="btn btn-ghost" style="font-size:12px;padding:6px 16px">Go to Settings →</button>
-      </div>
+      
     </div>
     <div class="confirm-overlay" id="ve-confirm-delete">
       <div class="confirm-box">
@@ -3147,7 +3142,7 @@ function renderSettings() {
 
   function catRow(c) {
     const on = enabledCats.includes(c.key);
-    return `<label style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;gap:8px">
+    return `<label style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--border);cursor:pointer;gap:8px">
       <span style="font-size:14px;font-weight:500;color:var(--text)">${c.label}</span>
       <label class="form-toggle">
         <input type="checkbox" data-cat="${c.key}" ${on?'checked':''}
@@ -3211,13 +3206,13 @@ function renderSettings() {
       <div class="card">
         <div class="card-title" style="margin-bottom:4px">Performance Breakdown Categories</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5">
-          Choose which categories appear in the Performance Breakdown section. Max 7.
+          Choose which categories appear in the Performance Breakdown section. Max 6.
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px">
           <div>${col1.map(catRow).join('')}</div>
           <div>${col2.map(catRow).join('')}</div>
         </div>
-        <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 7)</div>
+        <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
         <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
       </div>
 
@@ -3360,11 +3355,10 @@ function settingsPerfCatChange() {
   const checked = document.querySelectorAll('[data-cat]:checked');
   const countEl = document.getElementById('perf-cats-count');
   const count = checked.length;
-  if (countEl) countEl.textContent = count + ' of ' + PERF_CATS_ALL.length + ' enabled (max 7)';
-  if (count > 7) {
-    // Uncheck the most recently checked one
+  if (countEl) countEl.textContent = count + ' of ' + PERF_CATS_ALL.length + ' enabled (max 6)';
+  if (count > 6) {
     checked[checked.length-1].checked = false;
-    if (countEl) countEl.textContent = '7 of ' + PERF_CATS_ALL.length + ' enabled (max 7)';
+    if (countEl) countEl.textContent = '6 of ' + PERF_CATS_ALL.length + ' enabled (max 6)';
   }
 }
 
@@ -3394,7 +3388,7 @@ async function saveAllSettings() {
   // 2. Perf cats
   const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
   if (checked.length === 0) {
-    errors.push('Please enable at least one Performance Breakdown category.');
+    errors.push('Please enable at leastChoose which categories appear in the Performance Breakdown section. Max 7. one Performance Breakdown category.');
   } else {
     savePerfCats(checked);
   }
