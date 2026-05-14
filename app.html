@@ -2198,12 +2198,22 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var enabledCats = getPerfCats();
   var card2Body = '';
-  if (enabledCats.includes('home'))      card2Body += insightRow('Home',      filtered.filter(function(m){ return m.homeaway === 'Home'; }));
-  if (enabledCats.includes('away'))      card2Body += insightRow('Away',      filtered.filter(function(m){ return m.homeaway === 'Away'; }));
-  if (enabledCats.includes('morning'))   card2Body += insightRow('Morning',   filtered.filter(function(m){ return m.time === 'Morning' || m.time === 'Day'; }));
-  if (enabledCats.includes('afternoon')) card2Body += insightRow('Afternoon', filtered.filter(function(m){ return m.time === 'Afternoon'; }));
-  if (enabledCats.includes('night'))     card2Body += insightRow('Night',     filtered.filter(function(m){ return m.time === 'Night'; }));
+  if (enabledCats.includes('matches'))   card2Body += insightRow('Matches',       filtered);
+  if (enabledCats.includes('sets'))      card2Body += insightRow('Sets',          filtered);
+  if (enabledCats.includes('games'))     card2Body += insightRow('Games',         filtered);
+  if (enabledCats.includes('home'))      card2Body += insightRow('Home',          filtered.filter(function(m){ return m.homeaway === 'Home'; }));
+  if (enabledCats.includes('away'))      card2Body += insightRow('Away',          filtered.filter(function(m){ return m.homeaway === 'Away'; }));
+  if (enabledCats.includes('morning'))   card2Body += insightRow('Morning',       filtered.filter(function(m){ return m.time === 'Morning' || m.time === 'Day'; }));
+  if (enabledCats.includes('afternoon')) card2Body += insightRow('Afternoon',     filtered.filter(function(m){ return m.time === 'Afternoon'; }));
+  if (enabledCats.includes('night'))     card2Body += insightRow('Night',         filtered.filter(function(m){ return m.time === 'Night'; }));
+  if (enabledCats.includes('twoset'))    card2Body += insightRow('2-Set Matches', filtered.filter(function(m){ return (!m.s3w||m.s3w==='')&&m.s2w!==''; }));
+  if (enabledCats.includes('threeset'))  card2Body += insightRow('3-Set Matches', filtered.filter(function(m){ return m.s3w!==''&&m.s3w!=null; }));
   if (enabledCats.includes('tiebreaks')) card2Body += tbRow;
+  if (enabledCats.includes('close'))     card2Body += insightRow('Close Matches', filtered.filter(function(m){
+    var s=[m.s1w,m.s1l,m.s2w,m.s2l,m.s3w,m.s3l].map(Number);
+    return s.some(function(v,i){ return i%2===0 && Math.abs(v-s[i+1])<=2; });
+  }));
+  if (enabledCats.includes('playoffs'))  card2Body += insightRow('Playoffs',      filtered.filter(function(m){ return m.playoff; }));
   if (!card2Body) card2Body = '<div style="font-size:13px;color:var(--muted);padding:8px 0">No categories enabled. Enable them in Settings.</div>';
 
   // Table rows — wrap partner + score on mobile
@@ -3081,14 +3091,20 @@ async function saveNote(idx) {
 // SETTINGS
 // ══════════════════════════════════════════════════════════════
 
-// Default perf breakdown categories (all on)
 const PERF_CATS_ALL = [
-  { key: 'home',      label: 'Home' },
-  { key: 'away',      label: 'Away' },
-  { key: 'morning',   label: 'Morning' },
-  { key: 'afternoon', label: 'Afternoon' },
-  { key: 'night',     label: 'Night' },
-  { key: 'tiebreaks', label: 'Tiebreaks' },
+  { key: 'matches',    label: 'Matches' },
+  { key: 'sets',       label: 'Sets' },
+  { key: 'games',      label: 'Games' },
+  { key: 'home',       label: 'Home' },
+  { key: 'away',       label: 'Away' },
+  { key: 'morning',    label: 'Morning' },
+  { key: 'afternoon',  label: 'Afternoon' },
+  { key: 'night',      label: 'Night' },
+  { key: 'twoset',     label: '2-Set Matches' },
+  { key: 'threeset',   label: '3-Set Matches' },
+  { key: 'tiebreaks',  label: 'Tiebreaks' },
+  { key: 'close',      label: 'Close Matches' },
+  { key: 'playoffs',   label: 'Playoffs' },
 ];
 
 function getPerfCats() {
@@ -3096,12 +3112,9 @@ function getPerfCats() {
     const saved = JSON.parse(localStorage.getItem('perfCats') || 'null');
     if (saved && Array.isArray(saved)) return saved;
   } catch(e) {}
-  return PERF_CATS_ALL.map(c => c.key); // all on by default
+  return PERF_CATS_ALL.map(c => c.key);
 }
-
-function savePerfCats(keys) {
-  localStorage.setItem('perfCats', JSON.stringify(keys));
-}
+function savePerfCats(keys) { localStorage.setItem('perfCats', JSON.stringify(keys)); }
 
 let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true';
 
@@ -3110,12 +3123,135 @@ function renderSettings() {
   document.getElementById('mobile-filters').innerHTML = '';
   const content = document.getElementById('content');
   const enabledCats = getPerfCats();
-  const great = localStorage.getItem('thresholdGreat') || '55';
-  const poor  = localStorage.getItem('thresholdPoor')  || '45';
+  const great = parseInt(localStorage.getItem('thresholdGreat') || '55');
+  const poor  = parseInt(localStorage.getItem('thresholdPoor')  || '45');
   const currentUrl = webAppUrl || '';
+
+  // Split cats into two columns: 7 left, 6 right
+  const col1 = PERF_CATS_ALL.slice(0, 7);
+  const col2 = PERF_CATS_ALL.slice(7);
+
+  function catRow(c) {
+    const on = enabledCats.includes(c.key);
+    return `<label style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;gap:8px">
+      <span style="font-size:14px;font-weight:500;color:var(--text)">${c.label}</span>
+      <label class="form-toggle">
+        <input type="checkbox" data-cat="${c.key}" ${on?'checked':''}
+          onchange="settingsPerfCatChange()">
+        <span class="form-toggle-slider"></span>
+      </label>
+    </label>`;
+  }
 
   content.innerHTML = `
     <div style="max-width:820px;display:flex;flex-direction:column;gap:20px">
+
+      <!-- ── Performance Thresholds ── -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">Performance Thresholds</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5">
+          Win rates at or above <strong>Great</strong> show green. At or below <strong>Poor</strong> show red. Everything in between shows orange.
+        </div>
+
+        <!-- Visual threshold bar -->
+        <div style="margin-bottom:24px">
+          <div style="display:flex;height:28px;border-radius:8px;overflow:hidden;font-size:11px;font-weight:700">
+            <div id="thresh-bar-green" style="background:#2e7d52;display:flex;align-items:center;justify-content:center;color:#fff;transition:width 0.3s;width:${100-great}%">
+              ≥ <span id="thresh-label-great">${great}</span>%
+            </div>
+            <div id="thresh-bar-orange" style="background:#d4820a;display:flex;align-items:center;justify-content:center;color:#fff;transition:width 0.3s;width:${great-poor}%">
+              <span id="thresh-label-range">${poor}–${great}%</span>
+            </div>
+            <div id="thresh-bar-red" style="background:#c0392b;display:flex;align-items:center;justify-content:center;color:#fff;transition:width 0.3s;width:${poor}%">
+              ≤ <span id="thresh-label-poor">${poor}</span>%
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);padding:0 2px">
+            <span>0%</span><span>100%</span>
+          </div>
+        </div>
+
+        <!-- Inputs -->
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px">
+          <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great (Green) ≥</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="settings-t-great" value="${great}" min="1" max="99"
+                oninput="settingsUpdatePreview()"
+                style="width:72px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:20px;font-weight:700;padding:8px 4px;outline:none">
+              <span style="font-size:14px;color:var(--muted)">%</span>
+              <span style="font-size:12px;color:var(--muted)">and above = 🟢</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor (Red) ≤</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="settings-t-poor" value="${poor}" min="1" max="99"
+                oninput="settingsUpdatePreview()"
+                style="width:72px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:20px;font-weight:700;padding:8px 4px;outline:none">
+              <span style="font-size:14px;color:var(--muted)">%</span>
+              <span style="font-size:12px;color:var(--muted)">and below = 🔴</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
+          Between <span id="thresh-desc-poor">${poor}</span>% and <span id="thresh-desc-great">${great}</span>% = 🟠
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px">
+          <button onclick="saveSettingsThresholds()" class="btn btn-primary" style="padding:8px 28px;font-size:13px">Save Thresholds</button>
+          <div id="settings-thresh-msg" style="display:none;font-size:12px"></div>
+        </div>
+      </div>
+
+      <!-- ── Performance Breakdown Categories ── -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">Performance Breakdown Categories</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5">
+          Choose which categories appear in the Performance Breakdown section. Max 7.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px">
+          <div>${col1.map(catRow).join('')}</div>
+          <div>${col2.map(catRow).join('')}</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
+          <div id="perf-cats-count" style="font-size:12px;color:var(--muted)">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 7)</div>
+          <button onclick="saveSettingsPerfCats()" class="btn btn-primary" style="padding:8px 28px;font-size:13px">Save</button>
+        </div>
+        <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:8px"></div>
+      </div>
+
+      <!-- ── Update Notifications ── -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">Update Notifications</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
+          Receive occasional emails when new features are released. Always optional, always free.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="field">
+            <div class="field-label">Email Address</div>
+            <input type="email" id="settings-optin-email"
+              placeholder="your@email.com"
+              value="${localStorage.getItem('settingsOptInEmail')||''}"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;transition:border-color 0.15s;box-sizing:border-box"
+              onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-row-label">Opt in to receive updates</div>
+              <div id="settings-optin-status" style="font-size:11px;margin-top:2px;color:var(--muted)">
+                ${settingsOptInSubmitted ? '✓ Opted in' : 'Not opted in'}
+              </div>
+            </div>
+            <label class="form-toggle">
+              <input type="checkbox" id="settings-optin-toggle" ${settingsOptInSubmitted?'checked':''}
+                onchange="settingsHandleOptIn()">
+              <span class="form-toggle-slider"></span>
+            </label>
+          </div>
+          <div id="settings-optin-msg" style="display:none;font-size:12px;font-weight:500"></div>
+        </div>
+      </div>
 
       <!-- ── Google Sheet Connection ── -->
       <div class="card">
@@ -3123,105 +3259,14 @@ function renderSettings() {
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5">
           Your Google Apps Script Web App URL. This connects Match Tracker Pro to your Google Sheet.
         </div>
-        <div style="display:flex;gap:10px;align-items:stretch">
+        <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap">
           <input type="text" id="settings-url" value="${currentUrl}"
             placeholder="Paste your Apps Script URL here…"
-            style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 14px;outline:none;min-width:0;transition:border-color 0.15s"
+            style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box"
             onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
           <button onclick="saveSettingsUrl()" class="btn btn-primary" style="white-space:nowrap;padding:10px 20px;font-size:13px">Save & Reload</button>
         </div>
         <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
-      </div>
-
-      <!-- ── Performance Thresholds ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Performance Thresholds</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
-          Controls row coloring across the app. Win rates above Great turn green, below Poor turn red.
-        </div>
-        <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center;margin-bottom:16px">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great (Green) ≥</div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" id="settings-t-great" value="${great}" min="0" max="100"
-                oninput="settingsUpdatePreview()"
-                style="width:70px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:18px;font-weight:700;padding:8px 6px;outline:none">
-              <span style="font-size:14px;color:var(--muted)">%</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor (Red) ≤</div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" id="settings-t-poor" value="${poor}" min="0" max="100"
-                oninput="settingsUpdatePreview()"
-                style="width:70px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:18px;font-weight:700;padding:8px 6px;outline:none">
-              <span style="font-size:14px;color:var(--muted)">%</span>
-            </div>
-          </div>
-        </div>
-        <div id="settings-t-preview" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
-          <span class="ve-chip ve-chip-green">≥ ${great}%</span>
-          <span class="ve-chip ve-chip-orange">${poor}–${great}%</span>
-          <span class="ve-chip ve-chip-red">≤ ${poor}%</span>
-        </div>
-        <div style="display:flex;justify-content:center">
-          <button onclick="saveSettingsThresholds()" class="btn btn-primary" style="padding:8px 28px;font-size:13px">Save Thresholds</button>
-        </div>
-        <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px;text-align:center"></div>
-      </div>
-
-      <!-- ── Performance Breakdown Categories ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Performance Breakdown Categories</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5">
-          Choose up to 7 categories to show in the Performance Breakdown section on the Dashboard and Match History insight cards.
-        </div>
-        <div style="display:flex;flex-direction:column;gap:0" id="perf-cats-list">
-          ${PERF_CATS_ALL.map(c => `
-            <label style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer">
-              <span style="font-size:14px;font-weight:500;color:var(--text)">${c.label}</span>
-              <label class="form-toggle">
-                <input type="checkbox" data-cat="${c.key}" ${enabledCats.includes(c.key)?'checked':''}
-                  onchange="settingsPerfCatChange()">
-                <span class="form-toggle-slider"></span>
-              </label>
-            </label>`).join('')}
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
-          <div id="perf-cats-count" style="font-size:12px;color:var(--muted)">${enabledCats.length} of 7 enabled</div>
-          <button onclick="saveSettingsPerfCats()" class="btn btn-primary" style="padding:8px 28px;font-size:13px">Save</button>
-        </div>
-        <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:8px"></div>
-      </div>
-
-      <!-- ── Update Notifications ── -->
-      <div class="card" style="background:var(--navy);border-color:transparent">
-        <div class="card-title" style="color:#fff;margin-bottom:4px">Update Notifications</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:18px;line-height:1.5">
-          Opt in to receive occasional emails when new features are released. Always optional, always free.
-        </div>
-        ${settingsOptInSubmitted ? `
-        <div style="background:rgba(126,203,161,0.15);border:1px solid rgba(126,203,161,0.3);border-radius:8px;padding:14px 18px;font-size:13px;color:#7ecba1;font-weight:500">
-          ✓ You're on the list! We'll reach out when updates are available.
-        </div>` : `
-        <div id="settings-optin-form">
-          <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-            <input type="email" id="settings-optin-email" placeholder="your@email.com"
-              style="flex:1;min-width:0;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-family:var(--font);font-size:13px;padding:10px 14px;outline:none"
-              onfocus="this.style.borderColor='var(--green-l)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
-            <button onclick="settingsSubmitOptIn()" id="settings-optin-btn"
-              style="background:#7ecba1;color:var(--navy2);font-family:var(--font);font-size:13px;font-weight:700;padding:10px 24px;border-radius:8px;border:none;cursor:pointer;white-space:nowrap">
-              Opt In →
-            </button>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:8px">
-            <input type="checkbox" id="settings-optin-consent" style="width:14px;height:14px;accent-color:#7ecba1;cursor:pointer;flex-shrink:0;margin-top:2px">
-            <label for="settings-optin-consent" style="font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;line-height:1.5">
-              I agree to receive occasional product update emails from Match Tracker Pro. I can unsubscribe at any time.
-            </label>
-          </div>
-          <div id="settings-optin-msg" style="display:none;font-size:12px;margin-top:8px;font-weight:500"></div>
-        </div>`}
       </div>
 
     </div>
@@ -3233,11 +3278,81 @@ function renderSettings() {
 function settingsUpdatePreview() {
   const g = parseInt(document.getElementById('settings-t-great')?.value) || 55;
   const p = parseInt(document.getElementById('settings-t-poor')?.value)  || 45;
-  const prev = document.getElementById('settings-t-preview');
-  if (prev) prev.innerHTML = `
-    <span class="ve-chip ve-chip-green">≥ ${g}%</span>
-    <span class="ve-chip ve-chip-orange">${p}–${g}%</span>
-    <span class="ve-chip ve-chip-red">≤ ${p}%</span>`;
+  const greenW  = Math.max(0, 100 - g);
+  const orangeW = Math.max(0, g - p);
+  const redW    = Math.max(0, p);
+  const gb = document.getElementById('thresh-bar-green');
+  const ob = document.getElementById('thresh-bar-orange');
+  const rb = document.getElementById('thresh-bar-red');
+  if (gb) gb.style.width = greenW + '%';
+  if (ob) ob.style.width = orangeW + '%';
+  if (rb) rb.style.width = redW + '%';
+  const lg = document.getElementById('thresh-label-great');
+  const lp = document.getElementById('thresh-label-poor');
+  const lr = document.getElementById('thresh-label-range');
+  const dp = document.getElementById('thresh-desc-poor');
+  const dg = document.getElementById('thresh-desc-great');
+  if (lg) lg.textContent = g;
+  if (lp) lp.textContent = p;
+  if (lr) lr.textContent = p + '–' + g + '%';
+  if (dp) dp.textContent = p;
+  if (dg) dg.textContent = g;
+}
+
+async function settingsHandleOptIn() {
+  const toggle  = document.getElementById('settings-optin-toggle');
+  const emailEl = document.getElementById('settings-optin-email');
+  const status  = document.getElementById('settings-optin-status');
+  const msg     = document.getElementById('settings-optin-msg');
+  msg.style.display = 'none';
+
+  if (!toggle.checked) {
+    // Opted out
+    settingsOptInSubmitted = false;
+    localStorage.removeItem('settingsOptInDone');
+    localStorage.removeItem('settingsOptInEmail');
+    status.textContent = 'Opted out';
+    status.style.color = 'var(--muted)';
+    return;
+  }
+
+  // Opted in — validate and submit
+  const email = emailEl?.value.trim();
+  if (!email || !email.includes('@')) {
+    toggle.checked = false;
+    msg.style.display = 'block';
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'Please enter a valid email address before opting in.';
+    return;
+  }
+
+  toggle.disabled = true;
+  status.textContent = 'Saving…';
+  try {
+    await emailjs.send('service_x1ti1ih', 'template_daxwifc', {
+      to_email:  'tennisperformancetracker@gmail.com',
+      opt_email: email, opt_in: 'Yes',
+      opt_date:  new Date().toLocaleString(),
+    });
+    fetch('https://script.google.com/macros/s/AKfycbz3y0-IGCuhv7QLiAmc9_2m2131lT8zET6FPnem4jI32uJrfSDJAraOk1iYS1nPnDTPlA/exec', {
+      method: 'POST',
+      body: JSON.stringify({ email, optIn: true, date: new Date().toISOString() }),
+    }).catch(() => {});
+    settingsOptInSubmitted = true;
+    localStorage.setItem('settingsOptInDone', 'true');
+    localStorage.setItem('settingsOptInEmail', email);
+    status.textContent = '✓ Opted in';
+    status.style.color = 'var(--win)';
+  } catch(e) {
+    toggle.checked = false;
+    msg.style.display = 'block';
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'Something went wrong. Please try again.';
+    status.textContent = 'Not opted in';
+    status.style.color = 'var(--muted)';
+  } finally {
+    toggle.disabled = false;
+  }
 }
 
 async function saveSettingsThresholds() {
@@ -3301,41 +3416,6 @@ function saveSettingsUrl() {
   msg.textContent='✓ Saved. Reloading data…';
   setTimeout(()=>loadAll(), 800);
 }
-
-async function settingsSubmitOptIn() {
-  const email     = document.getElementById('settings-optin-email')?.value.trim();
-  const consent   = document.getElementById('settings-optin-consent')?.checked;
-  const msg       = document.getElementById('settings-optin-msg');
-  const btn       = document.getElementById('settings-optin-btn');
-  msg.style.display='none';
-  if (!email||!email.includes('@')) {
-    msg.style.display='block'; msg.style.color='#f4a0a0';
-    msg.textContent='Please enter a valid email address.'; return;
-  }
-  if (!consent) {
-    msg.style.display='block'; msg.style.color='#f4a0a0';
-    msg.textContent='Please tick the checkbox to confirm.'; return;
-  }
-  btn.textContent='Sending…'; btn.disabled=true;
-  try {
-    await emailjs.send('service_x1ti1ih','template_daxwifc',{
-      to_email:'tennisperformancetracker@gmail.com',
-      opt_email:email, opt_in:'Yes',
-      opt_date:new Date().toLocaleString(),
-    });
-    fetch('https://script.google.com/macros/s/AKfycbz3y0-IGCuhv7QLiAmc9_2m2131lT8zET6FPnem4jI32uJrfSDJAraOk1iYS1nPnDTPlA/exec',{
-      method:'POST',body:JSON.stringify({email,optIn:true,date:new Date().toISOString()}),
-    }).catch(()=>{});
-    localStorage.setItem('settingsOptInDone','true');
-    settingsOptInSubmitted = true;
-    renderSettings();
-  } catch(e) {
-    msg.style.display='block'; msg.style.color='#f4a0a0';
-    msg.textContent='Something went wrong. Please email tennisperformancetracker@gmail.com to opt in manually.';
-    btn.textContent='Opt In →'; btn.disabled=false;
-  }
-}
-
 
 function openConfirmDelete(idx) {
   pendingDeleteIdx = idx;
