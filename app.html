@@ -2057,7 +2057,7 @@ function buildHistoryResults(filtered, sortOrder) {
     if (!w && !l) return '';
     const col = wlColor(w, l);
     const p = pct(w, l);
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);gap:8px;min-width:0;">'
       + '<span style="font-size:12px;color:var(--label);flex-shrink:0">' + label + '</span>'
       + '<span style="font-size:12px;font-weight:600;color:' + col + ';white-space:nowrap">' + w + '–' + l
       + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + p + '</span></span>'
@@ -2226,6 +2226,7 @@ function buildHistoryResults(filtered, sortOrder) {
   }));
   if (enabledCats.includes('playoffs'))  card2Body += insightRow('Playoffs',      filtered.filter(function(m){ return m.playoff; }));
   if (!card2Body) card2Body = '<div style="font-size:13px;color:var(--muted);padding:8px 0">No categories enabled. Enable them in Settings.</div>';
+  card2Body = '<div style="border-bottom:1px solid var(--border)">' + card2Body + '</div>';
 
   // Table rows — wrap partner + score on mobile
   var tableRows = paged.map(function(m) {
