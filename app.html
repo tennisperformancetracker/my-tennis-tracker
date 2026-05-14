@@ -3149,58 +3149,46 @@ function renderSettings() {
       <!-- ── Performance Thresholds ── -->
       <div class="card">
         <div class="card-title" style="margin-bottom:4px">Performance Thresholds</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5">
-          Win rates at or above <strong>Great</strong> show green. At or below <strong>Poor</strong> show red. Everything in between shows orange.
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
+          Controls how win percentages are color-coded across the app.
         </div>
 
-        <!-- Visual threshold bar -->
-        <div style="margin-bottom:24px">
-          <div style="display:flex;height:28px;border-radius:8px;overflow:hidden;font-size:11px;font-weight:700">
-            <div id="thresh-bar-green" style="background:#2e7d52;display:flex;align-items:center;justify-content:center;color:#fff;transition:width 0.3s;width:${100-great}%">
-              ≥ <span id="thresh-label-great">${great}</span>%
-            </div>
-            <div id="thresh-bar-orange" style="background:#d4820a;display:flex;align-items:center;justify-content:center;color:#fff;transition:width 0.3s;width:${great-poor}%">
-              <span id="thresh-label-range">${poor}–${great}%</span>
-            </div>
-            <div id="thresh-bar-red" style="background:#c0392b;display:flex;align-items:center;justify-content:center;color:#fff;transition:width 0.3s;width:${poor}%">
-              ≤ <span id="thresh-label-poor">${poor}</span>%
-            </div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);padding:0 2px">
-            <span>0%</span><span>100%</span>
-          </div>
+        <!-- Slim preview bar -->
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:20px;font-size:12px;font-weight:600">
+          <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
+          <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
+          <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor}–${great}%</span></span>
+          <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
+          <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
+        </div>
+        <div style="height:6px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:24px">
+          <div id="thresh-bar-green"  style="background:var(--win);    transition:width 0.3s;width:${100-great}%"></div>
+          <div id="thresh-bar-orange" style="background:#d4820a;        transition:width 0.3s;width:${great-poor}%"></div>
+          <div id="thresh-bar-red"    style="background:var(--danger);  transition:width 0.3s;width:${poor}%"></div>
         </div>
 
-        <!-- Inputs -->
-        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px">
-          <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great (Green) ≥</div>
-            <div style="display:flex;align-items:center;gap:8px">
+        <!-- Compact inputs -->
+        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great Threshold</label>
+            <div style="display:flex;align-items:center;gap:6px">
               <input type="number" id="settings-t-great" value="${great}" min="1" max="99"
                 oninput="settingsUpdatePreview()"
-                style="width:72px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:20px;font-weight:700;padding:8px 4px;outline:none">
-              <span style="font-size:14px;color:var(--muted)">%</span>
-              <span style="font-size:12px;color:var(--muted)">and above = 🟢</span>
+                style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
+              <span style="font-size:12px;color:var(--muted)">%</span>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor (Red) ≤</div>
-            <div style="display:flex;align-items:center;gap:8px">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor Threshold</label>
+            <div style="display:flex;align-items:center;gap:6px">
               <input type="number" id="settings-t-poor" value="${poor}" min="1" max="99"
                 oninput="settingsUpdatePreview()"
-                style="width:72px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:20px;font-weight:700;padding:8px 4px;outline:none">
-              <span style="font-size:14px;color:var(--muted)">%</span>
-              <span style="font-size:12px;color:var(--muted)">and below = 🔴</span>
+                style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
+              <span style="font-size:12px;color:var(--muted)">%</span>
             </div>
           </div>
-        </div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
-          Between <span id="thresh-desc-poor">${poor}</span>% and <span id="thresh-desc-great">${great}</span>% = 🟠
-        </div>
-
-        <div style="display:flex;align-items:center;gap:12px">
-          <button onclick="saveSettingsThresholds()" class="btn btn-primary" style="padding:8px 28px;font-size:13px">Save Thresholds</button>
-          <div id="settings-thresh-msg" style="display:none;font-size:12px"></div>
+          <button onclick="saveSettingsThresholds()" class="btn btn-primary" style="padding:7px 22px;font-size:13px;margin-bottom:1px">Save Changes</button>
+          <div id="settings-thresh-msg" style="display:none;font-size:12px;align-self:center"></div>
         </div>
       </div>
 
