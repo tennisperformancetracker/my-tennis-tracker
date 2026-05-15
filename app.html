@@ -889,16 +889,18 @@ function promptUrl() {
 async function loadAll() {
   setContent(`<div class="spinner-wrap"><div class="spinner"></div><div>Loading your data…</div></div>`);
   try {
-    const [histRes, validRes] = await Promise.all([
+    const [histRes, validRes, settingsRes] = await Promise.all([
       fetch(`${webAppUrl}?action=getMatchHistory`),
-      fetch(webAppUrl)
+      fetch(webAppUrl),
+      fetch(`${webAppUrl}?action=getSettings`)
     ]);
-    const histData  = await histRes.json();
-    const validData = await validRes.json();
+    const histData     = await histRes.json();
+    const validData    = await validRes.json();
+    const settingsData = await settingsRes.json();
+
     if (histData.success)  allMatches   = histData.matches;
     if (validData.success) {
       validEntries = validData.validEntries;
-      // Also pre-populate veEntries so Valid Entries page doesn't need a second fetch
       if (validData.entries)    veEntries    = validData.entries;
       if (validData.thresholds) {
         veThresholds = validData.thresholds;
@@ -906,6 +908,23 @@ async function loadAll() {
         localStorage.setItem('thresholdPoor',  veThresholds.poor);
       }
     }
+
+    // Apply sheet settings — these override localStorage so all devices stay in sync
+    if (settingsData.success && settingsData.settings) {
+      const s = settingsData.settings;
+      if (s.thresholdGreat) localStorage.setItem('thresholdGreat', s.thresholdGreat);
+      if (s.thresholdPoor)  localStorage.setItem('thresholdPoor',  s.thresholdPoor);
+      if (s.perfCats) {
+        const cats = s.perfCats.split(',').map(c => c.trim()).filter(Boolean);
+        if (cats.length > 0) localStorage.setItem('perfCats', JSON.stringify(cats));
+      }
+      if (s.optInEmail)  localStorage.setItem('settingsOptInEmail', s.optInEmail);
+      if (s.optInStatus === 'true') {
+        localStorage.setItem('settingsOptInDone', 'true');
+        settingsOptInSubmitted = true;
+      }
+    }
+
     showPage('dashboard');
   } catch(e) {
     setContent(`<div class="spinner-wrap" style="color:var(--danger)">Failed to load data. <button class="btn btn-ghost" onclick="loadAll()" style="margin-top:12px">Retry</button></div>`);
@@ -3365,58 +3384,62 @@ function settingsPerfCatChange() {
 async function saveAllSettings() {
   const btn = document.querySelector('#topbar-right .btn-primary') || document.querySelector('#mobile-filters .btn-primary');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
-  const msgEl = document.getElementById('settings-save-msg');
   const errors = [];
 
-  // 1. Thresholds
-  const great = parseInt(document.getElementById('settings-t-great')?.value);
-  const poor  = parseInt(document.getElementById('settings-t-poor')?.value);
-  if (!isNaN(great) && !isNaN(poor)) {
-    if (great <= poor) {
-      errors.push('Great threshold must be higher than Poor.');
-    } else {
-      try {
-        const res  = await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'updateThresholds',great,poor})});
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error);
-        localStorage.setItem('thresholdGreat', great);
-        localStorage.setItem('thresholdPoor',  poor);
-      } catch(e) { errors.push('Thresholds: ' + e.message); }
-    }
+  const great   = parseInt(document.getElementById('settings-t-great')?.value);
+  const poor    = parseInt(document.getElementById('settings-t-poor')?.value);
+  const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
+  const urlVal  = document.getElementById('settings-url')?.value.trim();
+  const optEmail = document.getElementById('settings-optin-email')?.value.trim() || localStorage.getItem('settingsOptInEmail') || '';
+  const optIn   = localStorage.getItem('settingsOptInDone') === 'true';
+
+  if (!isNaN(great) && !isNaN(poor) && great <= poor) errors.push('Great threshold must be higher than Poor.');
+  if (checked.length === 0) errors.push('Please enable at least one Performance Breakdown category.');
+  if (urlVal && !urlVal.startsWith('https://')) errors.push('Google Sheet URL must start with https://');
+
+  if (errors.length > 0) {
+    document.querySelectorAll('#topbar-right .btn-primary, #mobile-filters .btn-primary').forEach(b => { b.textContent = 'Save Settings'; b.disabled = false; });
+    showToast(errors[0], true);
+    return;
   }
 
-  // 2. Perf cats
-  const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
-  if (checked.length === 0) {
-    errors.push('Please enable at least one Performance Breakdown category.');
-  } else {
+  const settingsToSave = {};
+
+  if (!isNaN(great) && !isNaN(poor)) {
+    settingsToSave.thresholdGreat = String(great);
+    settingsToSave.thresholdPoor  = String(poor);
+    localStorage.setItem('thresholdGreat', great);
+    localStorage.setItem('thresholdPoor',  poor);
+    try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'updateThresholds', great, poor})}); } catch(e) {}
+  }
+
+  if (checked.length > 0) {
+    settingsToSave.perfCats = checked.join(',');
     savePerfCats(checked);
   }
 
-  // 3. URL
-  const urlVal = document.getElementById('settings-url')?.value.trim();
+  if (optEmail) settingsToSave.optInEmail = optEmail;
+  settingsToSave.optInStatus = optIn ? 'true' : 'false';
+
   if (urlVal && urlVal !== webAppUrl) {
-    if (!urlVal.startsWith('https://')) {
-      errors.push('Google Sheet URL must start with https://');
-    } else {
-      webAppUrl = urlVal;
-      localStorage.setItem('webAppUrl', urlVal);
-      updateUrlDisplay();
-    }
+    webAppUrl = urlVal;
+    localStorage.setItem('webAppUrl', urlVal);
+    updateUrlDisplay();
   }
+
+  // Sync to Google Sheet for cross-device consistency
+  try {
+    await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})});
+  } catch(e) { /* silent — localStorage already saved */ }
 
   document.querySelectorAll('#topbar-right .btn-primary, #mobile-filters .btn-primary').forEach(b => { b.textContent = 'Save Settings'; b.disabled = false; });
+  showToast('✓ Settings saved!');
 
-  if (errors.length > 0) {
-    showToast(errors[0], true);
-  } else {
-    showToast('Settings saved!');
-    // Reload data if URL changed
-    if (urlVal && urlVal !== (localStorage.getItem('webAppUrl') || '') && urlVal.startsWith('https://')) {
-      setTimeout(() => loadAll(), 600);
-    }
+  if (urlVal && urlVal !== (localStorage.getItem('webAppUrl') || '') && urlVal.startsWith('https://')) {
+    setTimeout(() => loadAll(), 600);
   }
 }
+
 
 
 function openConfirmDelete(idx) {
