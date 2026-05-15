@@ -3324,9 +3324,17 @@ async function settingsHandleOptIn() {
     // Opted out
     settingsOptInSubmitted = false;
     localStorage.removeItem('settingsOptInDone');
+    const optedOutEmail = localStorage.getItem('settingsOptInEmail') || '';
     localStorage.removeItem('settingsOptInEmail');
     status.textContent = 'Opted out';
     status.style.color = 'var(--muted)';
+    // Notify the sheet
+    if (optedOutEmail) {
+      fetch('https://script.google.com/macros/s/AKfycbz3y0-IGCuhv7QLiAmc9_2m2131lT8zET6FPnem4jI32uJrfSDJAraOk1iYS1nPnDTPlA/exec', {
+        method: 'POST',
+        body: JSON.stringify({ email: optedOutEmail, optIn: false, date: new Date().toISOString() }),
+      }).catch(() => {});
+    }
     return;
   }
 
