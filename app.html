@@ -3126,17 +3126,16 @@ function savePerfCats(keys) { localStorage.setItem('perfCats', JSON.stringify(ke
 let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true';
 
 function renderSettings() {
-  document.getElementById('mobile-filters').innerHTML = '';
   const content = document.getElementById('content');
   const enabledCats = getPerfCats();
   const great = parseInt(localStorage.getItem('thresholdGreat') || '55');
   const poor  = parseInt(localStorage.getItem('thresholdPoor')  || '45');
   const currentUrl = webAppUrl || '';
 
-  // Save button in topbar
-  document.getElementById('topbar-right').innerHTML = `
-    <button onclick="saveAllSettings()" class="btn btn-primary" style="padding:8px 24px;font-size:13px">Save Settings</button>
-  `;
+  // Save button — topbar on desktop, mobile-filters on mobile
+  const saveBtn = '<button onclick="saveAllSettings()" class="btn btn-primary" style="padding:8px 24px;font-size:13px">Save Settings</button>';
+  document.getElementById('topbar-right').innerHTML = saveBtn;
+  document.getElementById('mobile-filters').innerHTML = '<div style="width:100%;display:flex;justify-content:flex-end;padding:4px 0">' + saveBtn + '</div>';
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
   const col2 = PERF_CATS_ALL.slice(7);
@@ -3364,7 +3363,7 @@ function settingsPerfCatChange() {
 }
 
 async function saveAllSettings() {
-  const btn = document.querySelector('#topbar-right .btn-primary');
+  const btn = document.querySelector('#topbar-right .btn-primary') || document.querySelector('#mobile-filters .btn-primary');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const msgEl = document.getElementById('settings-save-msg');
   const errors = [];
@@ -3389,7 +3388,7 @@ async function saveAllSettings() {
   // 2. Perf cats
   const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
   if (checked.length === 0) {
-    errors.push('Please enable at leastChoose which categories appear in the Performance Breakdown section. Max 7. one Performance Breakdown category.');
+    errors.push('Please enable at least one Performance Breakdown category.');
   } else {
     savePerfCats(checked);
   }
@@ -3406,7 +3405,7 @@ async function saveAllSettings() {
     }
   }
 
-  if (btn) { btn.textContent = 'Save Settings'; btn.disabled = false; }
+  document.querySelectorAll('#topbar-right .btn-primary, #mobile-filters .btn-primary').forEach(b => { b.textContent = 'Save Settings'; b.disabled = false; });
 
   if (errors.length > 0) {
     showToast(errors[0], true);
