@@ -750,8 +750,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
       </label>
     </div>
     <div class="url-display" id="url-display" style="display:none"></div>
-    <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:10px;line-height:1.4">
-      © 2026 Match Tracker Pro.<br>All rights reserved.
+    <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:10px;line-height:1.6">
+      © 2026 Match Tracker Pro. All rights reserved.<br>
+      <a href="MTP_Legal_Pages.html" target="_blank" style="color:rgba(255,255,255,0.3);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.15)" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Privacy &amp; Terms</a>
     </div>
   </div>
 </aside>
@@ -3330,7 +3331,7 @@ async function settingsHandleOptIn() {
     status.style.color = 'var(--muted)';
     // Notify the sheet
     if (optedOutEmail) {
-      fetch('https://script.google.com/macros/s/AKfycbz3y0-IGCuhv7QLiAmc9_2m2131lT8zET6FPnem4jI32uJrfSDJAraOk1iYS1nPnDTPlA/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbzHCS6BP3zA1EcYt_gi6SeXW2nK905hN0TFFoRagicCCu7N5SQlJNJTaLfp_dvfWBLlng/exec', {
         method: 'POST',
         body: JSON.stringify({ email: optedOutEmail, optIn: false, date: new Date().toISOString() }),
       }).catch(() => {});
@@ -3356,7 +3357,7 @@ async function settingsHandleOptIn() {
       opt_email: email, opt_in: 'Yes',
       opt_date:  new Date().toLocaleString(),
     });
-    fetch('https://script.google.com/macros/s/AKfycbz3y0-IGCuhv7QLiAmc9_2m2131lT8zET6FPnem4jI32uJrfSDJAraOk1iYS1nPnDTPlA/exec', {
+    fetch('https://script.google.com/macros/s/AKfycbzHCS6BP3zA1EcYt_gi6SeXW2nK905hN0TFFoRagicCCu7N5SQlJNJTaLfp_dvfWBLlng/exec', {
       method: 'POST',
       body: JSON.stringify({ email, optIn: true, date: new Date().toISOString() }),
     }).catch(() => {});
