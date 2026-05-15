@@ -3148,7 +3148,7 @@ function getPerfCats() {
     const saved = JSON.parse(localStorage.getItem('perfCats') || 'null');
     if (saved && Array.isArray(saved)) return saved;
   } catch(e) {}
-  return PERF_CATS_ALL.map(c => c.key);
+  return ['home','away','twoset','threeset','tiebreaks','close'];
 }
 function savePerfCats(keys) { localStorage.setItem('perfCats', JSON.stringify(keys)); }
 
