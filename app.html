@@ -44,20 +44,30 @@ body.dark {
   --border:   #2e3f54;
   --accent:   #1e2d3d;
   --accent2:  #6385a2;
-  --win-bg:   #e6f4ea;
-  --loss-bg:  #fce8e6;
-}
-body.dark .result-pill.W { background: transparent; }
-body.dark .result-pill.L { background: transparent; }
-body.dark .hist-date { color: var(--label); }
-body.dark .hist-opponent { color: var(--label); }
-body.dark .history-table th { color: var(--label); font-weight: 700; }
+  --win-bg:   #1a3d2a;
+  --loss-bg:  #3d1a1a;
   --text:     #dde6f0;
   --muted:    #7a97b0;
   --label:    #9ab0c4;
   --shadow:   0 1px 4px rgba(0,0,0,0.3);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
+body.dark .result-pill.W { background: var(--win-bg); }
+body.dark .result-pill.L { background: var(--loss-bg); }
+body.dark .hist-date { color: var(--label); }
+body.dark .hist-opponent { color: var(--label); }
+body.dark .history-table th { color: var(--label); font-weight: 700; }
+body.dark .topbar-title { color: #dde6f0; }
+body.dark .card-title { color: #9ab0c4; }
+body.dark .section-title { color: #9ab0c4; }
+body.dark .topbar-select { color: #dde6f0; background-color: #212f42; border-color: #2e3f54; }
+body.dark .topbar-select option { background: #1a2535; color: #dde6f0; }
+body.dark .filter-select { color: #dde6f0; background-color: #212f42; border-color: #2e3f54; }
+body.dark .filter-select option { background: #1a2535; color: #dde6f0; }
+body.dark select { color: #dde6f0; background-color: #212f42; }
+body.dark select option { background: #1a2535; color: #dde6f0; }
+body.dark input::placeholder { color: #5a7a96; }
+body.dark textarea::placeholder { color: #5a7a96; }
+body.dark .mobile-filters select { color: #dde6f0; background-color: #212f42; }
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
@@ -729,15 +739,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     </div>
   </nav>
   <div style="padding:0 12px 8px">
-    <div onclick="showPage('settings')" id="nav-settings"
-      style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s"
-      onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''">
-      <span style="font-size:16px">⚙️</span> Settings
+    <div onclick="showPage('settings')" id="nav-settings" class="nav-item"
+      style="margin:0 0 2px;border-radius:0">
+      <span class="nav-icon" style="font-size:16px">⚙️</span> Settings
     </div>
-    <div onclick="window.open('user_guide.html','_blank')"
-      style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s"
-      onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''">
-      <span style="font-size:16px">📖</span> User Guide
+    <div onclick="window.open('user_guide.html','_blank')" class="nav-item"
+      style="margin:0 0 2px;border-radius:0">
+      <span class="nav-icon" style="font-size:16px">📖</span> User Guide
     </div>
     
   </div>
@@ -1003,8 +1011,9 @@ function showPage(page) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
+  if (page === 'settings') document.getElementById('nav-settings')?.classList.add('active');
   const titles = {
-    dashboard:    'Performance Dashboard',
+    dashboard:    'Dashboard',
     settings:     'Settings',
     history:      'Match History',
     entry:        'Match Entry',
@@ -2969,7 +2978,7 @@ function veUpdatePreview() {
   const prev = document.getElementById('ve-t-preview');
   if (prev) prev.innerHTML = `
     <span class="ve-chip ve-chip-green">≥ ${g}%</span>
-    <span class="ve-chip ve-chip-orange">${p}–${g}%</span>
+    <span class="ve-chip ve-chip-orange">${p + 1}–${g - 1}%</span>
     <span class="ve-chip ve-chip-red">≤ ${p}%</span>`;
 }
 
@@ -3187,7 +3196,7 @@ function renderSettings() {
           <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
             <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
             <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
-            <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor}–${great}%</span></span>
+            <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor + 1}–${great - 1}%</span></span>
             <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
             <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
           </div>
@@ -3309,7 +3318,7 @@ function settingsUpdatePreview() {
   const dg = document.getElementById('thresh-desc-great');
   if (lg) lg.textContent = g;
   if (lp) lp.textContent = p;
-  if (lr) lr.textContent = p + '–' + g + '%';
+  if (lr) lr.textContent = (p + 1) + '–' + (g - 1) + '%';
   if (dp) dp.textContent = p;
   if (dg) dg.textContent = g;
 }
@@ -3549,7 +3558,7 @@ function renderEntry() {
         <div class="entry-pair">
           <div class="field">
             <div class="field-label">Date</div>
-            <input type="date" id="e-date" style="color-scheme:light">
+            <input type="date" id="e-date" style="color-scheme:light" onchange="this.blur()">
             <div class="field-error" id="err-date">Required</div>
           </div>
           <div class="field">
@@ -3580,7 +3589,7 @@ function renderEntry() {
           <div id="e-opp2-field" class="cond cond-hidden">
             <div class="field">
               <div class="field-label">Opponent 2 <span class="required-dot"></span></div>
-              <input type="text" id="e-opp2" placeholder="First Last">
+              <input type="text" id="e-opp2" placeholder="First Last" tabindex="-1">
               <div class="field-error" id="err-opp2">Opponent 2 is required for doubles</div>
             </div>
           </div>
@@ -3590,7 +3599,7 @@ function renderEntry() {
         <div id="e-doubles-fields" class="cond cond-hidden" style="margin-top:6px">
           <div class="field">
             <div class="field-label">Partner <span class="required-dot"></span></div>
-            <select id="e-partner" onchange="onEntryNewSelect('partner')">
+            <select id="e-partner" tabindex="-1" onchange="onEntryNewSelect('partner')">
               <option value="">— Select —</option>
               ${sortedPartners(validEntries.partner).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
               <option value="__new__">+ Add new…</option>
@@ -3599,7 +3608,7 @@ function renderEntry() {
           </div>
           <div class="field hidden" id="field-partner-new">
             <div class="field-label">New Partner</div>
-            <input type="text" id="e-partner-new" placeholder="First Last">
+            <input type="text" id="e-partner-new" placeholder="First Last" tabindex="-1">
           </div>
         </div>
 
@@ -3787,6 +3796,9 @@ function onEntryTypeChange() {
       dot.remove();
     }
   });
+  // Tab order: disable tabbing into hidden doubles fields
+  const doublesInputs = document.querySelectorAll('#e-doubles-fields input, #e-doubles-fields select, #e-opp2-field input, #e-opp2-field select');
+  doublesInputs.forEach(el => { el.tabIndex = isDb ? 0 : -1; });
 }
 function onEntryPlayoffChange() {
   const checked = document.getElementById('e-playoff')?.checked;
