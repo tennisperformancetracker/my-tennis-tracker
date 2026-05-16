@@ -4074,13 +4074,13 @@ async function submitEntry() {
 
   try {
     if (Object.keys(newEntries).length > 0) {
-      await fetch(webAppUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'addValidEntries',newEntries}) });
+      await fetch(webAppUrl, { method:'POST', body: JSON.stringify({action:'addValidEntries',newEntries}) });
       Object.entries(newEntries).forEach(([k,v]) => {
         if (!validEntries[k]) validEntries[k]=[];
         validEntries[k].push(v);
       });
     }
-    const res = await fetch(webAppUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({match}) });
+    const res = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({match}) });
     const data = await res.json();
     if (data.success) {
       hideSaving();
