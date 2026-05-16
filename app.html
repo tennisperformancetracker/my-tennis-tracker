@@ -3741,10 +3741,9 @@ function renderEntry() {
         <div class="entry-pair" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Home / Away</div>
-            <select id="e-homeaway" onchange="onEntryNewSelect('homeaway')">
+            <select id="e-homeaway">
               <option value="">— Select —</option>
               ${(validEntries.homeaway||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-              <option value="__new__">+ Add new…</option>
             </select>
           </div>
           <div class="field">
@@ -3779,10 +3778,9 @@ function renderEntry() {
         <div class="cond cond-hidden" id="e-playoff-row" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Playoff Round</div>
-            <select id="e-playoffround" onchange="onEntryNewSelect('playoffround')">
+            <select id="e-playoffround">
               <option value="">— Select —</option>
               ${(validEntries.playoffround||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-              <option value="__new__">+ Add new…</option>
             </select>
           </div>
           
