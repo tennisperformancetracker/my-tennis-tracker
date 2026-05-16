@@ -685,8 +685,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   .partners-panel { width: 50%; }
 
   /* History insight cards — stack on mobile */
-  .hist-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; }
-  .hist-insight-card { width: 100% !important; min-width: 0 !important; overflow: hidden; }
+  .hist-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; box-sizing: border-box !important; }
+  .hist-insight-card { width: 100% !important; min-width: 0 !important; overflow: hidden; box-sizing: border-box !important; }
   .hist-search-row input { flex: 1 1 120px !important; min-width: 0 !important; }
 
   /* Valid entries grid */
@@ -2197,7 +2197,7 @@ function buildHistoryResults(filtered, sortOrder) {
     var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
       + (isMob ? 'background:var(--surface2);cursor:pointer;user-select:none;' : '');
     var hdrOnclick = isMob ? ' onclick="toggleHistCard(\'' + id + '\')"' : '';
-    return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);width:100%;min-width:0;">'
+    return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
       + '<div' + hdrOnclick + ' style="' + hdrStyle + '">'
       + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">'
       + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
@@ -2302,7 +2302,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
   // Desktop: cards grid wrapped in a relative container so the pill can sit on the bottom edge
   // Mobile: no pill — cards toggle individually via cardHtml headers
-  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;">'
+  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
     + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
     + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
     + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header)
