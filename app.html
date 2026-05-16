@@ -3903,6 +3903,7 @@ async function onEntryNewSelect(key) {
   sel.value = value;
   const newField = document.getElementById('field-' + key + '-new');
   if (newField) newField.classList.add('hidden');
+  if (key === 'type') onEntryTypeChange();
 }
 function onEntryScoreChange() {
   const s1w = document.getElementById('e-s1w')?.value;
