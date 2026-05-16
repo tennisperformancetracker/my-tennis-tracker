@@ -2861,18 +2861,19 @@ function renderVEContent() {
     return vals;
   }
 
-  function buildItem(field, v, i) {
-    return `<li class="ve-item" id="ve-item-${field}-${i}">
+function buildItem(field, v, i, firstInExtra) {
+    return `<li class="ve-item${firstInExtra ? ' ve-item-divider' : ''}" id="ve-item-${field}-${i}" data-field="${field}" data-value="${escHtml(v)}">
       <span class="ve-value-text">${escHtml(v)}</span>
-      <button class="ve-delete-btn" onclick="veTriggerDelete('${field}','${escHtml(v)}')">&#x2715;</button>
+      <button class="ve-delete-btn" onclick="veTriggerDeleteEl(this)">&#x2715;</button>
     </li>`;
   }
 
   const cardsHtml = VE_FIELD_ORDER.map(field => {
     const vals = sortVals(field, veEntries[field] || []);
     const extra = vals.length > SHOW;
-    const visible = vals.slice(0, SHOW).map((v,i) => buildItem(field,v,i)).join('');
-    const hidden  = vals.slice(SHOW).map((v,i) => buildItem(field,v,i+SHOW)).join('');
+    const visible = vals.slice(0, SHOW).map((v,i) => buildItem(field,v,i,false)).join('');
+    const hidden  = vals.slice(SHOW).map((v,i) => buildItem(field,v,i+SHOW,i===0)).join('');  
+
     // Always reserve the same space for the expand button row so Add aligns across cards
     const expandRow = extra
       ? `<ul class="ve-list" id="ve-list-${field}-extra" style="display:none;margin-top:0">${hidden}</ul>
@@ -2916,6 +2917,7 @@ function renderVEContent() {
       .ve-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
       .ve-item:last-child{border-bottom:none}
       .ve-value-text{flex:1;font-size:13px;font-weight:500;color:var(--text);padding:3px 2px}
+      .ve-item-divider{border-top:2px solid var(--border) !important;margin-top:4px;padding-top:9px}
       .ve-delete-btn{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;flex-shrink:0}
       .ve-delete-btn:hover{color:var(--danger);background:var(--loss-bg)}
       .ve-add-row{display:flex;gap:8px;width:100%;box-sizing:border-box}
@@ -3000,8 +3002,12 @@ async function veSaveThresholds() {
 
 async function veAddEntry(field) {
   const input = document.getElementById('ve-add-'+field);
-  const value = input.value.trim();
+  let value = input.value.trim();
   if (!value) { showToast('Please enter a value first', true); return; }
+  if (field === 'type' && !value.toLowerCase().includes('doubles')) {
+    const isDoubles = confirm(`Is "${value}" a doubles match type?\n\nClick OK to append "Doubles" → "${value} Doubles"\nClick Cancel to save as-is.`);
+    if (isDoubles) value = value + ' Doubles';
+  }
   if ((veEntries[field]||[]).includes(value)) { showToast('That value already exists', true); return; }
   showSaving('Adding…');
   try {
@@ -3082,6 +3088,11 @@ function veTriggerDelete(field, value) {
   document.getElementById('ve-confirm-delete-body').innerHTML =
     `Delete <strong>"${escHtml(value)}"</strong> from ${VE_FIELD_LABELS[field]}?<br><br>Existing matches using this value won't be affected.`;
   document.getElementById('ve-confirm-delete').classList.add('visible');
+}
+
+function veTriggerDeleteEl(btn) {
+  const li = btn.closest('li');
+  veTriggerDelete(li.dataset.field, li.dataset.value);
 }
 
 async function veConfirmDelete() {
@@ -3819,13 +3830,12 @@ function onEntryNewSelect(key) {
   if (newField) newField.classList.toggle('hidden', val !== '__new__');
 }
 function onEntryScoreChange() {
-  const retired = document.getElementById('e-opp-ret')?.checked || document.getElementById('e-we-ret')?.checked;
   const s1w = document.getElementById('e-s1w')?.value;
   const s1l = document.getElementById('e-s1l')?.value;
   const s2w = document.getElementById('e-s2w')?.value;
   const s2l = document.getElementById('e-s2l')?.value;
   let needS3 = false;
-  if (!retired && s1w!==''&&s1w!==undefined && s1l!==''&&s1l!==undefined &&
+  if (s1w!==''&&s1w!==undefined && s1l!==''&&s1l!==undefined &&
       s2w!==''&&s2w!==undefined && s2l!==''&&s2l!==undefined) {
     const nS1w=parseInt(s1w), nS1l=parseInt(s1l), nS2w=parseInt(s2w), nS2l=parseInt(s2l);
     if (!isNaN(nS1w)&&!isNaN(nS1l)&&!isNaN(nS2w)&&!isNaN(nS2l)) {
