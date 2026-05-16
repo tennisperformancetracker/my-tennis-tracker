@@ -2314,7 +2314,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + 'style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;'
     + 'font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
     + '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
-    + 'Show less</button></div>';
+    + 'Less</button></div>';
 
   return (isMob ? '<div style="margin-bottom:12px">' + cardsHtml + '</div>'
                 : '<div style="margin-bottom:6px">' + cardsHtml + desktopToggle + '</div>')
@@ -3548,10 +3548,6 @@ function renderEntry() {
       <div class="field-label">${label}${req?'<span class="required-dot"></span>':''}</div>
       <select id="e-${id}" ${onchange}><option value="">— Select —</option>${opts}<option value="__new__">+ Add new…</option></select>
       <div class="field-error" id="err-${id}">Required</div>
-    </div>
-    <div class="field hidden" id="field-${id}-new">
-      <div class="field-label">New ${label}</div>
-      <input type="text" id="e-${id}-new" placeholder="Enter ${label.toLowerCase()}">
     </div>`;
   }
   function inp(id, label, type='text', req=false, placeholder='') {
@@ -3605,13 +3601,7 @@ function renderEntry() {
             <div class="field-error" id="err-type">Required</div>
           </div>
         </div>
-        <div class="field hidden" id="field-type-new">
-          <div class="field-label">New Type Name</div>
-          <input type="text" id="e-type-new" placeholder="Enter type name">
-          <div style="margin-top:5px;font-size:11px;color:var(--muted);line-height:1.4;font-style:italic">
-            💡 For optimal results, include the word "doubles" for any doubles type — e.g. Men's Doubles, Mixed Doubles.
-          </div>
-        </div>
+        
 
         <!-- Opponents -->
         <div style="margin-top:10px">
@@ -3640,10 +3630,7 @@ function renderEntry() {
             </select>
             <div class="field-error" id="err-partner">Partner is required for doubles</div>
           </div>
-          <div class="field hidden" id="field-partner-new">
-            <div class="field-label">New Partner</div>
-            <input type="text" id="e-partner-new" placeholder="First Last" tabindex="-1">
-          </div>
+          
         </div>
 
         <!-- Scores -->
@@ -3709,8 +3696,8 @@ function renderEntry() {
             </select>
           </div>
         </div>
-        <div class="field hidden" id="field-season-new"><div class="field-label">New Season</div><input type="text" id="e-season-new" placeholder="Enter season"></div>
-        <div class="field hidden" id="field-league-new"><div class="field-label">New League</div><input type="text" id="e-league-new" placeholder="Enter league"></div>
+        
+        
 
         <!-- Level + Line -->
         <div class="entry-pair" style="margin-top:4px">
@@ -3731,8 +3718,8 @@ function renderEntry() {
             </select>
           </div>
         </div>
-        <div class="field hidden" id="field-level-new"><div class="field-label">New Level</div><input type="text" id="e-level-new" placeholder="Enter level"></div>
-        <div class="field hidden" id="field-line-new"><div class="field-label">New Line</div><input type="text" id="e-line-new" placeholder="Enter line"></div>
+        
+        
 
         <!-- Home/Away + Surface -->
         <div class="entry-pair" style="margin-top:4px">
@@ -3753,8 +3740,8 @@ function renderEntry() {
             </select>
           </div>
         </div>
-        <div class="field hidden" id="field-homeaway-new"><div class="field-label">New Home/Away</div><input type="text" id="e-homeaway-new" placeholder="Enter value"></div>
-        <div class="field hidden" id="field-surface-new"><div class="field-label">New Surface</div><input type="text" id="e-surface-new" placeholder="Enter surface"></div>
+        
+        
 
         <!-- Time + Location -->
         <div class="entry-pair" style="margin-top:4px">
@@ -3782,7 +3769,7 @@ function renderEntry() {
               <option value="__new__">+ Add new…</option>
             </select>
           </div>
-          <div class="field hidden" id="field-playoffround-new"><div class="field-label">New Round</div><input type="text" id="e-playoffround-new" placeholder="Enter round"></div>
+          
         </div>
 
         <!-- Notes -->
@@ -3854,10 +3841,68 @@ function scoreAutoAdvance(currentId, nextId) {
   if (next) { next.focus(); next.select(); }
 }
 
-function onEntryNewSelect(key) {
-  const val = document.getElementById('e-'+key)?.value;
-  const newField = document.getElementById('field-'+key+'-new');
-  if (newField) newField.classList.toggle('hidden', val !== '__new__');
+function showEntryNewModal(field) {
+  const labels = {
+    type: 'Match Type', season: 'Season', league: 'League', level: 'Level',
+    line: 'Line', homeaway: 'Home / Away', surface: 'Surface', time: 'Time',
+    playoffround: 'Playoff Round', partner: 'Partner', opponent1: 'Opponent', opponent2: 'Opponent 2'
+  };
+  const label = labels[field] || field;
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay visible';
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <div class="confirm-title" style="font-size:16px;color:var(--text)">Add New ${label}</div>
+        <div class="confirm-body" style="padding:8px 0">
+          <input type="text" id="entry-new-modal-input" placeholder="${label}…"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
+            color:var(--text);font-family:var(--font);font-size:14px;padding:9px 12px;outline:none;box-sizing:border-box">
+        </div>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" id="entry-new-modal-cancel">Cancel</button>
+          <button class="btn btn-primary" id="entry-new-modal-ok">OK</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#entry-new-modal-input');
+    setTimeout(() => input.focus(), 50);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') overlay.querySelector('#entry-new-modal-ok').click(); });
+    overlay.querySelector('#entry-new-modal-cancel').onclick = () => {
+      document.body.removeChild(overlay);
+      const sel = document.getElementById('e-' + field);
+      if (sel) sel.value = '';
+      resolve(null);
+    };
+    overlay.querySelector('#entry-new-modal-ok').onclick = async () => {
+      let value = input.value.trim();
+      if (!value) { input.focus(); return; }
+      document.body.removeChild(overlay);
+      if (field === 'type' && !value.toLowerCase().includes('doubles')) {
+        const isDoubles = await showDoublesPrompt(value);
+        if (isDoubles) value = value + ' Doubles';
+      }
+      resolve(value);
+    };
+  });
+}
+
+async function onEntryNewSelect(key) {
+  const sel = document.getElementById('e-' + key);
+  if (!sel || sel.value !== '__new__') return;
+  const value = await showEntryNewModal(key);
+  if (!value) return;
+  const existing = Array.from(sel.options).find(o => o.value === value);
+  if (!existing) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    const newOpt = Array.from(sel.options).find(o => o.value === '__new__');
+    sel.insertBefore(opt, newOpt);
+  }
+  sel.value = value;
+  const newField = document.getElementById('field-' + key + '-new');
+  if (newField) newField.classList.add('hidden');
 }
 function onEntryScoreChange() {
   const s1w = document.getElementById('e-s1w')?.value;
