@@ -2860,6 +2860,22 @@ function renderVEContent() {
     if (field === 'league') {
       return [...vals].sort((a, b) => a.localeCompare(b));
     }
+    if (field === 'playoffround') {
+      const stageOrder = ['qf','quarterfinal','quarter final','sf','semifinal','semi final','f','final'];
+      return [...vals].sort((a, b) => {
+        const na = parseFloat(a), nb = parseFloat(b);
+        const aIsNum = !isNaN(na), bIsNum = !isNaN(nb);
+        if (aIsNum && bIsNum) return na - nb;
+        if (aIsNum) return -1;
+        if (bIsNum) return 1;
+        const ai = stageOrder.indexOf(a.trim().toLowerCase());
+        const bi = stageOrder.indexOf(b.trim().toLowerCase());
+        const ar = ai === -1 ? 999 : ai;
+        const br = bi === -1 ? 999 : bi;
+        if (ar !== br) return ar - br;
+        return a.localeCompare(b);
+      });
+    }
     return vals;
   }
 
@@ -4058,13 +4074,13 @@ async function submitEntry() {
 
   try {
     if (Object.keys(newEntries).length > 0) {
-      await fetch(webAppUrl, { method:'POST', body: JSON.stringify({action:'addValidEntries',newEntries}) });
+      await fetch(webAppUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'addValidEntries',newEntries}) });
       Object.entries(newEntries).forEach(([k,v]) => {
         if (!validEntries[k]) validEntries[k]=[];
         validEntries[k].push(v);
       });
     }
-    const res = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({match}) });
+    const res = await fetch(webAppUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({match}) });
     const data = await res.json();
     if (data.success) {
       hideSaving();
