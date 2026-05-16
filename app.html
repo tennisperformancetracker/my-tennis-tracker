@@ -3886,7 +3886,7 @@ function showEntryNewModal(field) {
     };
   });
 }
-
+const entryNewValues = {};
 async function onEntryNewSelect(key) {
   const sel = document.getElementById('e-' + key);
   if (!sel || sel.value !== '__new__') return;
@@ -3901,6 +3901,7 @@ async function onEntryNewSelect(key) {
     sel.insertBefore(opt, newOpt);
   }
   sel.value = value;
+  entryNewValues[key] = value;
   const newField = document.getElementById('field-' + key + '-new');
   if (newField) newField.classList.add('hidden');
   if (key === 'type') onEntryTypeChange();
@@ -3943,7 +3944,7 @@ function onEntryScoreChange() {
 async function submitEntry() {
   const get = id => document.getElementById('e-'+id)?.value || '';
   const getCheck = id => document.getElementById('e-'+id)?.checked || false;
-  const resolve = key => { const v=get(key); return v==='__new__' ? (get(key+'-new')||'') : v; };
+  const resolve = key => { const v=get(key); return v==='__new__' ? '' : v; };
 
   const type = resolve('type');
   const isDb = type.toLowerCase().includes('doubles');
@@ -4036,7 +4037,7 @@ async function submitEntry() {
   // Detect new entries
   const newEntries = {};
   ['season','league','level','type','line','homeaway','surface','time','playoffround','partner'].forEach(key => {
-    if (get(key)==='__new__') { const v=get(key+'-new').trim(); if(v) newEntries[key]=v; }
+    if (entryNewValues[key]) newEntries[key] = entryNewValues[key];
   });
 
   const match = {
@@ -4155,6 +4156,7 @@ function resetEntryForm() {
   const dateEl = document.getElementById('e-date');
   if (dateEl) dateEl.value = `${y}-${mo}-${d}`;
   document.getElementById('entry-status') && (document.getElementById('entry-status').textContent = '');
+  Object.keys(entryNewValues).forEach(k => delete entryNewValues[k]);
 }
 
 // ═══════════════════════════════════════════════════════════
