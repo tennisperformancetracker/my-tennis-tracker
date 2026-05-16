@@ -898,14 +898,12 @@ function promptUrl() {
 async function loadAll() {
   setContent(`<div class="spinner-wrap"><div class="spinner"></div><div>Loading your data…</div></div>`);
   try {
-    const [histRes, validRes, settingsRes] = await Promise.all([
+    const [histRes, validRes] = await Promise.all([
       fetch(`${webAppUrl}?action=getMatchHistory`),
-      fetch(webAppUrl),
-      fetch(`${webAppUrl}?action=getSettings`)
+      fetch(webAppUrl)
     ]);
-    const histData     = await histRes.json();
-    const validData    = await validRes.json();
-    const settingsData = await settingsRes.json();
+    const histData  = await histRes.json();
+    const validData = await validRes.json();
 
     if (histData.success)  allMatches   = histData.matches;
     if (validData.success) {
@@ -918,21 +916,25 @@ async function loadAll() {
       }
     }
 
-    // Apply sheet settings — these override localStorage so all devices stay in sync
-    if (settingsData.success && settingsData.settings) {
-      const s = settingsData.settings;
-      if (s.thresholdGreat) localStorage.setItem('thresholdGreat', s.thresholdGreat);
-      if (s.thresholdPoor)  localStorage.setItem('thresholdPoor',  s.thresholdPoor);
-      if (s.perfCats) {
-        const cats = s.perfCats.split(',').map(c => c.trim()).filter(Boolean);
-        if (cats.length > 0) localStorage.setItem('perfCats', JSON.stringify(cats));
+    // Apply sheet settings — non-fatal, fails silently if unavailable
+    try {
+      const settingsRes  = await fetch(`${webAppUrl}?action=getSettings`);
+      const settingsData = await settingsRes.json();
+      if (settingsData.success && settingsData.settings) {
+        const s = settingsData.settings;
+        if (s.thresholdGreat) localStorage.setItem('thresholdGreat', s.thresholdGreat);
+        if (s.thresholdPoor)  localStorage.setItem('thresholdPoor',  s.thresholdPoor);
+        if (s.perfCats) {
+          const cats = s.perfCats.split(',').map(c => c.trim()).filter(Boolean);
+          if (cats.length > 0) localStorage.setItem('perfCats', JSON.stringify(cats));
+        }
+        if (s.optInEmail)  localStorage.setItem('settingsOptInEmail', s.optInEmail);
+        if (s.optInStatus === 'true') {
+          localStorage.setItem('settingsOptInDone', 'true');
+          settingsOptInSubmitted = true;
+        }
       }
-      if (s.optInEmail)  localStorage.setItem('settingsOptInEmail', s.optInEmail);
-      if (s.optInStatus === 'true') {
-        localStorage.setItem('settingsOptInDone', 'true');
-        settingsOptInSubmitted = true;
-      }
-    }
+    } catch(e) { /* Settings sync unavailable — localStorage values used */ }
 
     showPage('dashboard');
   } catch(e) {
