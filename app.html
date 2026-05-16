@@ -2917,7 +2917,7 @@ function buildItem(field, v, i, firstInExtra) {
       .ve-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
       .ve-item:last-child{border-bottom:none}
       .ve-value-text{flex:1;font-size:13px;font-weight:500;color:var(--text);padding:3px 2px}
-      .ve-item-divider{border-top:2px solid var(--border) !important;margin-top:4px;padding-top:9px}
+      .ve-item-divider{border-top:1px solid var(--border) !important}
       .ve-delete-btn{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;flex-shrink:0}
       .ve-delete-btn:hover{color:var(--danger);background:var(--loss-bg)}
       .ve-add-row{display:flex;gap:8px;width:100%;box-sizing:border-box}
@@ -3010,7 +3010,7 @@ function showDoublesPrompt(value) {
         <div class="confirm-body">Is <strong>"${escHtml(value)}"</strong> a doubles match type?</div>
         <div class="confirm-actions">
           <button class="btn btn-ghost" id="doubles-no">No</button>
-          <button class="btn btn-primary" id="doubles-yes">Yes — add "Doubles"</button>
+          <button class="btn btn-primary" id="doubles-yes">Yes</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
