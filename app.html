@@ -391,7 +391,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
 }
-.field input:focus, .field select:focus { border-color: var(--accent2); }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent2); }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
 .field input.error, .field select.error { border-color: var(--danger); }
 .field-error { font-size: 11px; color: var(--danger); margin-top: 3px; display: none; }
 .field-error.visible { display: block; }
@@ -710,6 +713,58 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   .history-controls { gap: 6px; }
   .filter-select { font-size: 12px; }
 }
+
+/* ── Truncation + custom tooltip ────────────────────────── */
+.trunc {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.tip {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+.tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e2d3d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font);
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.tip::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1e2d3d;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 9999;
+}
+.tip:hover::after,
+.tip:hover::before { opacity: 1; }
 </style>
 </head>
 <body>
@@ -1078,6 +1133,12 @@ function pctNum(w, l) {
 }
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// Wrap text in a truncating span with a custom tooltip
+// maxW: CSS max-width string e.g. '160px' or '100%'
+function tip(text, maxW) {
+  const esc = escHtml(text);
+  return `<span class="tip" data-tip="${esc}" style="max-width:${maxW||'100%'}">${esc}</span>`;
 }
 function parseDate(str) {
   if (!str) return 0;
@@ -1810,9 +1871,9 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     const rate  = p.total > 0 ? p.w / p.total : 0;
     const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
     return '<tr>'
-      + '<td style="display:flex;align-items:center">'
+      + '<td style="display:flex;align-items:center;min-width:0">'
       + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
-      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px">' + escHtml(p.name) + '</span>'
+      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0;max-width:140px" data-tip="' + escHtml(p.name) + '" class="tip">' + escHtml(p.name) + '</span>'
       + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.w + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.l + '</td>'
@@ -2089,8 +2150,8 @@ function buildHistoryResults(filtered, sortOrder) {
     const col = wlColor(w, l);
     const p = pct(w, l);
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
-      + '<span style="font-size:12px;color:var(--label);flex-shrink:0">' + label + '</span>'
-      + '<span style="font-size:12px;font-weight:600;color:' + col + ';white-space:nowrap">' + w + '–' + l
+      + '<span class="tip" data-tip="' + label + '" style="font-size:12px;color:var(--label);flex:1;min-width:0;max-width:55%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">' + label + '</span>'
+      + '<span style="font-size:12px;font-weight:600;color:' + col + ';white-space:nowrap;flex-shrink:0">' + w + '–' + l
       + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + p + '</span></span>'
       + '</div>';
   }
@@ -2163,8 +2224,8 @@ function buildHistoryResults(filtered, sortOrder) {
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td style="white-space:nowrap;font-size:13px;color:var(--text)">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-size:13px;color:var(--text)">' + opponent + '</td>'
-      + '<td style="font-size:13px;color:var(--muted)">' + partner + '</td>'
+      + '<td style="font-size:13px;color:var(--text);max-width:180px"><span class="tip" data-tip="' + opponent + '" style="max-width:180px">' + opponent + '</span></td>'
+      + '<td style="font-size:13px;color:var(--muted);max-width:140px"><span class="tip" data-tip="' + partner + '" style="max-width:140px">' + partner + '</span></td>'
       + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
   }).join('');
@@ -2176,7 +2237,7 @@ function buildHistoryResults(filtered, sortOrder) {
     partnerListHtml = '<div style="border-top:1px solid var(--border);padding-top:8px">'
       + sorted.map(function(p) {
           return '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:12px;min-width:0;">'
-            + '<span style="color:var(--label);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.n + '</span>'
+            + '<span class="tip" data-tip="' + p.n + '" style="color:var(--label);min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.n + '</span>'
             + '<span style="font-weight:600;color:' + wlColor(p.w,p.l) + ';white-space:nowrap">' + p.w + '–' + p.l
             + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(p.w,p.l) + '</span></span>'
             + '</div>';
@@ -2281,9 +2342,9 @@ function buildHistoryResults(filtered, sortOrder) {
       return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
         + '<td style="white-space:nowrap;font-size:12px;color:var(--text);vertical-align:top;padding-top:11px">' + (m.date || '') + '</td>'
         + '<td style="vertical-align:top;padding-top:9px"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-        + '<td>'
-          + '<div style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + playoffStar + '</div>'
-          + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">w/ ' + partner + '</div>' : '')
+        + '<td style="min-width:0;max-width:0;width:100%">'
+          + '<div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><span class="tip" data-tip="' + opponent + '" style="max-width:100%">' + opponent + '</span>' + playoffStar + '</div>'
+          + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="' + partner + '" style="max-width:calc(100% - 20px)">' + partner + '</span></div>' : '')
           + '<div class="hist-scores" style="margin-top:5px">' + scoresHtml + retired + noteInd + '</div>'
         + '</td>'
         + '</tr>';
@@ -2292,8 +2353,8 @@ function buildHistoryResults(filtered, sortOrder) {
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text)">' + opponent + playoffStar + '</td>'
-      + '<td style="font-size:13px;color:var(--muted)">' + (partner || '—') + '</td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text);max-width:200px"><span class="tip" data-tip="' + opponent + '" style="max-width:200px">' + opponent + '</span>' + playoffStar + '</td>'
+      + '<td style="font-size:13px;color:var(--muted);max-width:160px">' + (partner ? '<span class="tip" data-tip="' + partner + '" style="max-width:160px">' + partner + '</span>' : '—') + '</td>'
       + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
   }).join('');
@@ -2609,7 +2670,8 @@ function openEditMode(idx) {
   }
   function scoreBox(id, val) {
     return `<input type="number" id="edit-${id}" value="${val!==''&&val!=null?val:''}" min="0" max="99" placeholder="" inputmode="numeric"
-      style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none;box-sizing:border-box">`;
+      style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none;box-sizing:border-box"
+      onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">`;
   }
 
   const isDb = m.opp2 && m.opp2 !== '';
@@ -2722,6 +2784,7 @@ function openEditMode(idx) {
         <div class="field">
           <textarea id="edit-notes" rows="4"
             style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
             placeholder="Add any notes about this match…">${escHtml(m.notes || '')}</textarea>
         </div>
       </div>
@@ -2893,7 +2956,7 @@ function renderVEContent() {
 
 function buildItem(field, v, i, firstInExtra) {
     return `<li class="ve-item${firstInExtra ? ' ve-item-divider' : ''}" id="ve-item-${field}-${i}" data-field="${field}" data-value="${escHtml(v)}">
-      <span class="ve-value-text">${escHtml(v)}</span>
+      <span class="ve-value-text tip" data-tip="${escHtml(v)}" style="max-width:calc(100% - 32px)">${escHtml(v)}</span>
       <button class="ve-delete-btn" onclick="veTriggerDeleteEl(this)">&#x2715;</button>
     </li>`;
   }
@@ -2930,7 +2993,7 @@ function buildItem(field, v, i, firstInExtra) {
       .ve-threshold-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--label)}
       .ve-threshold-wrap{display:flex;align-items:center;gap:6px}
       .ve-threshold-input{width:72px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:15px;font-weight:600;padding:8px 10px;outline:none;text-align:center}
-      .ve-threshold-input:focus{border-color:var(--accent2)}
+      .ve-threshold-input:focus{border-color:var(--accent2) !important}
       .ve-preview{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
       .ve-chip{border-radius:4px;padding:4px 10px;font-size:12px;font-weight:600}
       .ve-chip-green{background:var(--win-bg);color:var(--win)}
