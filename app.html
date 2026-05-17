@@ -798,10 +798,7 @@ textarea:focus { border-color: var(--accent2) !important; }
       style="margin:0 0 2px;border-radius:0">
       <span class="nav-icon" style="font-size:16px">📖</span> User Guide
     </div>
-    <div onclick="openContactModal()" class="nav-item"
-      style="margin:0 0 2px;border-radius:0">
-      <span class="nav-icon" style="font-size:16px">✉️</span> Contact Us
-    </div>
+    
     
   </div>
   <div class="sidebar-footer">
@@ -815,7 +812,10 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div class="url-display" id="url-display" style="display:none"></div>
     <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:10px;line-height:1.6">
       © 2026 Match Tracker Pro. All rights reserved.<br>
-      <a href="MTP_Legal_Pages.html" target="_blank" style="color:rgba(255,255,255,0.3);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.15)" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Privacy &amp; Terms</a>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+        <a onclick="openContactModal()" style="color:rgba(255,255,255,0.3);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.15);cursor:pointer" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Contact Us</a>
+        <a href="MTP_Legal_Pages.html" target="_blank" style="color:rgba(255,255,255,0.3);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.15)" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Privacy &amp; Terms</a>
+      </div>
     </div>
   </div>
 </aside>
@@ -4389,7 +4389,7 @@ function showToast(msg, isError=false) {
   t.textContent = msg;
   t.className = 'toast' + (isError?' error':'');
   setTimeout(() => t.classList.add('show'), 10);
-  setTimeout(() => t.classList.remove('show'), 3000);
+  setTimeout(() => t.classList.remove('show'), msg.length > 80 ? 8000 : 3000);
 }
 </script>
 </body>
