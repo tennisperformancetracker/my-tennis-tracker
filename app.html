@@ -3404,7 +3404,7 @@ function renderSettings() {
       <div class="card">
         <div class="card-title" style="margin-bottom:4px">Performance Breakdown Categories</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5">
-          Choose which categories appear in the Performance Breakdown section. Max 6.
+          Choose which categories appear in the Performance Breakdown section on Match History. Max 6.
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px">
           <div>${col1.map(catRow).join('')}</div>
@@ -3412,6 +3412,82 @@ function renderSettings() {
         </div>
         <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
         <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
+      </div>
+
+<!-- ── Match Entry Defaults ── -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">Match Entry Defaults</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
+          Set optional defaults to save time during match entry. Any field left blank will simply show no pre-selection.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+
+          <!-- Left: field defaults -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="field">
+              <div class="field-label">Default Type</div>
+              <select id="def-type">
+                <option value="">— None —</option>
+                ${(validEntries.type||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultType')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-label">Default Season</div>
+              <select id="def-season">
+                <option value="">— None —</option>
+                ${(validEntries.season||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSeason')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-label">Default League</div>
+              <select id="def-league">
+                <option value="">— None —</option>
+                ${(validEntries.league||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLeague')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-label">Default Level</div>
+              <select id="def-level">
+                <option value="">— None —</option>
+                ${(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-label">Default Surface</div>
+              <select id="def-surface">
+                <option value="">— None —</option>
+                ${(validEntries.surface||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSurface')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-label">Default Home Location</div>
+              <input type="text" id="def-location" placeholder="e.g. Bitsy Grant"
+                value="${escHtml(localStorage.getItem('defaultLocation')||'')}"
+                style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;box-sizing:border-box;transition:border-color 0.15s"
+                onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
+              <div style="font-size:11px;color:var(--muted);margin-top:4px">Auto-fills Location when "Home" is selected</div>
+            </div>
+          </div>
+
+          <!-- Right: partner defaults by type -->
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Default Partner by Match Type</div>
+            ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
+              ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
+                  const key   = 'defaultPartner_' + t;
+                  const saved = localStorage.getItem(key) || '';
+                  return `<div class="field">
+                    <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
+                    <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
+                      <option value="">— None —</option>
+                      ${(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
+                    </select>
+                  </div>`;
+                }).join('')
+              : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
+          </div>
+
+        </div>
       </div>
 
       <!-- ── Update Notifications ── -->
@@ -3461,82 +3537,7 @@ function renderSettings() {
         <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
       </div>
 
-      <!-- ── Match Entry Defaults ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Match Entry Defaults</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
-          Set optional defaults to save time during match entry. Any field left blank will simply show no pre-selection.
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div class="field">
-            <div class="field-label">Default Type</div>
-            <select id="def-type">
-              <option value="">— None —</option>
-              ${(validEntries.type||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultType')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="field">
-            <div class="field-label">Default Season</div>
-            <select id="def-season">
-              <option value="">— None —</option>
-              ${(validEntries.season||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSeason')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="field">
-            <div class="field-label">Default League</div>
-            <select id="def-league">
-              <option value="">— None —</option>
-              ${(validEntries.league||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLeague')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="field">
-            <div class="field-label">Default Level</div>
-            <select id="def-level">
-              <option value="">— None —</option>
-              ${(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="field">
-            <div class="field-label">Default Surface</div>
-            <select id="def-surface">
-              <option value="">— None —</option>
-              ${(validEntries.surface||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSurface')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="field">
-            <div class="field-label">Default Home Location</div>
-            <input type="text" id="def-location" placeholder="e.g. Bitsy Grant"
-              value="${escHtml(localStorage.getItem('defaultLocation')||'')}"
-              style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;box-sizing:border-box;transition:border-color 0.15s"
-              onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">Auto-fills Location when "Home" is selected</div>
-          </div>
-        </div>
-
-        ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0 ? `
-        <div style="margin-top:20px">
-          <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Default Partner by Match Type</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
-              const key   = 'defaultPartner_' + t;
-              const saved = localStorage.getItem(key) || '';
-              return `<div class="field">
-                <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
-                <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
-                  <option value="">— None —</option>
-                  ${(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
-                </select>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>` : ''}
-      </div>
-
-      <div id="settings-save-msg" style="display:none;font-size:13px;font-weight:600;padding:12px 0;text-align:right"></div>
-    </div>
-  `;
-}
+      
 
 // ── Settings helpers ──────────────────────────────────────────
 
