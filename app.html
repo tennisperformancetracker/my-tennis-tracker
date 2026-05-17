@@ -395,6 +395,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]:focus { border-color: var(--accent2) !important; }
+textarea:focus { border-color: var(--accent2) !important; }
 .field input.error, .field select.error { border-color: var(--danger); }
 .field-error { font-size: 11px; color: var(--danger); margin-top: 3px; display: none; }
 .field-error.visible { display: block; }
@@ -4208,6 +4210,10 @@ async function submitEntry() {
         Object.entries(fields).forEach(([id, val]) => {
           const el = document.getElementById(id);
           if (el && val) el.value = val;
+        });
+        ['e-opp1','e-opp2','e-s1w','e-s1l','e-s2w','e-s2l','e-s3w','e-s3l'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
         });
         onEntryTypeChange();
         const today = new Date();
