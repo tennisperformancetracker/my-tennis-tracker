@@ -3517,12 +3517,12 @@ function renderSettings() {
         ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0 ? `
         <div style="margin-top:20px">
           <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Default Partner by Match Type</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
             ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
               const key   = 'defaultPartner_' + t;
               const saved = localStorage.getItem(key) || '';
-              return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">
-                <div style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="${escHtml(t)}">${escHtml(t)}</div>
+              return `<div class="field">
+                <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
                 <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
                   <option value="">— None —</option>
                   ${(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
