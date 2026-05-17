@@ -1936,7 +1936,7 @@ function drillPartner(name) {
   titleEl.textContent = `Performance with ${name}`;
   document.getElementById('partner-header-controls').innerHTML = `
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">History</button>
-    <button class="back-btn" onclick="resetPartners()" style="margin-bottom:0">← Back</button>
+    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="resetPartners()">Back</button>
   `;
 
   // Drill panel — match splits card exactly: no extra title div, just table + insight
