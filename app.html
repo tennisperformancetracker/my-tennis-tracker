@@ -715,12 +715,6 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 
 /* ── Truncation + custom tooltip ────────────────────────── */
-.trunc {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
 .tip {
   position: relative;
   display: inline-block;
@@ -1134,8 +1128,6 @@ function pctNum(w, l) {
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-// Wrap text in a truncating span with a custom tooltip
-// maxW: CSS max-width string e.g. '160px' or '100%'
 function tip(text, maxW) {
   const esc = escHtml(text);
   return `<span class="tip" data-tip="${esc}" style="max-width:${maxW||'100%'}">${esc}</span>`;
@@ -1873,7 +1865,7 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     return '<tr>'
       + '<td style="display:flex;align-items:center;min-width:0">'
       + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
-      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0;max-width:140px" data-tip="' + escHtml(p.name) + '" class="tip">' + escHtml(p.name) + '</span>'
+      + '<span onclick="drillPartner(\'' + escHtml(p.name) + '\')" class="tip" data-tip="' + escHtml(p.name) + '" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px;max-width:140px">' + escHtml(p.name) + '</span>'
       + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.w + '</td>'
       + '<td style="text-align:right;color:' + col + ';font-weight:600">' + p.l + '</td>'
@@ -1939,7 +1931,9 @@ function drillPartner(name) {
   });
 
   // Update header — just show "Splits with [name]", no "Partner:" prefix
-  document.getElementById('partners-card-title').textContent = `Performance with ${name}`;
+  const titleEl = document.getElementById('partners-card-title');
+  titleEl.style.cssText = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%';
+  titleEl.textContent = `Performance with ${name}`;
   document.getElementById('partner-header-controls').innerHTML = `
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">History</button>
     <button class="back-btn" onclick="resetPartners()" style="margin-bottom:0">← Back</button>
@@ -2191,11 +2185,15 @@ function buildHistoryResults(filtered, sortOrder) {
   const mostWins = pQual.length ? pQual.reduce((a,b) => a.w > b.w ? a : b) : null;
   const bestPct  = pQual.length ? pQual.reduce((a,b) => a.pv > b.pv ? a : b) : null;
 
+  function tipName(n) {
+    var esc = escHtml(n);
+    return '<strong class="tip" data-tip="' + esc + '" style="max-width:120px;display:inline-block;vertical-align:bottom">' + esc + '</strong>';
+  }
   var partnerText = '';
   if (mostWins) {
-    partnerText = 'Most wins with <strong>' + mostWins.n + '</strong> (' + mostWins.w + '–' + mostWins.l + ').';
+    partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
     if (bestPct && bestPct.n !== mostWins.n) {
-      partnerText += ' Best % with <strong>' + bestPct.n + '</strong> (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+      partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
     }
   } else {
     partnerText = 'No partners with ' + pMin + '+ matches.';
@@ -2338,18 +2336,16 @@ function buildHistoryResults(filtered, sortOrder) {
     var playoffStar = m.playoff ? '<span title="Playoff' + (m.playoffround ? ', Round: ' + escHtml(m.playoffround) : '') + '" style="color:#f59e0b;font-size:13px;margin-left:5px;cursor:help">★</span>' : '';
     var isMob = window.innerWidth <= 768;
     if (isMob) {
-      // Mobile: opponent line 1, partner line 2, scores line 3
       return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
         + '<td style="white-space:nowrap;font-size:12px;color:var(--text);vertical-align:top;padding-top:11px">' + (m.date || '') + '</td>'
         + '<td style="vertical-align:top;padding-top:9px"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
         + '<td style="min-width:0;max-width:0;width:100%">'
           + '<div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><span class="tip" data-tip="' + opponent + '" style="max-width:100%">' + opponent + '</span>' + playoffStar + '</div>'
-          + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="' + partner + '" style="max-width:calc(100% - 20px)">' + partner + '</span></div>' : '')
+          + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="' + partner + '" style="max-width:calc(100% - 24px)">' + partner + '</span></div>' : '')
           + '<div class="hist-scores" style="margin-top:5px">' + scoresHtml + retired + noteInd + '</div>'
         + '</td>'
         + '</tr>';
     }
-    // Desktop: 5 columns
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
@@ -2567,9 +2563,9 @@ function openMatchDetail(idx) {
 
   // Header row: "Match Details for DATE" + Win/Loss flush right
   document.getElementById('modal-header').innerHTML = `
-    <div style="flex:1;min-width:0">
+    <div style="flex:1;min-width:0;overflow:hidden">
       <div class="detail-date-header">Match Details for ${m.date || '—'}</div>
-      ${hasPartner ? `<div class="detail-partner-line">w/ ${escHtml(m.partner)}</div>` : ''}
+      ${hasPartner ? `<div class="detail-partner-line" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="${escHtml(m.partner)}" style="max-width:calc(100% - 24px)">${escHtml(m.partner)}</span></div>` : ''}
     </div>
     <div class="detail-result-word ${m.result||'unknown'}">${resultWord}</div>
     <button class="btn btn-ghost" style="padding:4px 8px;font-size:16px;line-height:1;margin-left:10px" onclick="closeModal()">✕</button>
@@ -2605,7 +2601,7 @@ function openMatchDetail(idx) {
     <hr class="detail-divider">
     <div class="detail-score-line">
       <div class="detail-scores-row">${scoresHtml}</div>
-      <div class="detail-vs-line">vs ${escHtml(opponent)}</div>
+      <div class="detail-vs-line" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">vs <span class="tip" data-tip="${escHtml(opponent)}" style="max-width:calc(100% - 24px)">${escHtml(opponent)}</span></div>
     </div>
     <hr class="detail-divider">
     <div class="detail-chips-grid">
@@ -2655,7 +2651,7 @@ function openEditMode(idx) {
   document.getElementById('modal-header').innerHTML = `
     <div class="modal-result-badge ${m.result||''}">${m.result||'—'}</div>
     <div class="modal-header-info">
-      <div class="modal-opponent">Editing: ${escHtml(opponent)}</div>
+      <div class="modal-opponent" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Editing: <span class="tip" data-tip="${escHtml(opponent)}" style="max-width:calc(100% - 60px)">${escHtml(opponent)}</span></div>
       <div class="modal-date">${m.date||''}</div>
     </div>
     <button class="btn btn-ghost" style="padding:4px 8px;font-size:16px;line-height:1;margin-left:auto" onclick="closeModal()">✕</button>
@@ -3590,7 +3586,7 @@ function openConfirmDelete(idx) {
   const m = allMatches[idx];
   const opp = m.opp2 ? `${m.opp1} / ${m.opp2}` : m.opp1;
   document.getElementById('confirm-body').innerHTML =
-    `Delete the match vs <strong>${escHtml(opp)}</strong> on ${m.date}? This cannot be undone.`;
+    `Delete the match vs <strong style="display:inline-block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:bottom" title="${escHtml(opp)}">${escHtml(opp)}</strong> on ${m.date}? This cannot be undone.`;
   document.getElementById('confirm-overlay').classList.add('visible');
 }
 function closeConfirm() {
