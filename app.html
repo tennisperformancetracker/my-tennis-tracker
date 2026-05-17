@@ -775,7 +775,7 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div class="sidebar-logo-sub">Tennis Performance Tracker</div>
   </div>
   <nav class="sidebar-nav">
-    <div class="nav-section-label">Main</div>
+    
     <div class="nav-item active" onclick="showPage('dashboard')">
       <span class="nav-icon">📊</span> Dashboard
     </div>
@@ -797,6 +797,10 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div onclick="window.open('user_guide.html','_blank')" class="nav-item"
       style="margin:0 0 2px;border-radius:0">
       <span class="nav-icon" style="font-size:16px">📖</span> User Guide
+    </div>
+    <div onclick="openContactModal()" class="nav-item"
+      style="margin:0 0 2px;border-radius:0">
+      <span class="nav-icon" style="font-size:16px">✉️</span> Contact Us
     </div>
     
   </div>
@@ -858,6 +862,42 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div class="confirm-actions">
       <button class="btn btn-ghost" onclick="anotherMatchNo()">No, I'm done</button>
       <button class="btn btn-primary" onclick="anotherMatchYes()">Yes, enter another</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ CONTACT MODAL -->
+<div class="confirm-overlay" id="contact-overlay">
+  <div class="confirm-box" style="max-width:480px;width:100%">
+    <div class="confirm-title" style="font-size:17px;margin-bottom:4px">✉️ Contact Us</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">We'd love to hear from you. Fill out the form below and we'll get back to you within 3–5 business days.</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="field">
+        <div class="field-label">Name</div>
+        <input type="text" id="contact-name" placeholder="Your name">
+      </div>
+      <div class="field">
+        <div class="field-label">Email</div>
+        <input type="email" id="contact-email" placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <div class="field-label">Type</div>
+        <select id="contact-type">
+          <option value="">— Select —</option>
+          <option value="Bug Report">Bug Report</option>
+          <option value="Feature Request">Feature Request</option>
+          <option value="General Question">General Question</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Message</div>
+        <textarea id="contact-message" rows="4" placeholder="Describe your issue, question, or feedback…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+      </div>
+    </div>
+    <div class="confirm-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeContactModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitContactForm()">Send Message</button>
     </div>
   </div>
 </div>
@@ -3582,6 +3622,46 @@ async function saveAllSettings() {
 }
 
 
+function openContactModal() {
+  const email = localStorage.getItem('settingsOptInEmail') || '';
+  document.getElementById('contact-name').value    = '';
+  document.getElementById('contact-email').value   = email;
+  document.getElementById('contact-type').value    = '';
+  document.getElementById('contact-message').value = '';
+  document.getElementById('contact-overlay').classList.add('visible');
+}
+
+function closeContactModal() {
+  document.getElementById('contact-overlay').classList.remove('visible');
+}
+
+async function submitContactForm() {
+  const name    = document.getElementById('contact-name').value.trim();
+  const email   = document.getElementById('contact-email').value.trim();
+  const type    = document.getElementById('contact-type').value;
+  const message = document.getElementById('contact-message').value.trim();
+
+  if (!name)    { showToast('Please enter your name.', true); return; }
+  if (!email)   { showToast('Please enter your email.', true); return; }
+  if (!type)    { showToast('Please select a type.', true); return; }
+  if (!message) { showToast('Please enter a message.', true); return; }
+
+  showSaving('Sending…');
+  try {
+    const res  = await fetch(webAppUrl, { method: 'POST', body: JSON.stringify({ action: 'contactForm', name, email, type, message }) });
+    const data = await res.json();
+    hideSaving();
+    if (data.success) {
+      closeContactModal();
+      showToast('Thank you for contacting Match Tracker Pro! Your message has been successfully sent and is now under review. We\'ll do our best to get back to you within 3–5 business days.');
+    } else {
+      showToast(data.error || 'Failed to send. Please try again.', true);
+    }
+  } catch(e) {
+    hideSaving();
+    showToast('Network error. Please try again.', true);
+  }
+}
 
 function openConfirmDelete(idx) {
   pendingDeleteIdx = idx;
