@@ -3236,7 +3236,7 @@ function veCancelRename() {
 function veTriggerDelete(field, value) {
   vePendingDelete = {field, value};
   document.getElementById('ve-confirm-delete-body').innerHTML =
-    `Delete <strong>"${escHtml(value)}"</strong> from ${VE_FIELD_LABELS[field]}?<br><br>Existing matches using this value won't be affected.`;
+    `Delete <strong style="display:inline-block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:bottom" title="${escHtml(val)}">"${escHtml(val)}"</strong> from ${label}? <br><br>Existing matches using this value won't be affected.`;
   document.getElementById('ve-confirm-delete').classList.add('visible');
 }
 
@@ -3371,8 +3371,8 @@ function renderSettings() {
         </div>
 
         <!-- Compact inputs -->
-        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
-          <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
             <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great Threshold</label>
             <div style="display:flex;align-items:center;gap:6px">
               <input type="number" id="settings-t-great" value="${great}" min="1" max="99"
@@ -3381,7 +3381,7 @@ function renderSettings() {
               <span style="font-size:12px;color:var(--muted)">%</span>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
             <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor Threshold</label>
             <div style="display:flex;align-items:center;gap:6px">
               <input type="number" id="settings-t-poor" value="${poor}" min="1" max="99"
