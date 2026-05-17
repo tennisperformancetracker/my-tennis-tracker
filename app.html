@@ -3741,10 +3741,9 @@ function renderEntry() {
         <div class="entry-pair" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Home / Away</div>
-            <select id="e-homeaway" onchange="onEntryNewSelect('homeaway')">
+            <select id="e-homeaway">
               <option value="">— Select —</option>
               ${(validEntries.homeaway||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-              <option value="__new__">+ Add new…</option>
             </select>
           </div>
           <div class="field">
@@ -3779,10 +3778,9 @@ function renderEntry() {
         <div class="cond cond-hidden" id="e-playoff-row" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Playoff Round</div>
-            <select id="e-playoffround" onchange="onEntryNewSelect('playoffround')">
+            <select id="e-playoffround">
               <option value="">— Select —</option>
               ${(validEntries.playoffround||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-              <option value="__new__">+ Add new…</option>
             </select>
           </div>
           
@@ -4085,6 +4083,34 @@ async function submitEntry() {
     const data = await res.json();
     if (data.success) {
       hideSaving();
+      // Add to allMatches in memory so Dashboard updates without a refresh
+      const dateRawParts = dateFormatted ? dateFormatted.split('/') : [];
+      const matchYear = dateRawParts.length === 3 ? parseInt(dateRawParts[2]) : null;
+      const s1wN = parseFloat(match.set1wins), s1lN = parseFloat(match.set1losses);
+      const s2wN = parseFloat(match.set2wins), s2lN = parseFloat(match.set2losses);
+      const s3wN = parseFloat(match.set3wins), s3lN = parseFloat(match.set3losses);
+      let result = '';
+      if (match.opponentretired) { result = 'W'; }
+      else if (match.weretired)  { result = 'L'; }
+      else if (!isNaN(s1wN) && !isNaN(s1lN)) {
+        const sets = [[s1wN,s1lN],[s2wN,s2lN],[s3wN,s3lN]]
+          .filter(([w,l]) => !isNaN(w) && !isNaN(l))
+          .map(([w,l]) => w > l ? 1 : 0);
+        result = sets.reduce((a,b)=>a+b,0) > sets.length/2 ? 'W' : 'L';
+      }
+      allMatches.unshift({
+        date: dateFormatted, year: matchYear,
+        season: match.season, league: match.league, level: match.level,
+        type: match.type, line: match.line, location: match.location,
+        homeaway: match.homeaway, surface: match.surface, time: match.time,
+        playoff: match.playoff, playoffround: match.playoffround,
+        opp1: match.opponent1, opp2: match.opponent2, partner: match.partner,
+        s1w: match.set1wins, s1l: match.set1losses,
+        s2w: match.set2wins, s2l: match.set2losses,
+        s3w: match.set3wins, s3l: match.set3losses,
+        oppRet: match.opponentretired, weRet: match.weretired,
+        result, notes: match.notes || ''
+      });
       showToast('Match submitted!');
       // Capture the fields to preserve for next entry
       const keepFields = {
