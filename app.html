@@ -3481,7 +3481,7 @@ function renderSettings() {
                     <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
                     <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
                       <option value="">— None —</option>
-                      ${(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
+                      ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
                     </select>
                   </div>`;
                 }).join('')
