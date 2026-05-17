@@ -765,10 +765,10 @@ textarea:focus { border-color: var(--accent2) !important; }
 </head>
 <body>
 
-<!-- ═══════════════════════════════════ SIDEBAR OVERLAY (mobile) -->
+<!--  SIDEBAR OVERLAY (mobile) -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-<!-- ═══════════════════════════════════ SIDEBAR -->
+<!--  SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="sidebar-logo-title">MATCH TRACKER <span style="color:#7ecba1;">PRO</span></div>
@@ -820,7 +820,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   </div>
 </aside>
 
-<!-- ═══════════════════════════════════ MAIN -->
+<!--  MAIN -->
 <main class="main">
 
   <!-- TOPBAR -->
@@ -844,7 +844,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   </div>
 </main>
 
-<!-- ═══════════════════════════════════ MODALS -->
+<!--  MODALS -->
 
 <!-- Detail / Edit Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
@@ -866,7 +866,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   </div>
 </div>
 
-<!-- ═══════════════════════════════════ CONTACT MODAL -->
+<!--  CONTACT MODAL -->
 <div class="confirm-overlay" id="contact-overlay">
   <div class="confirm-box" style="max-width:480px;width:100%">
     <div class="confirm-title" style="font-size:17px;margin-bottom:4px">✉️ Contact Us</div>
@@ -919,9 +919,9 @@ textarea:focus { border-color: var(--accent2) !important; }
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════
+// 
 // STATE
-// ═══════════════════════════════════════════════════════════
+// 
 let allMatches   = [];
 let validEntries = {};
 let currentPage  = 'dashboard';
@@ -942,9 +942,9 @@ const filterState = {
   histPartnerMin: 5
 };
 
-// ═══════════════════════════════════════════════════════════
+// 
 // INIT
-// ═══════════════════════════════════════════════════════════
+// 
 window.addEventListener('DOMContentLoaded', () => {
   if (typeof emailjs !== 'undefined') emailjs.init('Lr1xUZw093VB7FaHv');
   // Dark mode
@@ -1059,9 +1059,9 @@ function closeSidebar() {
   document.getElementById('sidebar-overlay').classList.remove('visible');
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // NAVIGATION
-// ═══════════════════════════════════════════════════════════
+// 
 function showSaving(msg) {
   let el = document.getElementById('saving-overlay');
   if (!el) {
@@ -1159,9 +1159,9 @@ function setContent(html) {
   document.getElementById('mobile-filters').innerHTML = '';
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // HELPERS
-// ═══════════════════════════════════════════════════════════
+// 
 function num(v) {
   if (v === '' || v === null || v === undefined) return null;
   const n = Number(v); return isNaN(n) ? null : n;
@@ -1233,11 +1233,11 @@ function setScoresHtml(m) {
   return html;
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // DASHBOARD
-// ═══════════════════════════════════════════════════════════
+// 
 // DASHBOARD
-// ═══════════════════════════════════════════════════════════
+// 
 function renderDashboard() {
   // Only sync from desktop DOM selects when they're actually visible (not hidden by mobile CSS)
   const isMobileView = window.innerWidth <= 768;
@@ -2023,9 +2023,9 @@ function viewPartnerHistory(name) {
   renderHistory(1, name);
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // MATCH HISTORY
-// ═══════════════════════════════════════════════════════════
+// 
 function renderHistory(page, preFilterPartner) {
   historyPage = page || 1;
 
@@ -2597,9 +2597,9 @@ function buildPagination(current, total) {
   return html;
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // MATCH DETAIL MODAL
-// ═══════════════════════════════════════════════════════════
+// 
 function openMatchDetail(idx) {
   const m = allMatches[idx];
   if (!m) return;
@@ -2689,9 +2689,9 @@ function closeModal() {
 }
 function closeModalOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // EDIT MODE
-// ═══════════════════════════════════════════════════════════
+// 
 function openEditMode(idx) {
   const m = allMatches[idx];
   editingMatchIdx = idx;
@@ -2913,9 +2913,9 @@ async function saveEdit(idx) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // VALID ENTRIES
-// ═══════════════════════════════════════════════════════════
+// 
 const VE_FIELD_LABELS = {
   partner:'Partners', season:'Seasons', league:'Leagues', level:'Levels',
   type:'Match Types', line:'Lines', homeaway:'Home / Away',
@@ -3269,9 +3269,9 @@ async function veConfirmDelete() {
   finally { hideSaving(); }
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // NOTES
-// ═══════════════════════════════════════════════════════════
+// 
 async function saveNote(idx) {
   const note = document.getElementById('detail-notes-input')?.value?.trim() || '';
   try {
@@ -3284,9 +3284,9 @@ async function saveNote(idx) {
   } catch(e) { showToast('Failed to save note: ' + e.message, true); }
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 // SETTINGS
-// ══════════════════════════════════════════════════════════════
+// 
 
 const PERF_CATS_ALL = [
   { key: 'matches',    label: 'Matches' },
@@ -3537,7 +3537,10 @@ function renderSettings() {
         <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
       </div>
 
-      
+      <div id="settings-save-msg" style="display:none;font-size:13px;font-weight:600;padding:12px 0;text-align:right"></div>
+    </div>
+  `;
+}
 
 // ── Settings helpers ──────────────────────────────────────────
 
@@ -3809,9 +3812,9 @@ async function confirmDelete() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // MATCH ENTRY
-// ═══════════════════════════════════════════════════════════
+// 
 function renderEntry() {
   document.getElementById('topbar-right').innerHTML = '';
   document.getElementById('mobile-filters').innerHTML = '';
@@ -3855,7 +3858,7 @@ function renderEntry() {
   content.innerHTML = `
     <div class="entry-layout">
 
-      <!-- ══ LEFT: Match Basics ══ -->
+      <!--  LEFT: Match Basics  -->
       <div class="form-section">
         <div class="section-title">Match Basics</div>
 
@@ -3948,7 +3951,7 @@ function renderEntry() {
         </div>
       </div>
 
-      <!-- ══ RIGHT: Other Match Details ══ -->
+      <!--  RIGHT: Other Match Details  -->
       <div class="form-section">
         <div class="section-title">Other Match Details</div>
 
@@ -4526,14 +4529,14 @@ function resetEntryForm() {
   Object.keys(entryNewValues).forEach(k => delete entryNewValues[k]);
 }
 
-// ═══════════════════════════════════════════════════════════
+// 
 // UPDATE + DELETE — Apps Script handlers needed
-// ═══════════════════════════════════════════════════════════
+// 
 // These are handled by the updated Code.gs doPost function
 
-// ═══════════════════════════════════════════════════════════
+// 
 // TOAST
-// ═══════════════════════════════════════════════════════════
+// 
 function showToast(msg, isError=false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
