@@ -1024,6 +1024,13 @@ async function loadAll() {
           localStorage.setItem('settingsOptInDone', 'true');
           settingsOptInSubmitted = true;
         }
+        // Match Entry Defaults
+        ['defaultType','defaultSeason','defaultLeague','defaultLevel','defaultSurface','defaultLocation'].forEach(k => {
+          if (s[k] !== undefined) localStorage.setItem(k, s[k]);
+        });
+        Object.keys(s).forEach(k => {
+          if (k.startsWith('defaultPartner_')) localStorage.setItem(k, s[k]);
+        });
       }
     } catch(e) { /* Settings sync unavailable — localStorage values used */ }
 
@@ -3354,8 +3361,8 @@ function renderSettings() {
           Controls how win percentages are color-coded across the app.
         </div>
 
-        <!-- Legend + slim bar constrained to text width -->
-        <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:24px">
+        <!-- Legend + bar + inputs all in one inline block -->
+        <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:8px;width:100%">
           <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
             <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
             <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
@@ -3363,31 +3370,30 @@ function renderSettings() {
             <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
             <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
           </div>
-          <div style="height:5px;border-radius:4px;overflow:hidden;display:flex">
+          <div id="thresh-bar" style="height:5px;border-radius:4px;overflow:hidden;display:flex">
             <div id="thresh-bar-green"  style="background:var(--win);     transition:width 0.3s;width:${100-great}%"></div>
             <div id="thresh-bar-orange" style="background:#d4820a;         transition:width 0.3s;width:${great-poor}%"></div>
             <div id="thresh-bar-red"    style="background:var(--danger);   transition:width 0.3s;width:${poor}%"></div>
           </div>
-        </div>
-
-        <!-- Compact inputs -->
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
-          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
-            <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great Threshold</label>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" id="settings-t-great" value="${great}" min="1" max="99"
-                oninput="settingsUpdatePreview()"
-                style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
-              <span style="font-size:12px;color:var(--muted)">%</span>
+          <!-- Inputs pinned to bar edges -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:10px">
+            <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great Threshold</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input type="number" id="settings-t-great" value="${great}" min="1" max="99"
+                  oninput="settingsUpdatePreview()"
+                  style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
+                <span style="font-size:12px;color:var(--muted)">%</span>
+              </div>
             </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
-            <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor Threshold</label>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" id="settings-t-poor" value="${poor}" min="1" max="99"
-                oninput="settingsUpdatePreview()"
-                style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
-              <span style="font-size:12px;color:var(--muted)">%</span>
+            <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor Threshold</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input type="number" id="settings-t-poor" value="${poor}" min="1" max="99"
+                  oninput="settingsUpdatePreview()"
+                  style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
+                <span style="font-size:12px;color:var(--muted)">%</span>
+              </div>
             </div>
           </div>
         </div>
@@ -3453,6 +3459,78 @@ function renderSettings() {
             onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
+      </div>
+
+      <!-- ── Match Entry Defaults ── -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">Match Entry Defaults</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
+          Set optional defaults to save time during match entry. Any field left blank will simply show no pre-selection.
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="field">
+            <div class="field-label">Default Type</div>
+            <select id="def-type">
+              <option value="">— None —</option>
+              ${(validEntries.type||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultType')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-label">Default Season</div>
+            <select id="def-season">
+              <option value="">— None —</option>
+              ${(validEntries.season||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSeason')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-label">Default League</div>
+            <select id="def-league">
+              <option value="">— None —</option>
+              ${(validEntries.league||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLeague')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-label">Default Level</div>
+            <select id="def-level">
+              <option value="">— None —</option>
+              ${(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-label">Default Surface</div>
+            <select id="def-surface">
+              <option value="">— None —</option>
+              ${(validEntries.surface||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSurface')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-label">Default Home Location</div>
+            <input type="text" id="def-location" placeholder="e.g. Bitsy Grant"
+              value="${escHtml(localStorage.getItem('defaultLocation')||'')}"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;box-sizing:border-box;transition:border-color 0.15s"
+              onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Auto-fills Location when "Home" is selected</div>
+          </div>
+        </div>
+
+        ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0 ? `
+        <div style="margin-top:20px">
+          <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Default Partner by Match Type</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
+              const key   = 'defaultPartner_' + t;
+              const saved = localStorage.getItem(key) || '';
+              return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">
+                <div style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="${escHtml(t)}">${escHtml(t)}</div>
+                <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
+                  <option value="">— None —</option>
+                  ${(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
+                </select>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
       </div>
 
       <div id="settings-save-msg" style="display:none;font-size:13px;font-weight:600;padding:12px 0;text-align:right"></div>
@@ -3596,6 +3674,36 @@ async function saveAllSettings() {
 
   if (optEmail) settingsToSave.optInEmail = optEmail;
   settingsToSave.optInStatus = optIn ? 'true' : 'false';
+
+  // Match Entry Defaults
+  const defType     = document.getElementById('def-type')?.value     || '';
+  const defSeason   = document.getElementById('def-season')?.value   || '';
+  const defLeague   = document.getElementById('def-league')?.value   || '';
+  const defLevel    = document.getElementById('def-level')?.value    || '';
+  const defSurface  = document.getElementById('def-surface')?.value  || '';
+  const defLocation = document.getElementById('def-location')?.value.trim() || '';
+
+  localStorage.setItem('defaultType',     defType);
+  localStorage.setItem('defaultSeason',   defSeason);
+  localStorage.setItem('defaultLeague',   defLeague);
+  localStorage.setItem('defaultLevel',    defLevel);
+  localStorage.setItem('defaultSurface',  defSurface);
+  localStorage.setItem('defaultLocation', defLocation);
+
+  settingsToSave.defaultType     = defType;
+  settingsToSave.defaultSeason   = defSeason;
+  settingsToSave.defaultLeague   = defLeague;
+  settingsToSave.defaultLevel    = defLevel;
+  settingsToSave.defaultSurface  = defSurface;
+  settingsToSave.defaultLocation = defLocation;
+
+  // Partner defaults by type
+  document.querySelectorAll('[id^="def-partner-"]').forEach(el => {
+    const t   = el.dataset.type;
+    const val = el.value || '';
+    localStorage.setItem('defaultPartner_' + t, val);
+    settingsToSave['defaultPartner_' + t] = val;
+  });
 
   if (urlVal && urlVal !== webAppUrl) {
     webAppUrl = urlVal;
@@ -3891,7 +3999,7 @@ function renderEntry() {
         <div class="entry-pair" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Home / Away</div>
-            <select id="e-homeaway">
+            <select id="e-homeaway" onchange="onEntryHomeAwayChange()">
               <option value="">— Select —</option>
               ${(validEntries.homeaway||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
             </select>
@@ -3957,6 +4065,46 @@ function renderEntry() {
   const today = new Date();
   const y=today.getFullYear(), mo=String(today.getMonth()+1).padStart(2,'0'), d=String(today.getDate()).padStart(2,'0');
   document.getElementById('e-date').value = `${y}-${mo}-${d}`;
+
+  // Apply Match Entry Defaults
+  const defMap = {
+    'e-type':    localStorage.getItem('defaultType')    || '',
+    'e-season':  localStorage.getItem('defaultSeason')  || '',
+    'e-league':  localStorage.getItem('defaultLeague')  || '',
+    'e-level':   localStorage.getItem('defaultLevel')   || '',
+    'e-surface': localStorage.getItem('defaultSurface') || '',
+  };
+  Object.entries(defMap).forEach(([id, val]) => {
+    if (val) { const el = document.getElementById(id); if (el) el.value = val; }
+  });
+  if (defMap['e-type']) onEntryTypeChange();
+  const defHomeAway = localStorage.getItem('defaultHomeAway') || '';
+  if (defHomeAway.toLowerCase() === 'home') {
+    const defLoc = localStorage.getItem('defaultLocation') || '';
+    const locEl  = document.getElementById('e-location');
+    if (defLoc && locEl && !locEl.value) locEl.value = defLoc;
+  }
+  applyDefaultPartner();
+}
+
+function onEntryHomeAwayChange() {
+  const val = document.getElementById('e-homeaway')?.value || '';
+  if (val.toLowerCase() === 'home') {
+    const defLoc = localStorage.getItem('defaultLocation') || '';
+    const locEl  = document.getElementById('e-location');
+    if (defLoc && locEl && !locEl.value) locEl.value = defLoc;
+  }
+}
+
+function applyDefaultPartner() {
+  const typeEl = document.getElementById('e-type');
+  if (!typeEl || !typeEl.value) return;
+  const t = typeEl.value;
+  const defPartner = localStorage.getItem('defaultPartner_' + t) || '';
+  if (defPartner) {
+    const partnerEl = document.getElementById('e-partner');
+    if (partnerEl) partnerEl.value = defPartner;
+  }
 }
 
 
@@ -3984,6 +4132,7 @@ function onEntryTypeChange() {
   // Tab order: disable tabbing into hidden doubles fields
   const doublesInputs = document.querySelectorAll('#e-doubles-fields input, #e-doubles-fields select, #e-opp2-field input, #e-opp2-field select');
   doublesInputs.forEach(el => { el.tabIndex = isDb ? 0 : -1; });
+  applyDefaultPartner();
 }
 function onEntryPlayoffChange() {
   const checked = document.getElementById('e-playoff')?.checked;
