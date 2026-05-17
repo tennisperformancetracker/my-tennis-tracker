@@ -3524,11 +3524,6 @@ async function settingsHandleOptIn() {
   toggle.disabled = true;
   status.textContent = 'Saving…';
   try {
-    await emailjs.send('service_x1ti1ih', 'template_daxwifc', {
-      to_email:  'tennisperformancetracker@gmail.com',
-      opt_email: email, opt_in: 'Yes',
-      opt_date:  new Date().toLocaleString(),
-    });
     fetch('https://script.google.com/macros/s/AKfycbzHCS6BP3zA1EcYt_gi6SeXW2nK905hN0TFFoRagicCCu7N5SQlJNJTaLfp_dvfWBLlng/exec', {
       method: 'POST',
       body: JSON.stringify({ email, optIn: true, date: new Date().toISOString() }),
@@ -3648,18 +3643,20 @@ async function submitContactForm() {
 
   showSaving('Sending…');
   try {
-    const res  = await fetch(webAppUrl, { method: 'POST', body: JSON.stringify({ action: 'contactForm', name, email, type, message }) });
-    const data = await res.json();
+    await emailjs.send('service_x1ti1ih', 'template_xrkd69p', {
+      to_email:     'tennisperformancetracker@gmail.com',
+      from_name:    name,
+      from_email:   email,
+      contact_type: type,
+      message:      message,
+      reply_to:     email,
+    });
     hideSaving();
-    if (data.success) {
-      closeContactModal();
-      showToast('Thank you for contacting Match Tracker Pro! Your message has been successfully sent and is now under review. We\'ll do our best to get back to you within 3–5 business days.');
-    } else {
-      showToast(data.error || 'Failed to send. Please try again.', true);
-    }
+    closeContactModal();
+    showToast('Thank you for contacting Match Tracker Pro! Your message has been successfully sent and is now under review. We\'ll do our best to get back to you within 3–5 business days.');
   } catch(e) {
     hideSaving();
-    showToast('Network error. Please try again.', true);
+    showToast('Something went wrong. Please email us directly at tennisperformancetracker@gmail.com', true);
   }
 }
 
