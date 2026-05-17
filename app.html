@@ -2768,6 +2768,18 @@ async function saveEdit(idx) {
     });
     const data = await res.json();
     if (data.success) {
+      const eu_s1w = parseFloat(updated.set1wins),  eu_s1l = parseFloat(updated.set1losses);
+      const eu_s2w = parseFloat(updated.set2wins),  eu_s2l = parseFloat(updated.set2losses);
+      const eu_s3w = parseFloat(updated.set3wins),  eu_s3l = parseFloat(updated.set3losses);
+      let eu_result = '';
+      if (updated.opponentretired) { eu_result = 'W'; }
+      else if (updated.weretired)  { eu_result = 'L'; }
+      else if (!isNaN(eu_s1w) && !isNaN(eu_s1l)) {
+        const eu_sets = [[eu_s1w,eu_s1l],[eu_s2w,eu_s2l],[eu_s3w,eu_s3l]]
+          .filter(([w,l]) => !isNaN(w) && !isNaN(l))
+          .map(([w,l]) => w > l ? 1 : 0);
+        eu_result = eu_sets.reduce((a,b)=>a+b,0) > eu_sets.length/2 ? 'W' : 'L';
+      }
       allMatches[idx] = { ...allMatches[idx], ...{
         date: dateFormatted, season: updated.season, league: updated.league,
         level: updated.level, type: updated.type, line: updated.line,
@@ -2777,7 +2789,7 @@ async function saveEdit(idx) {
         s1w: updated.set1wins, s1l: updated.set1losses, s2w: updated.set2wins,
         s2l: updated.set2losses, s3w: updated.set3wins, s3l: updated.set3losses,
         oppRet: updated.opponentretired, weRet: updated.weretired,
-        notes: updated.notes
+        result: eu_result, notes: updated.notes
       }};
       hideSaving();
       closeModal();
@@ -4123,7 +4135,26 @@ async function submitEntry() {
         surface:    resolve('surface'),
         time:       get('time'),
       };
-      showAnotherMatchPrompt(keepFields);
+      requestAnimationFrame(() => {
+        const fields = {
+          'e-type':     keepFields.type,
+          'e-season':   keepFields.season,
+          'e-league':   keepFields.league,
+          'e-level':    keepFields.level,
+          'e-line':     keepFields.line,
+          'e-homeaway': keepFields.homeaway,
+          'e-surface':  keepFields.surface,
+          'e-time':     keepFields.time,
+        };
+        Object.entries(fields).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (el && val) el.value = val;
+        });
+        onEntryTypeChange();
+        const today = new Date();
+        const dateEl = document.getElementById('e-date');
+        if (dateEl) dateEl.value = today.toISOString().split('T')[0];
+      });
     } else {
       hideSaving();
       showToast(data.error||'Submission failed', true);
