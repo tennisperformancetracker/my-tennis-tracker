@@ -3362,7 +3362,7 @@ function renderSettings() {
         </div>
 
         <!-- Legend + bar + inputs all in one inline block -->
-        <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:8px;width:100%">
+        <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:8px">
           <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
             <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
             <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
@@ -3423,7 +3423,8 @@ function renderSettings() {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
 
           <!-- Left: field defaults -->
-          <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
             <div class="field">
               <div class="field-label">Default Type</div>
               <select id="def-type">
@@ -3470,8 +3471,8 @@ function renderSettings() {
           </div>
 
           <!-- Right: partner defaults by type -->
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Default Partner by Match Type</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
             ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
               ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
                   const key   = 'defaultPartner_' + t;
