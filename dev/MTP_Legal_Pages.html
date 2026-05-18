@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match Tracker Pro - Privacy Policy and TOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:      #2f4157;
+    --navy2:     #1e2d3d;
+    --navy3:     #243345;
+    --slate:     #6385a2;
+    --slate-l:   #a8c4d8;
+    --bg:        #eef2f7;
+    --surface:   #ffffff;
+    --surface2:  #f4f7fb;
+    --border:    #d6e2ec;
+    --text:      #1e2d3d;
+    --muted:     #7a97b0;
+    --green:     #2e7d52;
+    --green-l:   #7ecba1;
+    --green-bg:  #e8f5ee;
+    --accent:    #4a90b8;
+    --shadow:    0 1px 4px rgba(47,65,87,0.08);
+    --radius:    6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 20px;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--navy);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .header-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .wordmark {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+  }
+  .wordmark span { color: var(--green-l); }
+
+  nav { display: flex; gap: 4px; }
+
+  nav button {
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--slate-l);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  nav button:hover { color: #fff; background: rgba(255,255,255,0.08); }
+  nav button.active { color: var(--navy2); background: var(--green-l); }
+
+  .hero {
+    background: var(--navy2);
+    border-bottom: 1px solid rgba(99,133,162,0.2);
+    padding: 2.5rem 2rem;
+  }
+  .hero-inner { max-width: 800px; margin: 0 auto; }
+  .hero-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--green-l);
+    margin-bottom: 8px;
+  }
+  .hero-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .hero-meta {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--slate-l);
+    font-style: italic;
+  }
+
+  main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 5rem;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .callout {
+    background: var(--green-bg);
+    border: 1px solid #b5dfc6;
+    border-left: 4px solid var(--green);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .callout p { font-size: 13px; font-weight: 500; color: var(--green); margin: 0; }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 26px;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .toc-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--slate);
+    margin-bottom: 14px;
+  }
+  .toc ol {
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 2.2;
+    margin: 0;
+  }
+  .toc ol li a {
+    color: var(--navy);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: none;
+  }
+  .toc ol li a:hover { color: var(--slate); text-decoration: underline; }
+
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+  }
+
+  .section-card h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-card h2::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--green);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.85;
+    margin-bottom: 0.65rem;
+  }
+  p:last-child { margin-bottom: 0; }
+  p strong { font-weight: 600; color: var(--navy); }
+
+  ul { padding-left: 1.1rem; margin-bottom: 0.65rem; }
+  ul:last-child { margin-bottom: 0; }
+  ul li {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.85;
+    margin-bottom: 0.2rem;
+  }
+
+  a { color: var(--accent); text-decoration: none; font-weight: 400; border-bottom: 1px solid rgba(74,144,184,0.3); transition: border-color 0.15s; }
+  a:hover { border-bottom-color: var(--accent); }
+
+  .contact-block {
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.75rem;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .contact-block-left {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--slate-l);
+  }
+  .contact-block a { font-size: 13px; font-weight: 500; color: var(--green-l); border-bottom-color: rgba(126,203,161,0.3); }
+  .contact-block a:hover { border-bottom-color: var(--green-l); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="wordmark" href="#">Match Tracker <span>Pro</span></a>
+    <nav>
+      <button class="active" onclick="show('privacy', this)">Privacy</button>
+      <button onclick="show('terms', this)">Terms</button>
+      <button onclick="show('disclaimer', this)">Disclaimer</button>
+    </nav>
+  </div>
+</header>
+
+
+<!-- ══ PRIVACY POLICY ══ -->
+<div id="privacy" class="page active">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">Legal · Privacy Policy</div>
+      <div class="hero-title">Your data stays yours.</div>
+      <div class="hero-meta">Effective date: May 12, 2026 &nbsp;·&nbsp; Match Tracker Pro</div>
+    </div>
+  </div>
+  <main>
+    <div class="callout">
+      <p>Plain English: we only collect your email if you choose to give it to us. We never see, access, or store your match data — it lives entirely in your own Google Sheet.</p>
+    </div>
+    <div class="toc">
+      <div class="toc-label">Contents</div>
+      <ol>
+        <li><a href="#p-collect">What we collect</a></li>
+        <li><a href="#p-sheet">Your Google Sheet data</a></li>
+        <li><a href="#p-use">How we use your email</a></li>
+        <li><a href="#p-send">How we send emails</a></li>
+        <li><a href="#p-rights">Your rights</a></li>
+        <li><a href="#p-children">Children's privacy</a></li>
+        <li><a href="#p-changes">Changes to this policy</a></li>
+      </ol>
+    </div>
+    <div class="section-card" id="p-collect">
+      <h2>What we collect</h2>
+      <p>Match Tracker Pro collects only one type of personal information: your <strong>email address</strong>, and only if you voluntarily opt in to receive product updates.</p>
+      <p>We do not collect any other personal information. We do not use cookies, analytics tools, or tracking pixels of any kind.</p>
+    </div>
+    <div class="section-card" id="p-sheet">
+      <h2>Your Google Sheet data</h2>
+      <p>Match Tracker Pro connects to a Google Sheet that you own and control. <strong>We do not access, read, store, or transmit any data from your Google Sheet.</strong> All of your match tracking data remains in your Google account and is subject to <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a>.</p>
+    </div>
+    <div class="section-card" id="p-use">
+      <h2>How we use your email</h2>
+      <p>If you opt in, we use your email address solely to send occasional product updates and announcements about Match Tracker Pro. We will never:</p>
+      <ul>
+        <li>Sell or share your email with third parties</li>
+        <li>Send you marketing from other companies</li>
+        <li>Use your email for any purpose other than product updates</li>
+      </ul>
+    </div>
+    <div class="section-card" id="p-send">
+      <h2>How we send emails</h2>
+      <p>Updates are sent manually by the Match Tracker Pro team from <strong>TennisPerformanceTracker@gmail.com</strong>. We do not use bulk email platforms or marketing automation services.</p>
+    </div>
+    <div class="section-card" id="p-rights">
+      <h2>Your rights</h2>
+      <p>You can unsubscribe from updates at any time by replying to any update email and asking to be removed. We will delete your email address promptly upon request.</p>
+      <p>If you are located in the European Economic Area (EEA) or United Kingdom, you have additional rights under GDPR, including the right to access, correct, or delete your personal data. Contact us at the address below to exercise these rights.</p>
+    </div>
+    <div class="section-card" id="p-children">
+      <h2>Children's privacy</h2>
+      <p>Match Tracker Pro is not directed at children under 13. We do not knowingly collect personal information from children.</p>
+    </div>
+    <div class="section-card" id="p-changes">
+      <h2>Changes to this policy</h2>
+      <p>If we make material changes to this policy, we will notify opt-in subscribers by email before the changes take effect.</p>
+    </div>
+    <div class="contact-block">
+      <div class="contact-block-left">Questions about your privacy?</div>
+      <a href="mailto:TennisPerformanceTracker@gmail.com">TennisPerformanceTracker@gmail.com</a>
+    </div>
+  </main>
+</div>
+
+
+<!-- ══ TERMS OF SERVICE ══ -->
+<div id="terms" class="page">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">Legal · Terms of Service</div>
+      <div class="hero-title">Know the rules. They're short.</div>
+      <div class="hero-meta">Effective date: May 12, 2026 &nbsp;·&nbsp; Match Tracker Pro</div>
+    </div>
+  </div>
+  <main>
+    <div class="toc">
+      <div class="toc-label">Contents</div>
+      <ol>
+        <li><a href="#t-what">What Match Tracker Pro is</a></li>
+        <li><a href="#t-responsibilities">Your responsibilities</a></li>
+        <li><a href="#t-data">Your data</a></li>
+        <li><a href="#t-use">Acceptable use</a></li>
+        <li><a href="#t-ip">Intellectual property</a></li>
+        <li><a href="#t-warranty">No warranty</a></li>
+        <li><a href="#t-liability">Limitation of liability</a></li>
+        <li><a href="#t-third-party">Third-party services</a></li>
+        <li><a href="#t-changes">Changes to the app or terms</a></li>
+        <li><a href="#t-law">Governing law</a></li>
+      </ol>
+    </div>
+    <div class="section-card" id="t-what">
+      <h2>What Match Tracker Pro is</h2>
+      <p><em>Match Tracker Pro is a software product owned and operated by <strong>David W Cole</strong>, an individual doing business as Match Tracker Pro.</em></p>
+      <p>Match Tracker Pro is a web application that uses a Google Sheet you own to help you track tennis match data. The app is a frontend interface; all data is stored in your own Google account.</p>
+    </div>
+    <div class="section-card" id="t-responsibilities">
+      <h2>Your responsibilities</h2>
+      <p>To use Match Tracker Pro, you are responsible for:</p>
+      <ul>
+        <li>Maintaining your own Google account and Google Sheet</li>
+        <li>Keeping your Google account credentials secure</li>
+        <li>Ensuring your use complies with <a href="https://policies.google.com/terms" target="_blank">Google's Terms of Service</a></li>
+        <li>Any data you enter into your Google Sheet</li>
+      </ul>
+    </div>
+    <div class="section-card" id="t-data">
+      <h2>Your data</h2>
+      <p>Because your data is stored in a Google Sheet you own, <strong>you retain full ownership and control of your data at all times.</strong> We do not access, back up, or manage your Google Sheet.</p>
+      <p>You are solely responsible for backing up your data. We are not liable for any data loss in your Google Sheet, whether caused by user error, Google service issues, or any other reason.</p>
+    </div>
+    <div class="section-card" id="t-use">
+      <h2>Acceptable use</h2>
+      <p>You agree not to use Match Tracker Pro to:</p>
+      <ul>
+        <li>Violate any applicable law or regulation</li>
+        <li>Interfere with or disrupt the app or its infrastructure</li>
+        <li>Attempt to gain unauthorized access to any systems</li>
+      </ul>
+    </div>
+    <div class="section-card" id="t-ip">
+      <h2>Intellectual property</h2>
+      <p>Match Tracker Pro — including its code, design, interface, branding, and all associated content — is the exclusive intellectual property of Match Tracker Pro and is protected by applicable copyright, trademark, and intellectual property laws.</p>
+      <p>You are granted a limited, personal, non-exclusive, non-transferable licence to use the app for your own private, non-commercial purposes. You may not:</p>
+      <ul>
+        <li>Copy, reproduce, or duplicate any part of the app or its code</li>
+        <li>Modify, adapt, or create derivative works based on the app</li>
+        <li>Distribute, sublicense, sell, or resell the app or any portion of it</li>
+        <li>Use the app's design, branding, or functionality to build a competing product</li>
+      </ul>
+      <p>Unauthorised use of Match Tracker Pro's intellectual property constitutes a material breach of these Terms and may result in legal action, including claims for financial damages and injunctive relief.</p>
+    </div>
+    <div class="section-card" id="t-warranty">
+      <h2>No warranty</h2>
+      <p>Match Tracker Pro is provided <strong>"as is"</strong> without warranties of any kind, express or implied. We do not guarantee that the app will be error-free, uninterrupted, or suitable for any particular purpose.</p>
+    </div>
+    <div class="section-card" id="t-liability">
+      <h2>Limitation of liability</h2>
+      <p>To the maximum extent permitted by law, Match Tracker Pro and its creators are not liable for any indirect, incidental, or consequential damages arising from your use of the app, including but not limited to: data loss, Google service outages, errors in match data, or inability to access the app.</p>
+    </div>
+    <div class="section-card" id="t-third-party">
+      <h2>Third-party services</h2>
+      <p>Match Tracker Pro relies on Google Sheets, a service provided by Google. We are not affiliated with or endorsed by Google. Availability of Match Tracker Pro may be affected by changes to Google's services or policies, for which we are not responsible.</p>
+    </div>
+    <div class="section-card" id="t-changes">
+      <h2>Changes to the app or terms</h2>
+      <p>We reserve the right to modify or discontinue Match Tracker Pro at any time, with or without notice. We may also update these terms occasionally. Continued use of the app after changes constitutes acceptance of the updated terms.</p>
+    </div>
+    <div class="section-card" id="t-law">
+      <h2>Governing law</h2>
+      <p>These terms are governed by the laws of the State of Georgia, United States, without regard to its conflict of law provisions.</p>
+    </div>
+    <div class="contact-block">
+      <div class="contact-block-left">Questions about these terms?</div>
+      <a href="mailto:TennisPerformanceTracker@gmail.com">TennisPerformanceTracker@gmail.com</a>
+    </div>
+  </main>
+</div>
+
+
+<!-- ══ DISCLAIMER ══ -->
+<div id="disclaimer" class="page">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">Legal · Disclaimer</div>
+      <div class="hero-title">Provided as-is. No surprises.</div>
+      <div class="hero-meta">Effective date: May 12, 2026 &nbsp;·&nbsp; Match Tracker Pro</div>
+    </div>
+  </div>
+  <main>
+    <div class="toc">
+      <div class="toc-label">Contents</div>
+      <ol>
+        <li><a href="#d-general">General use</a></li>
+        <li><a href="#d-advice">No professional advice</a></li>
+        <li><a href="#d-accuracy">Data accuracy</a></li>
+        <li><a href="#d-google">Dependency on Google services</a></li>
+        <li><a href="#d-asis">As-is provision</a></li>
+        <li><a href="#d-liability">Limitation of liability</a></li>
+        <li><a href="#d-links">External links</a></li>
+      </ol>
+    </div>
+    <div class="section-card" id="d-general">
+      <h2>General use</h2>
+      <p>Match Tracker Pro is a personal productivity tool designed to help recreational tennis players organize their match data. It is provided for informational and organizational purposes only.</p>
+    </div>
+    <div class="section-card" id="d-advice">
+      <h2>No professional advice</h2>
+      <p>Nothing in Match Tracker Pro constitutes professional coaching, medical, fitness, or sports performance advice. Any insights, statistics, or trends surfaced by the app are based solely on data you enter and should not be relied upon as a substitute for qualified professional guidance.</p>
+    </div>
+    <div class="section-card" id="d-accuracy">
+      <h2>Data accuracy</h2>
+      <p>Match Tracker Pro displays and processes data as entered by you. <strong>We make no representations about the accuracy, completeness, or fitness for purpose of any data, calculations, or outputs produced by the app.</strong> You are responsible for verifying the accuracy of the data you enter.</p>
+    </div>
+    <div class="section-card" id="d-google">
+      <h2>Dependency on Google services</h2>
+      <p>Match Tracker Pro depends on Google Sheets and related Google services. We have no control over the availability, performance, or continuity of Google's services. We are not responsible for any loss of access or data resulting from Google service outages, changes to Google's APIs, or modifications to Google's terms of service.</p>
+    </div>
+    <div class="section-card" id="d-asis">
+      <h2>"As is" provision</h2>
+      <p>Match Tracker Pro is provided on an "as is" and "as available" basis. We expressly disclaim all warranties, whether express, implied, statutory, or otherwise, including any implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
+    </div>
+    <div class="section-card" id="d-liability">
+      <h2>Limitation of liability</h2>
+      <p>In no event shall Match Tracker Pro or its creators be liable for any direct, indirect, incidental, special, or consequential damages of any kind, including loss of data, revenue, or profits, arising out of or in connection with your use of the app.</p>
+    </div>
+    <div class="section-card" id="d-links">
+      <h2>External links</h2>
+      <p>The app may reference third-party websites or services such as Google. We are not responsible for the content, privacy practices, or availability of any third-party sites.</p>
+    </div>
+    <div class="contact-block">
+      <div class="contact-block-left">Questions?</div>
+      <a href="mailto:TennisPerformanceTracker@gmail.com">TennisPerformanceTracker@gmail.com</a>
+    </div>
+  </main>
+</div>
+
+
+<footer style="background:var(--navy2);border-top:1px solid rgba(99,133,162,0.2);padding:1.25rem 2rem;text-align:center;">
+  <p style="font-size:12px;font-weight:400;color:var(--slate-l);margin:0;letter-spacing:0.3px;">© 2026 Match Tracker Pro. All rights reserved.</p>
+</footer>
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    const target = document.querySelector(link.getAttribute('href'));
+    if (!target) return;
+    e.preventDefault();
+    const offset = 70;
+    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>
