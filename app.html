@@ -3947,8 +3947,8 @@ function renderEntry() {
 
         <!-- Retired toggles -->
         <div style="margin-top:10px">
-          <div class="toggle-row"><span class="toggle-row-label">Opponent Retired</span><label class="form-toggle"><input type="checkbox" id="e-opp-ret" onchange="onEntryRetiredChange()"><span class="form-toggle-slider"></span></label></div>
-          <div class="toggle-row"><span class="toggle-row-label">I / We Retired</span><label class="form-toggle"><input type="checkbox" id="e-we-ret" onchange="onEntryRetiredChange()"><span class="form-toggle-slider"></span></label></div>
+          <div class="toggle-row"><span class="toggle-row-label">Opponent Retired</span><label class="form-toggle"><input type="checkbox" id="e-opp-ret" onchange="onRetireToggle('opp');onEntryRetiredChange()"><span class="form-toggle-slider"></span></label></div>
+          <div class="toggle-row"><span class="toggle-row-label">I / We Retired</span><label class="form-toggle"><input type="checkbox" id="e-we-ret" onchange="onRetireToggle('we');onEntryRetiredChange()"><span class="form-toggle-slider"></span></label></div>
         </div>
       </div>
 
@@ -4112,6 +4112,13 @@ function applyDefaultPartner() {
   }
 }
 
+function onRetireToggle(which) {
+  if (which === 'opp' && document.getElementById('e-opp-ret')?.checked) {
+    document.getElementById('e-we-ret').checked = false;
+  } else if (which === 'we' && document.getElementById('e-we-ret')?.checked) {
+    document.getElementById('e-opp-ret').checked = false;
+  }
+}
 
 function onEntryTypeChange() {
   const type = document.getElementById('e-type')?.value.toLowerCase() || '';
