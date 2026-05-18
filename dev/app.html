@@ -2300,16 +2300,15 @@ function buildHistoryResults(filtered, sortOrder) {
     // Mobile: closed by default. Desktop: open by default.
     var bodyStyle = isMob
       ? 'display:none;padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;'
-      : 'padding:0 14px 0;';
-    var chevron = isMob ? '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted)">▼</span>' : '';
+      : 'display:block;padding:0 14px 0;';
+    var chevron = isMob ? '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted);margin-left:6px">▼</span>' : '';
     var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
       + (isMob ? 'background:var(--surface2);cursor:pointer;user-select:none;' : '');
     var hdrOnclick = isMob ? ' onclick="toggleHistCard(\'' + id + '\')"' : '';
     // On mobile, hide rightExtra when card is collapsed; wrap it in a hideable span
+    var ctrlDisplay = isMob ? 'none' : 'inline-flex';
     var rightExtraHtml = rightExtra
-      ? (isMob
-          ? '<span id="' + id + '-ctrl" style="display:none" onclick="event.stopPropagation()">' + rightExtra + '</span>'
-          : rightExtra)
+      ? '<span id="' + id + '-ctrl" style="display:' + ctrlDisplay + '" onclick="event.stopPropagation()">' + rightExtra + '</span>'
       : '';
     return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
       + '<div' + hdrOnclick + ' style="' + hdrStyle + '">'
