@@ -3242,8 +3242,9 @@ function veCancelRename() {
 
 function veTriggerDelete(field, value) {
   vePendingDelete = {field, value};
+  const label = VE_FIELD_ORDER.find(f => f.key === field)?.label || field;
   document.getElementById('ve-confirm-delete-body').innerHTML =
-    `Delete <strong style="display:inline-block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:bottom" title="${escHtml(val)}">"${escHtml(val)}"</strong> from ${label}? <br><br>Existing matches using this value won't be affected.`;
+    `Delete <strong style="display:inline-block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:bottom" title="${escHtml(value)}">"${escHtml(value)}"</strong> from ${label}? <br><br>Existing matches using this value won't be affected.`;
   document.getElementById('ve-confirm-delete').classList.add('visible');
 }
 
