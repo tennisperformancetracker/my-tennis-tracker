@@ -2302,7 +2302,7 @@ function buildHistoryResults(filtered, sortOrder) {
       ? 'display:none;padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;'
       : 'display:block;padding:0 14px 0;';
     var chevron = isMob ? '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted);margin-left:6px">▼</span>' : '';
-    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
+    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);'
       + (isMob ? 'background:var(--surface2);cursor:pointer;user-select:none;' : '');
     var hdrOnclick = isMob ? ' onclick="toggleHistCard(\'' + id + '\')"' : '';
     // On mobile, hide rightExtra when card is collapsed; wrap it in a hideable span
@@ -2342,7 +2342,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + minOpts + '</select></div>';
 
   var card3Body =
-      '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-top:0;margin-bottom:8px;word-break:break-word;border-top:1px solid var(--border);padding-top:8px">' + partnerText + '</div>'
+      '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-top:0;margin-bottom:8px;word-break:break-word;">' + partnerText + '</div>'
     + partnerListHtml;
 
   var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
