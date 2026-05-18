@@ -2342,7 +2342,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + minOpts + '</select></div>';
 
   var card3Body =
-      '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-bottom:8px;word-break:break-word;">' + partnerText + '</div>'
+      '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-top:4px;margin-bottom:4px;word-break:break-word;">' + partnerText + '</div>'
     + partnerListHtml;
 
   var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
@@ -2927,10 +2927,9 @@ async function saveEdit(idx) {
 // 
 const VE_FIELD_LABELS = {
   partner:'Partners', season:'Seasons', league:'Leagues', level:'Levels',
-  type:'Match Types', line:'Lines', homeaway:'Home / Away',
-  surface:'Surfaces', playoffround:'Playoff Rounds'
+  type:'Match Types', line:'Lines', surface:'Surfaces'
 };
-const VE_FIELD_ORDER = ['partner','type','league','season','level','line','homeaway','surface','playoffround'];
+const VE_FIELD_ORDER = ['partner','type','league','season','level','line','surface'];
 let veEntries    = {};
 let veThresholds = { great: 55, poor: 45 };
 let vePendingDelete = null;
