@@ -3052,7 +3052,7 @@ function buildItem(field, v, i, firstInExtra) {
         <ul class="ve-list">${visible || '<li style="font-size:12px;color:var(--muted);padding:6px 0">No entries yet</li>'}</ul>
         ${expandRow}
         <div class="ve-add-row" style="margin-top:auto;padding-top:8px">
-          <input type="text" class="ve-add-input" id="ve-add-${field}" placeholder="Add new&hellip;"
+          <input type="text" class="ve-add-input" id="ve-add-${field}" placeholder="${field === 'partner' ? 'First Last' : 'Add new\u2026'}"
             onkeydown="if(event.key==='Enter') veAddEntry('${field}')">
           <button class="ve-add-btn" onclick="veAddEntry('${field}')">+ Add</button>
         </div>
@@ -3570,7 +3570,7 @@ function renderSettings() {
                   <div class="field-label">Default Level</div>
                   <select id="def-level">
                     <option value="">— None —</option>
-                    ${(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+                    ${sortedLevels(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
                   </select>
                 </div>
                 <div class="field">
