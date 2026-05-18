@@ -2302,7 +2302,7 @@ function buildHistoryResults(filtered, sortOrder) {
       ? 'display:none;padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;'
       : 'display:block;padding:0 14px 0;';
     var chevron = isMob ? '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted);margin-left:6px">▼</span>' : '';
-    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
+    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;'
       + (isMob ? 'background:var(--surface2);cursor:pointer;user-select:none;' : '');
     var hdrOnclick = isMob ? ' onclick="toggleHistCard(\'' + id + '\')"' : '';
     // On mobile, hide rightExtra when card is collapsed; wrap it in a hideable span
