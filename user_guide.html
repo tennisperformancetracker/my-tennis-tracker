@@ -692,7 +692,7 @@
       <li><a href="#match-history">Match History</a> <span>Search, filter, and analyze your record</span></li>
       <li><a href="#match-entry">Match Entry</a> <span>Logging every match, every detail</span></li>
       <li><a href="#valid-entries">Valid Entries</a> <span>Managing dropdown lists</span></li>
-      <li><a href="#settings">Settings</a> <span>Thresholds, breakdown categories, notifications &amp; connection</span></li>
+      <li><a href="#settings">Settings</a> <span>Display, Match History, Match Entry, notifications &amp; connection</span></li>
       <li><a href="#importing-matches">Importing Matches</a> <span>Bringing in data from another spreadsheet</span></li>
     </ol>
   </div>
@@ -1185,17 +1185,39 @@
   </div>
 
   <p class="section-intro">
-    The Settings page is where you personalize how Match Tracker Pro behaves across the entire app. It covers four areas: how win percentages are color-coded, which categories appear in your Performance Breakdown, update notifications, and your Google Sheet connection. Changes here affect every page — click the <strong>Save Settings</strong> button at the top-right corner when you're done. Nothing persists until you save.
+    The Settings page is where you personalize how Match Tracker Pro looks and behaves across the entire app. Settings are organized into four sections — click any section header to expand it. Settings sync to your Google Sheet so they carry over across your devices automatically.
   </p>
 
   <div class="page-label">
     <span>⚙️</span> Settings Page
   </div>
 
-  <!-- PERFORMANCE THRESHOLDS -->
+  <!-- DISPLAY -->
   <div class="card">
-    <div class="card-title">Performance Thresholds</div>
-    <p>Controls how win percentages are color-coded throughout the app — on the Dashboard, in Match History, and anywhere a win percentage appears. Set your <strong>Great Threshold</strong> (the minimum % to display in green) and your <strong>Poor Threshold</strong> (the ceiling below which a % displays in red). Anything between the two values shows in orange. A live preview bar updates as you type so you can see the color split in real time before saving.</p>
+    <div class="card-title">Display</div>
+    <p>Controls visual preferences that affect how information appears throughout the entire app.</p>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:18px 0 8px">Partner Name Format</h4>
+    <p>Choose how partner names appear on the Dashboard, in Match History, and in the Partner Performance card. The full name is always preserved as a tooltip — the format setting only controls how names are displayed in the app.</p>
+
+    <table class="field-table" style="margin-top:10px">
+      <thead>
+        <tr><th>Format</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>First Last</td><td>Thomas Bennett</td></tr>
+        <tr><td>Last, First</td><td>Bennett, Thomas</td></tr>
+        <tr><td>First, Last Initial <em style="color:var(--slate);font-size:11px">(default)</em></td><td>Thomas B.</td></tr>
+        <tr><td>First Initial, Last</td><td>T. Bennett</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note note-tip" style="margin-top:14px">
+      <strong>First, Last Initial</strong> is the default and works well when you have many partners with long names — it keeps the names compact without losing readability.
+    </div>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:24px 0 8px">Performance Thresholds</h4>
+    <p>Controls how win percentages are color-coded throughout the app — on the Dashboard, in Match History, and anywhere a win percentage appears. Set your <strong>Great Threshold</strong> (the minimum % to display in green) and your <strong>Poor Threshold</strong> (the ceiling below which a % displays in red). Anything between the two values shows in orange. A live preview bar updates as you type so you can see the color split before saving.</p>
 
     <div class="threshold-row">
       <div class="threshold-pill pill-green">Great (Green) ≥ 55%</div>
@@ -1210,17 +1232,20 @@
     </div>
   </div>
 
-  <!-- PERFORMANCE BREAKDOWN CATEGORIES -->
+  <!-- MATCH HISTORY -->
   <div class="card">
-    <div class="card-title">Performance Breakdown Categories</div>
-    <p>Controls which categories appear in the Performance Breakdown table on Match History. There are 13 available categories and you can enable up to <strong>6 at a time</strong>. Toggle each on or off using the switches — a counter at the bottom of the panel shows how many are currently enabled. Once you hit 6, additional toggles are blocked until you turn one off.</p>
+    <div class="card-title">Match History</div>
+    <p>Controls how the Match History page displays your data.</p>
 
-    <table class="field-table">
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:18px 0 8px">Matches Per Page</h4>
+    <p>Choose how many matches appear per page in Match History — <strong>10</strong>, <strong>25</strong>, or <strong>50</strong>. The default is 25. If you have a large match history and prefer to scroll less, 50 shows more at once. If you prefer a tighter, faster-loading list, 10 keeps things compact.</p>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:24px 0 8px">Performance Breakdown Categories</h4>
+    <p>Controls which categories appear in the Performance Breakdown card on Match History. There are 13 available categories and you can enable up to <strong>6 at a time</strong>. Toggle each on or off — a counter at the bottom shows how many are currently enabled. Once you hit 6, additional toggles are blocked until you turn one off.</p>
+
+    <table class="field-table" style="margin-top:10px">
       <thead>
-        <tr>
-          <th>Category</th>
-          <th>What It Tracks</th>
-        </tr>
+        <tr><th>Category</th><th>What It Tracks</th></tr>
       </thead>
       <tbody>
         <tr><td>Matches</td><td>Overall win/loss record and win percentage.</td></tr>
@@ -1233,28 +1258,57 @@
         <tr><td>Night</td><td>Performance in night matches.</td></tr>
         <tr><td>2-Set Matches</td><td>Record in two-set matches.</td></tr>
         <tr><td>3-Set Matches</td><td>Record in three-set matches.</td></tr>
-        <tr><td>Tiebreaks</td><td>Win/loss record in all tiebreaks played.</td></tr>
+        <tr><td>Tiebreaks</td><td>Record in all tiebreaks played.</td></tr>
         <tr><td>Close Matches</td><td>Matches decided by a tight margin.</td></tr>
         <tr><td>Playoffs</td><td>Record specifically in playoff-designated matches.</td></tr>
       </tbody>
     </table>
 
-    <div class="note note-tip">
-      <strong>Choose the categories most relevant to your game.</strong> If you only play day matches, Morning/Afternoon/Night may not be useful to you; however, you may want to focus on if you play better at home or on the road. If clutch performance is a big focus, you may want to enable Tiebreaks, Close Matches, and Playoffs.
+    <div class="note note-tip" style="margin-top:14px">
+      <strong>Choose the categories most relevant to your game.</strong> If you only play day matches, Morning/Afternoon/Night may not be useful — but Home vs Away or Tiebreaks might tell you a lot. If clutch performance matters to you, try enabling Tiebreaks, Close Matches, and Playoffs together.
     </div>
   </div>
 
-  <!-- UPDATE NOTIFICATIONS -->
+  <!-- MATCH ENTRY -->
   <div class="card">
-    <div class="card-title">Update Notifications</div>
-    <p>Opt in to receive occasional emails when new features are released. Enter your email address in the field and toggle <strong>Opt in to receive updates</strong> on. This is entirely optional and free — no account required.</p>
-    <p>Your current opt-in status is shown beneath the toggle: either <strong>✓ Opted in</strong> or <strong>Not opted in</strong>. To opt out at any time, return to this page, toggle it off, and save.</p>
+    <div class="card-title">Match Entry</div>
+    <p>Controls default values that pre-fill fields in Match Entry to save time when logging matches.</p>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:18px 0 8px">General Defaults</h4>
+    <p>Set a default value for any of the following fields. When you open Match Entry, these fields will be pre-selected automatically. Any field left blank will simply show no pre-selection.</p>
+
+    <table class="field-table" style="margin-top:10px">
+      <thead>
+        <tr><th>Field</th><th>What It Does</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Default Type</td><td>Pre-selects the match type (e.g. Men's Doubles).</td></tr>
+        <tr><td>Default Season</td><td>Pre-selects the season (e.g. Spring).</td></tr>
+        <tr><td>Default League</td><td>Pre-selects the league (e.g. ALTA).</td></tr>
+        <tr><td>Default Level</td><td>Pre-selects the level (e.g. A-8).</td></tr>
+        <tr><td>Default Surface</td><td>Pre-selects the surface (e.g. Hard - Outdoor).</td></tr>
+        <tr><td>Default Home Location</td><td>Auto-fills the Location field whenever Home / Away is set to Home.</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:24px 0 8px">Default Partner by Match Type</h4>
+    <p>For each doubles or mixed match type in your Valid Entries, you can set a default partner that will be pre-selected when that type is chosen during match entry. This is especially useful if you primarily play with the same partner for a given league or season.</p>
+
+    <div class="note note-tip" style="margin-top:14px">
+      <strong>Defaults speed up entry but never lock you in.</strong> You can always change any pre-filled value before submitting a match.
+    </div>
   </div>
 
-  <!-- GOOGLE SHEET CONNECTION -->
+  <!-- GENERAL -->
   <div class="card">
-    <div class="card-title">Google Sheet Connection</div>
-    <p>Displays your current Google Apps Script Web App URL — the link that connects Match Tracker Pro to your Google Sheet. You shouldn't need to change this after initial setup, but if you ever redeploy your Apps Script (for example, if you move to a new spreadsheet or need to reauthorize access), paste the updated URL here and save. The app will reconnect and reload your data automatically.</p>
+    <div class="card-title">General</div>
+    <p>Houses notification preferences and your Google Sheet connection settings.</p>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:18px 0 8px">Update Notifications</h4>
+    <p>Opt in to receive occasional emails when new features are released. Enter your email address and toggle <strong>Opt in to receive updates</strong> on. This is entirely optional and free — no account required. Your current opt-in status is shown beneath the toggle: either <strong>✓ Opted in</strong> or <strong>Not opted in</strong>. To opt out at any time, return to this section, toggle it off, and the change is immediate.</p>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:24px 0 8px">Google Sheet Connection</h4>
+    <p>Displays your current Google Apps Script Web App URL — the link that connects Match Tracker Pro to your Google Sheet. You shouldn't need to change this after initial setup, but if you ever redeploy your Apps Script (for example, if you move to a new spreadsheet or need to reauthorize access), paste the updated URL here and tap <strong>Save</strong>. The app will reconnect and reload your data automatically.</p>
 
     <div class="note">
       <strong>Not sure if your URL is still valid?</strong> If the app stops loading data or shows connection errors, this is the first place to check. A valid URL always starts with <code style="background:var(--light-blue);color:var(--navy);padding:1px 6px;border-radius:4px;font-family:'Courier New',monospace;font-size:12px">https://script.google.com/macros/s/</code> and ends with <code style="background:var(--light-blue);color:var(--navy);padding:1px 6px;border-radius:4px;font-family:'Courier New',monospace;font-size:12px">/exec</code>.
