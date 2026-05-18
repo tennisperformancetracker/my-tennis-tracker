@@ -2281,7 +2281,7 @@ function buildHistoryResults(filtered, sortOrder) {
   var partnerListHtml = '';
   if (pQual.length >= 1) {
     var sorted = pQual.slice().sort((a,b) => b.pv - a.pv).slice(0,5);
-    partnerListHtml = '<div style="border-top:1px solid var(--border);padding-top:8px">'
+    partnerListHtml = '<div style="border-top:1px solid var(--border);padding-top:4px">'
       + sorted.map(function(p) {
           return '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:12px;min-width:0;">'
             + '<span class="tip" data-tip="' + p.n + '" style="color:var(--label);min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.n + '</span>'
