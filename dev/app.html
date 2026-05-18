@@ -3359,208 +3359,269 @@ function renderSettings() {
   }
 
   content.innerHTML = `
-    <div style="max-width:820px;display:flex;flex-direction:column;gap:20px">
+    <style>
+      .settings-section { background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden; }
+      .settings-section-hdr { display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;gap:12px; }
+      .settings-section-hdr:hover { background:var(--surface2); }
+      .settings-section-hdr-left { display:flex;flex-direction:column;gap:3px;flex:1;min-width:0; }
+      .settings-section-label { font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:1px; }
+      .settings-section-title { font-size:15px;font-weight:700;color:var(--text); }
+      .settings-section-desc { font-size:12px;color:var(--muted);line-height:1.5;margin-top:2px; }
+      .settings-section-chev { font-size:11px;color:var(--muted);flex-shrink:0;transition:transform 0.2s; }
+      .settings-section-chev.open { transform:rotate(180deg); }
+      .settings-section-body { display:none;padding:0 20px 20px;border-top:1px solid var(--border); }
+      .settings-section-body.open { display:block; }
+      .settings-save-btn { background:#e8f0f7;color:#3b6ea8;border:1px solid #c2d3ef;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;padding:9px 22px;cursor:pointer;transition:background 0.15s; }
+      .settings-save-btn:hover { background:#dce8f4; }
+      .settings-save-btn:disabled { opacity:0.6;cursor:not-allowed; }
+    </style>
+    <div style="max-width:820px;display:flex;flex-direction:column;gap:12px">
 
-      <!-- ── Performance Thresholds ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Performance Thresholds</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
-          Controls how win percentages are color-coded across the app.
+      <!-- ── APPEARANCE ── -->
+      <div class="settings-section">
+        <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-appearance')">
+          <div class="settings-section-hdr-left">
+            <div class="settings-section-label">Appearance</div>
+            <div class="settings-section-title">Performance Thresholds</div>
+            <div class="settings-section-desc">Controls how win percentages are color-coded across the app.</div>
+          </div>
+          <span class="settings-section-chev open" id="chev-sec-appearance">▼</span>
         </div>
-
-        <!-- Legend + bar + inputs all in one inline block -->
-        <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:8px">
-          <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
-            <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
-            <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
-            <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor + 1}–${great - 1}%</span></span>
-            <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
-            <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
-          </div>
-          <div id="thresh-bar" style="height:5px;border-radius:4px;overflow:hidden;display:flex">
-            <div id="thresh-bar-green"  style="background:var(--win);     transition:width 0.3s;width:${100-great}%"></div>
-            <div id="thresh-bar-orange" style="background:#d4820a;         transition:width 0.3s;width:${great-poor}%"></div>
-            <div id="thresh-bar-red"    style="background:var(--danger);   transition:width 0.3s;width:${poor}%"></div>
-          </div>
-          <!-- Inputs pinned to bar edges -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:10px">
-            <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
-              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great Threshold</label>
-              <div style="display:flex;align-items:center;gap:6px">
-                <input type="number" id="settings-t-great" value="${great}" min="1" max="99"
-                  oninput="settingsUpdatePreview()"
-                  style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
-                <span style="font-size:12px;color:var(--muted)">%</span>
+        <div class="settings-section-body open" id="sec-appearance">
+          <div style="margin-top:16px">
+            <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:8px">
+              <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
+                <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
+                <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
+                <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor + 1}–${great - 1}%</span></span>
+                <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
+                <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
+              </div>
+              <div id="thresh-bar" style="height:5px;border-radius:4px;overflow:hidden;display:flex">
+                <div id="thresh-bar-green"  style="background:var(--win);transition:width 0.3s;width:${100-great}%"></div>
+                <div id="thresh-bar-orange" style="background:#d4820a;transition:width 0.3s;width:${great-poor}%"></div>
+                <div id="thresh-bar-red"    style="background:var(--danger);transition:width 0.3s;width:${poor}%"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:10px">
+                <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                  <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great Threshold</label>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <input type="number" id="settings-t-great" value="${great}" min="1" max="99"
+                      oninput="settingsUpdatePreview()"
+                      style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
+                    <span style="font-size:12px;color:var(--muted)">%</span>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                  <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor Threshold</label>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <input type="number" id="settings-t-poor" value="${poor}" min="1" max="99"
+                      oninput="settingsUpdatePreview()"
+                      style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
+                    <span style="font-size:12px;color:var(--muted)">%</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
-              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--danger)">Poor Threshold</label>
-              <div style="display:flex;align-items:center;gap:6px">
-                <input type="number" id="settings-t-poor" value="${poor}" min="1" max="99"
-                  oninput="settingsUpdatePreview()"
-                  style="width:56px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:6px 4px;outline:none">
-                <span style="font-size:12px;color:var(--muted)">%</span>
+            <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px"></div>
+            <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+              <button onclick="saveThresholdSettings()" class="settings-save-btn" id="save-thresh-btn">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MATCH HISTORY ── -->
+      <div class="settings-section">
+        <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-history')">
+          <div class="settings-section-hdr-left">
+            <div class="settings-section-label">Match History</div>
+            <div class="settings-section-title">Performance Breakdown Categories</div>
+            <div class="settings-section-desc">Choose which categories appear in the Performance Breakdown card. Max 6.</div>
+          </div>
+          <span class="settings-section-chev" id="chev-sec-history">▼</span>
+        </div>
+        <div class="settings-section-body" id="sec-history">
+          <div style="margin-top:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px">
+              <div>${col1.map(catRow).join('')}</div>
+              <div>${col2.map(catRow).join('')}</div>
+            </div>
+            <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
+            <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
+            <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+              <button onclick="savePerfCatSettings()" class="settings-save-btn" id="save-cats-btn">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MATCH ENTRY ── -->
+      <div class="settings-section">
+        <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-entry')">
+          <div class="settings-section-hdr-left">
+            <div class="settings-section-label">Match Entry</div>
+            <div class="settings-section-title">Match Entry Defaults</div>
+            <div class="settings-section-desc">Set optional defaults to save time during match entry.</div>
+          </div>
+          <span class="settings-section-chev" id="chev-sec-entry">▼</span>
+        </div>
+        <div class="settings-section-body" id="sec-entry">
+          <div style="margin-top:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
+                <div class="field">
+                  <div class="field-label">Default Type</div>
+                  <select id="def-type">
+                    <option value="">— None —</option>
+                    ${(validEntries.type||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultType')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Default Season</div>
+                  <select id="def-season">
+                    <option value="">— None —</option>
+                    ${(validEntries.season||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSeason')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Default League</div>
+                  <select id="def-league">
+                    <option value="">— None —</option>
+                    ${(validEntries.league||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLeague')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Default Level</div>
+                  <select id="def-level">
+                    <option value="">— None —</option>
+                    ${(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Default Surface</div>
+                  <select id="def-surface">
+                    <option value="">— None —</option>
+                    ${(validEntries.surface||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSurface')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Default Home Location</div>
+                  <input type="text" id="def-location" placeholder="e.g. Bitsy Grant"
+                    value="${escHtml(localStorage.getItem('defaultLocation')||'')}"
+                    style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;box-sizing:border-box;transition:border-color 0.15s"
+                    onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
+                  <div style="font-size:11px;color:var(--muted);margin-top:4px">Auto-fills Location when "Home" is selected</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
+                ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
+                  ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
+                      const key   = 'defaultPartner_' + t;
+                      const saved = localStorage.getItem(key) || '';
+                      return `<div class="field">
+                        <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
+                        <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
+                          <option value="">— None —</option>
+                          ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
+                        </select>
+                      </div>`;
+                    }).join('')
+                  : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
               </div>
             </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+              <button onclick="saveDefaultSettings()" class="settings-save-btn" id="save-defaults-btn">Save</button>
+            </div>
           </div>
-        </div>
-        <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px"></div>
-        <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-          <button onclick="saveThresholdSettings()" class="btn btn-primary" id="save-thresh-btn" style="padding:8px 24px;font-size:13px">Save</button>
         </div>
       </div>
 
-      <!-- ── Performance Breakdown Categories ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Performance Breakdown Categories</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5">
-          Choose which categories appear in the Performance Breakdown section on Match History. Max 6.
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px">
-          <div>${col1.map(catRow).join('')}</div>
-          <div>${col2.map(catRow).join('')}</div>
-        </div>
-        <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
-        <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
-        <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-          <button onclick="savePerfCatSettings()" class="btn btn-primary" id="save-cats-btn" style="padding:8px 24px;font-size:13px">Save</button>
-        </div>
-      </div>
-
-<!-- ── Match Entry Defaults ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Match Entry Defaults</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
-          Set optional defaults to save time during match entry. Any field left blank will simply show no pre-selection.
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
-
-          <!-- Left: field defaults -->
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
-            <div class="field">
-              <div class="field-label">Default Type</div>
-              <select id="def-type">
-                <option value="">— None —</option>
-                ${(validEntries.type||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultType')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="field">
-              <div class="field-label">Default Season</div>
-              <select id="def-season">
-                <option value="">— None —</option>
-                ${(validEntries.season||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSeason')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="field">
-              <div class="field-label">Default League</div>
-              <select id="def-league">
-                <option value="">— None —</option>
-                ${(validEntries.league||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLeague')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="field">
-              <div class="field-label">Default Level</div>
-              <select id="def-level">
-                <option value="">— None —</option>
-                ${(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="field">
-              <div class="field-label">Default Surface</div>
-              <select id="def-surface">
-                <option value="">— None —</option>
-                ${(validEntries.surface||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSurface')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="field">
-              <div class="field-label">Default Home Location</div>
-              <input type="text" id="def-location" placeholder="e.g. Bitsy Grant"
-                value="${escHtml(localStorage.getItem('defaultLocation')||'')}"
-                style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;box-sizing:border-box;transition:border-color 0.15s"
-                onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
-              <div style="font-size:11px;color:var(--muted);margin-top:4px">Auto-fills Location when "Home" is selected</div>
-            </div>
+      <!-- ── GENERAL ── -->
+      <div class="settings-section">
+        <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-general')">
+          <div class="settings-section-hdr-left">
+            <div class="settings-section-label">General</div>
+            <div class="settings-section-title">Notifications & Connection</div>
+            <div class="settings-section-desc">Update notifications and your Google Sheet connection.</div>
           </div>
-
-          <!-- Right: partner defaults by type -->
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
-            ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
-              ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
-                  const key   = 'defaultPartner_' + t;
-                  const saved = localStorage.getItem(key) || '';
-                  return `<div class="field">
-                    <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
-                    <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
-                      <option value="">— None —</option>
-                      ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
-                    </select>
-                  </div>`;
-                }).join('')
-              : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
-          </div>
-
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-        <button onclick="saveDefaultSettings()" class="btn btn-primary" id="save-defaults-btn" style="padding:8px 24px;font-size:13px">Save</button>
-      </div>
-    </div>
-
-      <!-- ── Update Notifications ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Update Notifications</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">
-          Receive occasional emails when new features are released. Always optional, always free.
+          <span class="settings-section-chev" id="chev-sec-general">▼</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div class="field">
-            <div class="field-label">Email Address</div>
-            <input type="email" id="settings-optin-email"
-              placeholder="your@email.com"
-              value="${localStorage.getItem('settingsOptInEmail')||''}"
-              style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;transition:border-color 0.15s;box-sizing:border-box"
-              onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
-          </div>
-          <div class="toggle-row">
+        <div class="settings-section-body" id="sec-general">
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:24px">
+
             <div>
-              <div class="toggle-row-label">Opt in to receive updates</div>
-              <div id="settings-optin-status" style="font-size:11px;margin-top:2px;color:var(--muted)">
-                ${settingsOptInSubmitted ? '✓ Opted in' : 'Not opted in'}
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Update Notifications</div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5">Receive occasional emails when new features are released. Always optional, always free.</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div class="field">
+                  <div class="field-label">Email Address</div>
+                  <input type="email" id="settings-optin-email"
+                    placeholder="your@email.com"
+                    value="${localStorage.getItem('settingsOptInEmail')||''}"
+                    style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;width:100%;transition:border-color 0.15s;box-sizing:border-box"
+                    onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-row-label">Opt in to receive updates</div>
+                    <div id="settings-optin-status" style="font-size:11px;margin-top:2px;color:var(--muted)">
+                      ${settingsOptInSubmitted ? '✓ Opted in' : 'Not opted in'}
+                    </div>
+                  </div>
+                  <label class="form-toggle">
+                    <input type="checkbox" id="settings-optin-toggle" ${settingsOptInSubmitted?'checked':''}
+                      onchange="settingsHandleOptIn()">
+                    <span class="form-toggle-slider"></span>
+                  </label>
+                </div>
+                <div id="settings-optin-msg" style="display:none;font-size:12px;font-weight:500"></div>
               </div>
             </div>
-            <label class="form-toggle">
-              <input type="checkbox" id="settings-optin-toggle" ${settingsOptInSubmitted?'checked':''}
-                onchange="settingsHandleOptIn()">
-              <span class="form-toggle-slider"></span>
-            </label>
+
+            <div style="border-top:1px solid var(--border);padding-top:20px">
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Google Sheet Connection</div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5">Your Google Apps Script Web App URL. This connects Match Tracker Pro to your Google Sheet.</div>
+              <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap">
+                <input type="text" id="settings-url" value="${currentUrl}"
+                  placeholder="Paste your Apps Script URL here…"
+                  style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box"
+                  onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
+              </div>
+              <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
+              <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+                <button onclick="saveUrlSettings()" class="settings-save-btn" id="save-url-btn">Save</button>
+              </div>
+            </div>
+
           </div>
-          <div id="settings-optin-msg" style="display:none;font-size:12px;font-weight:500"></div>
         </div>
       </div>
 
-      <!-- ── Google Sheet Connection ── -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:4px">Google Sheet Connection</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5">
-          Your Google Apps Script Web App URL. This connects Match Tracker Pro to your Google Sheet.
-        </div>
-        <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap">
-          <input type="text" id="settings-url" value="${currentUrl}"
-            placeholder="Paste your Apps Script URL here…"
-            style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box"
-            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
-        </div>
-        <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
-        <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-          <button onclick="saveUrlSettings()" class="btn btn-primary" id="save-url-btn" style="padding:8px 24px;font-size:13px">Save</button>
-        </div>
-      </div>
     </div>
   `;
 }
 
 // ── Settings helpers ──────────────────────────────────────────
+
+function toggleSettingsSection(id) {
+  const ids = ['sec-appearance','sec-history','sec-entry','sec-general'];
+  ids.forEach(function(sid) {
+    const body = document.getElementById(sid);
+    const chev = document.getElementById('chev-' + sid);
+    if (!body) return;
+    if (sid === id) {
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      if (chev) chev.classList.toggle('open', !isOpen);
+    } else {
+      body.classList.remove('open');
+      if (chev) chev.classList.remove('open');
+    }
+  });
+}
 
 function settingsUpdatePreview() {
   const g = parseInt(document.getElementById('settings-t-great')?.value) || 55;
