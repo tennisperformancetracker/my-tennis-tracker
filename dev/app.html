@@ -130,7 +130,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .topbar {
   background: var(--surface); border-bottom: 1px solid var(--border);
   padding: 0 28px; display: flex; align-items: center; justify-content: space-between;
-  hheight: 56px; position: fixed; top: 0; left: var(--sidebar); right: 0; z-index: 90;
+  height: 56px; position: sticky; top: 0; z-index: 90;
 }
 .topbar-title { font-size: 17px; font-weight: 700; color: var(--text); }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
@@ -161,7 +161,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .btn-ghost { background: var(--surface2); color: var(--label); border: 1px solid var(--border); }
 .btn-ghost:hover { background: var(--border); }
 
-.content { padding: 24px 28px; flex: 1; padding-top: 80px; }
+.content { padding: 24px 28px; flex: 1; }
 
 /* ── Setup screen ───────────────────────────────────────── */
 .setup-wrap {
@@ -643,7 +643,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   .mobile-filters { display: flex; }
 
   /* Content */
-  .content { padding: 12px 14px; overflow-x: hidden; padding-top: 68px; }
+  .content { padding: 12px 14px; overflow-x: hidden; }
 
   /* KPI: 2 columns */
   .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
@@ -3340,10 +3340,8 @@ function renderSettings() {
   const poor  = parseInt(localStorage.getItem('thresholdPoor')  || '45');
   const currentUrl = webAppUrl || '';
 
-  // Save button — topbar on desktop, mobile-filters on mobile
-  const saveBtn = '<button onclick="saveAllSettings()" class="btn btn-primary" style="padding:8px 24px;font-size:13px">Save Settings</button>';
-  document.getElementById('topbar-right').innerHTML = saveBtn;
-  document.getElementById('mobile-filters').innerHTML = '<div style="width:100%;display:flex;justify-content:flex-end;padding:4px 0">' + saveBtn + '</div>';
+  document.getElementById('topbar-right').innerHTML = '';
+  document.getElementById('mobile-filters').innerHTML = '';
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
   const col2 = PERF_CATS_ALL.slice(7);
@@ -3407,6 +3405,9 @@ function renderSettings() {
           </div>
         </div>
         <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px"></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+          <button onclick="saveThresholdSettings()" class="btn btn-primary" id="save-thresh-btn" style="padding:8px 24px;font-size:13px">Save</button>
+        </div>
       </div>
 
       <!-- ── Performance Breakdown Categories ── -->
@@ -3421,6 +3422,9 @@ function renderSettings() {
         </div>
         <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
         <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+          <button onclick="savePerfCatSettings()" class="btn btn-primary" id="save-cats-btn" style="padding:8px 24px;font-size:13px">Save</button>
+        </div>
       </div>
 
 <!-- ── Match Entry Defaults ── -->
@@ -3497,8 +3501,11 @@ function renderSettings() {
               : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
           </div>
 
-        </div>
       </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+        <button onclick="saveDefaultSettings()" class="btn btn-primary" id="save-defaults-btn" style="padding:8px 24px;font-size:13px">Save</button>
+      </div>
+    </div>
 
       <!-- ── Update Notifications ── -->
       <div class="card">
@@ -3545,9 +3552,10 @@ function renderSettings() {
             onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+          <button onclick="saveUrlSettings()" class="btn btn-primary" id="save-url-btn" style="padding:8px 24px;font-size:13px">Save</button>
+        </div>
       </div>
-
-      <div id="settings-save-msg" style="display:none;font-size:13px;font-weight:600;padding:12px 0;text-align:right"></div>
     </div>
   `;
 }
@@ -3649,93 +3657,75 @@ function settingsPerfCatChange() {
   }
 }
 
-async function saveAllSettings() {
-  const btn = document.querySelector('#topbar-right .btn-primary') || document.querySelector('#mobile-filters .btn-primary');
+async function saveThresholdSettings() {
+  const btn = document.getElementById('save-thresh-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
-  const errors = [];
+  const great = parseInt(document.getElementById('settings-t-great')?.value);
+  const poor  = parseInt(document.getElementById('settings-t-poor')?.value);
+  if (isNaN(great) || isNaN(poor)) { showToast('Invalid threshold values', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
+  if (great <= poor) { showToast('Great threshold must be higher than Poor', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
+  localStorage.setItem('thresholdGreat', great);
+  localStorage.setItem('thresholdPoor',  poor);
+  const settingsToSave = { thresholdGreat: String(great), thresholdPoor: String(poor) };
+  try {
+    await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'updateThresholds', great, poor})});
+    await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})});
+  } catch(e) {}
+  if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
+  showToast('✓ Thresholds saved!');
+}
 
-  const great   = parseInt(document.getElementById('settings-t-great')?.value);
-  const poor    = parseInt(document.getElementById('settings-t-poor')?.value);
+async function savePerfCatSettings() {
+  const btn = document.getElementById('save-cats-btn');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
-  const urlVal  = document.getElementById('settings-url')?.value.trim();
-  const optEmail = document.getElementById('settings-optin-email')?.value.trim() || localStorage.getItem('settingsOptInEmail') || '';
-  const optIn   = localStorage.getItem('settingsOptInDone') === 'true';
+  if (checked.length === 0) { showToast('Please enable at least one category', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
+  savePerfCats(checked);
+  const settingsToSave = { perfCats: checked.join(',') };
+  try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
+  if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
+  showToast('✓ Categories saved!');
+}
 
-  if (!isNaN(great) && !isNaN(poor) && great <= poor) errors.push('Great threshold must be higher than Poor.');
-  if (checked.length === 0) errors.push('Please enable at least one Performance Breakdown category.');
-  if (urlVal && !urlVal.startsWith('https://')) errors.push('Google Sheet URL must start with https://');
-
-  if (errors.length > 0) {
-    document.querySelectorAll('#topbar-right .btn-primary, #mobile-filters .btn-primary').forEach(b => { b.textContent = 'Save Settings'; b.disabled = false; });
-    showToast(errors[0], true);
-    return;
-  }
-
-  const settingsToSave = {};
-
-  if (!isNaN(great) && !isNaN(poor)) {
-    settingsToSave.thresholdGreat = String(great);
-    settingsToSave.thresholdPoor  = String(poor);
-    localStorage.setItem('thresholdGreat', great);
-    localStorage.setItem('thresholdPoor',  poor);
-    try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'updateThresholds', great, poor})}); } catch(e) {}
-  }
-
-  if (checked.length > 0) {
-    settingsToSave.perfCats = checked.join(',');
-    savePerfCats(checked);
-  }
-
-  if (optEmail) settingsToSave.optInEmail = optEmail;
-  settingsToSave.optInStatus = optIn ? 'true' : 'false';
-
-  // Match Entry Defaults
+async function saveDefaultSettings() {
+  const btn = document.getElementById('save-defaults-btn');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const defType     = document.getElementById('def-type')?.value     || '';
   const defSeason   = document.getElementById('def-season')?.value   || '';
   const defLeague   = document.getElementById('def-league')?.value   || '';
   const defLevel    = document.getElementById('def-level')?.value    || '';
   const defSurface  = document.getElementById('def-surface')?.value  || '';
   const defLocation = document.getElementById('def-location')?.value.trim() || '';
-
   localStorage.setItem('defaultType',     defType);
   localStorage.setItem('defaultSeason',   defSeason);
   localStorage.setItem('defaultLeague',   defLeague);
   localStorage.setItem('defaultLevel',    defLevel);
   localStorage.setItem('defaultSurface',  defSurface);
   localStorage.setItem('defaultLocation', defLocation);
-
-  settingsToSave.defaultType     = defType;
-  settingsToSave.defaultSeason   = defSeason;
-  settingsToSave.defaultLeague   = defLeague;
-  settingsToSave.defaultLevel    = defLevel;
-  settingsToSave.defaultSurface  = defSurface;
-  settingsToSave.defaultLocation = defLocation;
-
-  // Partner defaults by type
+  const settingsToSave = { defaultType: defType, defaultSeason: defSeason, defaultLeague: defLeague, defaultLevel: defLevel, defaultSurface: defSurface, defaultLocation: defLocation };
   document.querySelectorAll('[id^="def-partner-"]').forEach(el => {
-    const t   = el.dataset.type;
-    const val = el.value || '';
+    const t = el.dataset.type; const val = el.value || '';
     localStorage.setItem('defaultPartner_' + t, val);
     settingsToSave['defaultPartner_' + t] = val;
   });
+  try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
+  if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
+  showToast('✓ Defaults saved!');
+}
 
+async function saveUrlSettings() {
+  const btn = document.getElementById('save-url-btn');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  const urlVal = document.getElementById('settings-url')?.value.trim();
+  if (urlVal && !urlVal.startsWith('https://')) { showToast('URL must start with https://', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
   if (urlVal && urlVal !== webAppUrl) {
     webAppUrl = urlVal;
     localStorage.setItem('webAppUrl', urlVal);
     updateUrlDisplay();
   }
-
-  // Sync to Google Sheet for cross-device consistency
-  try {
-    await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})});
-  } catch(e) { /* silent — localStorage already saved */ }
-
-  document.querySelectorAll('#topbar-right .btn-primary, #mobile-filters .btn-primary').forEach(b => { b.textContent = 'Save Settings'; b.disabled = false; });
-  showToast('✓ Settings saved!');
-
-  if (urlVal && urlVal !== (localStorage.getItem('webAppUrl') || '') && urlVal.startsWith('https://')) {
-    setTimeout(() => loadAll(), 600);
-  }
+  if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
+  showToast('✓ Connection saved!');
+  if (urlVal && urlVal.startsWith('https://')) setTimeout(() => loadAll(), 600);
 }
 
 
