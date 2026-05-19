@@ -839,6 +839,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   padding: 20px 14px 16px; display: flex; flex-direction: column;
   align-items: center; gap: 10px; text-align: center;
   cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; position: relative;
+  justify-content: flex-start;
 }
 .badge-card.earned { border-top: 3px solid var(--win); }
 .badge-card.locked { opacity: 0.5; cursor: default; }
@@ -857,6 +858,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 .badge-card-status {
   font-size: 10px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; padding: 3px 10px; border-radius: 100px;
+  margin-top: auto;
 }
 .badge-card.earned .badge-card-status { background: var(--win-bg); color: var(--win); }
 .badge-card.locked .badge-card-status { background: var(--surface2); color: var(--muted); }
@@ -4960,13 +4962,13 @@ const BADGE_DEFS = [
     id: 'on_the_board', emoji: '📋', name: 'On the Board',
     desc: 'Logged 10 matches.',
     check: (m) => m.length >= 10,
-    progress: (m) => ({ val: Math.min(m.length,10), max:10, label:`${Math.min(m.length,10)} of 10` })
+    progress: (m) => ({ val: Math.min(m.length,10), max:10, label: m.length>=10 ? 'Done' : `${10-m.length} to go` })
   },
   {
     id: 'century', emoji: '💯', name: 'Century',
     desc: 'Logged 100 matches.',
     check: (m) => m.length >= 100,
-    progress: (m) => ({ val: Math.min(m.length,100), max:100, label:`${Math.min(m.length,100)} of 100` })
+    progress: (m) => ({ val: Math.min(m.length,100), max:100, label: m.length>=100 ? 'Done' : `${100-m.length} to go` })
   },
   {
     id: 'grand_slam', emoji: '🏆', name: 'Grand Slam',
@@ -4978,13 +4980,13 @@ const BADGE_DEFS = [
     id: 'hot_streak', emoji: '🔥', name: 'Hot Streak',
     desc: 'Won 5 matches in a row.',
     check: (m) => calcMaxStreak(m) >= 5,
-    progress: (m) => ({ val: Math.min(calcMaxStreak(m),5), max:5, label:`Best streak: ${calcMaxStreak(m)}` })
+    progress: (m) => ({ val: Math.min(calcMaxStreak(m),5), max:5, label: calcMaxStreak(m)>=5 ? 'Done' : `${5-calcMaxStreak(m)} to go` })
   },
   {
     id: 'on_fire', emoji: '⚡', name: 'On Fire',
     desc: 'Won 10 matches in a row.',
     check: (m) => calcMaxStreak(m) >= 10,
-    progress: (m) => ({ val: Math.min(calcMaxStreak(m),10), max:10, label:`Best streak: ${calcMaxStreak(m)}` })
+    progress: (m) => ({ val: Math.min(calcMaxStreak(m),10), max:10, label: calcMaxStreak(m)>=10 ? 'Done' : `${10-calcMaxStreak(m)} to go` })
   },
   {
     id: 'above_500', emoji: '📈', name: 'Above .500',
@@ -5026,13 +5028,13 @@ const BADGE_DEFS = [
     id: 'team_player', emoji: '🤝', name: 'Team Player',
     desc: 'Played 25 doubles matches.',
     check: (m) => badgeDoublesCount(m) >= 25,
-    progress: (m) => ({ val:Math.min(badgeDoublesCount(m),25), max:25, label:`${Math.min(badgeDoublesCount(m),25)} of 25` })
+    progress: (m) => ({ val:Math.min(badgeDoublesCount(m),25), max:25, label: badgeDoublesCount(m)>=25 ? 'Done' : `${25-badgeDoublesCount(m)} to go` })
   },
   {
     id: 'solo_artist', emoji: '🎽', name: 'Solo Artist',
     desc: 'Played 25 singles matches.',
     check: (m) => badgeSinglesCount(m) >= 25,
-    progress: (m) => ({ val:Math.min(badgeSinglesCount(m),25), max:25, label:`${Math.min(badgeSinglesCount(m),25)} of 25` })
+    progress: (m) => ({ val:Math.min(badgeSinglesCount(m),25), max:25, label: badgeSinglesCount(m)>=25 ? 'Done' : `${25-badgeSinglesCount(m)} to go` })
   }
 ];
 
@@ -5194,16 +5196,23 @@ async function shareBadge(def) {
 function showDesktopShareOptions(def, shareText, imageBlob) {
   const panel = document.getElementById('badge-modal-share-options');
   const encodedText = encodeURIComponent(shareText);
-  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?quote=${encodedText}&u=https://matchtrackerpro.com`;
   const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodedText}`;
   const emailUrl    = `mailto:?subject=${encodeURIComponent('Check out my Match Tracker Pro badge!')}&body=${encodedText}`;
+  const escapedText = shareText.replace(/'/g, "\\'");
   panel.innerHTML = `
     <div class="share-options-panel">
-      <button class="share-opt-btn" onclick="window.open('${facebookUrl}','_blank')">f&nbsp; Facebook</button>
+      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareText('${escapedText}')">📋 Copy</button>
       <button class="share-opt-btn" onclick="window.open('${twitterUrl}','_blank')">𝕏 Post</button>
       <button class="share-opt-btn" onclick="window.location.href='${emailUrl}'">✉ Email</button>
     </div>`;
   panel.style.display = 'block';
+}
+
+function copyShareText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('share-copy-btn');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
+  }).catch(() => showToast('Could not copy — try manually', true));
 }
 function downloadBadgeImage(blobUrl, badgeId) {
   const a = document.createElement('a');
