@@ -1122,15 +1122,16 @@ textarea:focus { border-color: var(--accent2) !important; }
 <div class="toast" id="toast"></div>
 
 <!-- ══ BADGE CELEBRATION MODAL ══ -->
-<div class="badge-modal-overlay" id="badge-modal-overlay">
+<div class="badge-modal-overlay" id="badge-modal-overlay" onclick="badgeModalOverlayClick(event)">
   <div class="badge-modal-box">
-    <div class="badge-modal-eyebrow">🏆 Achievement Unlocked</div>
+    <button id="badge-modal-x" onclick="closeBadgeModal()" style="display:none;position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px;">✕</button>
+    <div class="badge-modal-eyebrow" id="badge-modal-eyebrow">🏆 Achievement Unlocked</div>
     <div class="badge-modal-icon" id="badge-modal-icon"></div>
     <div class="badge-modal-name" id="badge-modal-name"></div>
     <div class="badge-modal-desc" id="badge-modal-desc"></div>
     <div class="badge-modal-actions">
       <button class="badge-modal-btn-share" onclick="badgeModalShare()">↗ Share</button>
-      <div class="badge-modal-btn-row">
+      <div class="badge-modal-btn-row" id="badge-modal-btn-row">
         <button class="badge-modal-btn-secondary" onclick="badgeModalViewAll()">View All</button>
         <button class="badge-modal-btn-secondary" onclick="closeBadgeModal()">Dismiss</button>
       </div>
@@ -5094,8 +5095,18 @@ async function computeBadges(matches) {
 let _badgeQueue = [];
 let _badgeQueueActive = false;
 let _activeBadgeId = null;
+let _modalMode = 'achievement'; // 'achievement' | 'view'
+
+// If more than 3 badges earned at once, skip modals entirely and
+// just show the achievements page so they don't pop one by one.
+const BADGE_MODAL_MAX = 3;
 
 function queueBadgeModals(ids) {
+  if (ids.length > BADGE_MODAL_MAX) {
+    slideToAchievements();
+    showToast(`🏆 ${ids.length} new badges earned! Check your Achievements.`);
+    return;
+  }
   _badgeQueue.push(...ids);
   if (!_badgeQueueActive) drainBadgeQueue();
 }
@@ -5108,16 +5119,25 @@ function showBadgeModal(id) {
   const def = BADGE_DEFS.find(d => d.id===id);
   if (!def) { drainBadgeQueue(); return; }
   _activeBadgeId = id;
+  _modalMode = 'achievement';
   document.getElementById('badge-modal-icon').textContent = def.emoji;
   document.getElementById('badge-modal-name').textContent = def.name;
   document.getElementById('badge-modal-desc').textContent = def.desc;
   document.getElementById('badge-modal-share-options').style.display = 'none';
+  // Achievement mode: show eyebrow + View All/Dismiss row, hide X
+  document.getElementById('badge-modal-eyebrow').style.display = '';
+  document.getElementById('badge-modal-btn-row').style.display = '';
+  document.getElementById('badge-modal-x').style.display = 'none';
   document.getElementById('badge-modal-overlay').classList.add('visible');
 }
 function closeBadgeModal() {
   document.getElementById('badge-modal-overlay').classList.remove('visible');
   _activeBadgeId = null;
-  setTimeout(drainBadgeQueue, 300);
+  if (_modalMode === 'achievement') setTimeout(drainBadgeQueue, 300);
+}
+function badgeModalOverlayClick(e) {
+  // Only close on overlay click-outside — not when clicking the modal box itself
+  if (e.target === document.getElementById('badge-modal-overlay')) closeBadgeModal();
 }
 function badgeModalViewAll() {
   closeBadgeModal();
@@ -5231,10 +5251,15 @@ function openEarnedBadge(id) {
   const def = BADGE_DEFS.find(d => d.id===id);
   if (!def) return;
   _activeBadgeId = id;
+  _modalMode = 'view';
   document.getElementById('badge-modal-icon').textContent = def.emoji;
   document.getElementById('badge-modal-name').textContent = def.name;
   document.getElementById('badge-modal-desc').textContent = def.desc;
   document.getElementById('badge-modal-share-options').style.display = 'none';
+  // View mode: hide eyebrow + View All/Dismiss row, show X close button
+  document.getElementById('badge-modal-eyebrow').style.display = 'none';
+  document.getElementById('badge-modal-btn-row').style.display = 'none';
+  document.getElementById('badge-modal-x').style.display = '';
   document.getElementById('badge-modal-overlay').classList.add('visible');
 }
 
