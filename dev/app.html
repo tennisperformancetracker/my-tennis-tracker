@@ -5195,24 +5195,44 @@ async function shareBadge(def) {
 }
 function showDesktopShareOptions(def, shareText, imageBlob) {
   const panel = document.getElementById('badge-modal-share-options');
-  const encodedText = encodeURIComponent(shareText);
-  const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodedText}`;
-  const emailUrl    = `mailto:?subject=${encodeURIComponent('Check out my Match Tracker Pro badge!')}&body=${encodedText}`;
-  const escapedText = shareText.replace(/'/g, "\\'");
   panel.innerHTML = `
     <div class="share-options-panel">
-      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareText('${escapedText}')">📋 Copy</button>
-      <button class="share-opt-btn" onclick="window.open('${twitterUrl}','_blank')">𝕏 Post</button>
-      <button class="share-opt-btn" onclick="window.location.href='${emailUrl}'">✉ Email</button>
+      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareText()">📋 Copy</button>
     </div>`;
   panel.style.display = 'block';
+  window._pendingShareText = shareText;
 }
 
-function copyShareText(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('share-copy-btn');
-    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
-  }).catch(() => showToast('Could not copy — try manually', true));
+function copyShareText() {
+  const text = window._pendingShareText || '';
+  if (!text) return;
+  // Try modern clipboard API first, fall back to execCommand for http/file contexts
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => confirmCopied()).catch(() => execCommandCopy(text));
+  } else {
+    execCommandCopy(text);
+  }
+}
+
+function execCommandCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    confirmCopied();
+  } catch(e) {
+    showToast('Could not copy — please copy manually', true);
+  }
+  document.body.removeChild(ta);
+}
+
+function confirmCopied() {
+  const btn = document.getElementById('share-copy-btn');
+  if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
 }
 function downloadBadgeImage(blobUrl, badgeId) {
   const a = document.createElement('a');
