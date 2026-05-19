@@ -14,6 +14,7 @@
 <text y=%22.9em%22 font-size=%2290%22>🎾</text>
 </svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ── Variables ─────────────────────────────────────────── */
 :root {
@@ -761,6 +762,199 @@ textarea:focus { border-color: var(--accent2) !important; }
 }
 .tip:hover::after,
 .tip:hover::before { opacity: 1; }
+
+/* ══ BADGE SYSTEM ════════════════════════════════════════════ */
+
+/* ── Badge celebration modal ─────────────────────────────── */
+.badge-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 800;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.badge-modal-overlay.visible { opacity: 1; pointer-events: all; }
+.badge-modal-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 36px 32px 28px; max-width: 360px; width: 100%;
+  text-align: center; position: relative;
+  transform: scale(0.92) translateY(12px); transition: transform 0.25s;
+}
+.badge-modal-overlay.visible .badge-modal-box { transform: scale(1) translateY(0); }
+.badge-modal-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--win); margin-bottom: 20px;
+}
+.badge-modal-icon {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: var(--win-bg); display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px; font-size: 36px;
+  border: 3px solid rgba(46,125,82,0.2);
+}
+.badge-modal-name {
+  font-size: 22px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.badge-modal-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 28px;
+}
+.badge-modal-actions { display: flex; flex-direction: column; gap: 8px; }
+.badge-modal-btn-share {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 600;
+  padding: 11px 20px; cursor: pointer; transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.badge-modal-btn-share:hover { background: var(--accent2); }
+.badge-modal-btn-row { display: flex; gap: 8px; }
+.badge-modal-btn-secondary {
+  flex: 1; background: var(--surface2); color: var(--label);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  padding: 10px 12px; cursor: pointer; transition: background 0.15s;
+}
+.badge-modal-btn-secondary:hover { background: var(--border); }
+
+/* ── Achievements page ───────────────────────────────────── */
+.achievements-back {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: none; color: var(--accent2);
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  cursor: pointer; padding: 0; margin-bottom: 20px;
+}
+.achievements-back:hover { color: var(--accent); }
+.achievements-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 8px;
+}
+.achievements-title {
+  font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px;
+}
+.achievements-count { font-size: 13px; color: var(--muted); padding-bottom: 3px; }
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.badge-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px 14px 16px; display: flex; flex-direction: column;
+  align-items: center; gap: 10px; text-align: center;
+  cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; position: relative;
+}
+.badge-card.earned { border-top: 3px solid var(--win); }
+.badge-card.locked { opacity: 0.5; cursor: default; }
+.badge-card.earned:hover {
+  box-shadow: 0 4px 16px rgba(47,65,87,0.1);
+  border-color: rgba(46,125,82,0.4);
+}
+.badge-card-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.badge-card.earned .badge-card-icon { background: var(--win-bg); }
+.badge-card.locked .badge-card-icon { background: var(--surface2); font-size: 20px; }
+.badge-card-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.badge-card-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.badge-card-status {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 3px 10px; border-radius: 100px;
+}
+.badge-card.earned .badge-card-status { background: var(--win-bg); color: var(--win); }
+.badge-card.locked .badge-card-status { background: var(--surface2); color: var(--muted); }
+.badge-card-date { font-size: 10px; color: var(--muted); margin-top: -4px; }
+
+/* ── Dashboard badge shelf ───────────────────────────────── */
+.badge-shelf { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; }
+.badge-shelf-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 140px;
+}
+.badge-shelf-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--win-bg); display: flex; align-items: center;
+  justify-content: center; font-size: 17px; flex-shrink: 0;
+}
+.badge-shelf-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.badge-shelf-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.badge-shelf-desc { font-size: 11px; color: var(--muted); }
+.badge-shelf-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);
+}
+.badge-shelf-progress { font-size: 12px; color: var(--muted); }
+.badge-shelf-link {
+  font-size: 12px; font-weight: 600; color: var(--accent2);
+  background: none; border: none; cursor: pointer; font-family: var(--font); padding: 0;
+}
+.badge-shelf-link:hover { color: var(--accent); }
+.badge-shelf-empty { font-size: 13px; color: var(--muted); padding: 8px 0; }
+
+/* Next-up progress bar */
+.badge-next-up {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 10px;
+}
+.badge-next-up-info { display: flex; flex-direction: column; gap: 3px; }
+.badge-next-up-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+}
+.badge-next-up-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.badge-next-up-hint { font-size: 11px; color: var(--muted); }
+.badge-next-up-bar-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.badge-next-up-pct { font-size: 11px; color: var(--muted); }
+.badge-next-up-bar { width: 120px; height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.badge-next-up-fill { height: 100%; background: var(--warn); border-radius: 100px; }
+
+/* ── Share card (off-screen, captured by html2canvas) ────── */
+#badge-share-card {
+  position: fixed; top: -9999px; left: -9999px;
+  width: 480px; background: #2f4157;
+  border-radius: 16px; padding: 40px 36px 32px;
+  font-family: 'Poppins', sans-serif; text-align: center;
+}
+.share-card-eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: rgba(168,196,216,0.8); margin-bottom: 24px;
+}
+.share-card-eyebrow span { color: #7ecba1; }
+.share-card-icon {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(126,203,161,0.15); border: 2px solid rgba(126,203,161,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px; margin: 0 auto 20px;
+}
+.share-card-name {
+  font-size: 28px; font-weight: 700; color: #fff;
+  letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.share-card-desc {
+  font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 28px;
+}
+.share-card-divider {
+  width: 40px; height: 2px; background: rgba(126,203,161,0.4);
+  margin: 0 auto 20px; border-radius: 2px;
+}
+.share-card-brand {
+  font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.35);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;
+}
+.share-card-brand span { color: #7ecba1; }
+.share-card-hashtag { font-size: 12px; color: rgba(126,203,161,0.7); letter-spacing: 0.5px; }
+
+/* ── Desktop share fallback ──────────────────────────────── */
+.share-options-panel { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.share-opt-btn {
+  flex: 1; min-width: 100px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  color: var(--label); padding: 9px 10px; cursor: pointer;
+  transition: background 0.15s; display: flex; align-items: center;
+  justify-content: center; gap: 6px;
+}
+.share-opt-btn:hover { background: var(--border); }
 </style>
 </head>
 <body>
@@ -917,6 +1111,35 @@ textarea:focus { border-color: var(--accent2) !important; }
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- ══ BADGE CELEBRATION MODAL ══ -->
+<div class="badge-modal-overlay" id="badge-modal-overlay">
+  <div class="badge-modal-box">
+    <div class="badge-modal-eyebrow">🏆 Achievement Unlocked</div>
+    <div class="badge-modal-icon" id="badge-modal-icon"></div>
+    <div class="badge-modal-name" id="badge-modal-name"></div>
+    <div class="badge-modal-desc" id="badge-modal-desc"></div>
+    <div class="badge-modal-actions">
+      <button class="badge-modal-btn-share" onclick="badgeModalShare()">↗ Share This Badge</button>
+      <div class="badge-modal-btn-row">
+        <button class="badge-modal-btn-secondary" onclick="badgeModalViewAll()">View All</button>
+        <button class="badge-modal-btn-secondary" onclick="closeBadgeModal()">Dismiss</button>
+      </div>
+    </div>
+    <div id="badge-modal-share-options" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══ SHARE CARD (off-screen, captured by html2canvas) ══ -->
+<div id="badge-share-card">
+  <div class="share-card-eyebrow">Match Tracker <span>Pro</span></div>
+  <div class="share-card-icon" id="share-card-icon"></div>
+  <div class="share-card-name" id="share-card-name"></div>
+  <div class="share-card-desc" id="share-card-desc"></div>
+  <div class="share-card-divider"></div>
+  <div class="share-card-brand">Match Tracker <span>Pro</span></div>
+  <div class="share-card-hashtag">#MatchTrackerPro</div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 // 
@@ -1033,9 +1256,13 @@ async function loadAll() {
         Object.keys(s).forEach(k => {
           if (k.startsWith('defaultPartner_')) localStorage.setItem(k, s[k]);
         });
+        // Badge state sync
+        if (s.earnedBadges)     localStorage.setItem('earnedBadges',     s.earnedBadges);
+        if (s.earnedBadgeDates) localStorage.setItem('earnedBadgeDates', s.earnedBadgeDates);
       }
     } catch(e) { /* Settings sync unavailable — localStorage values used */ }
 
+    await computeBadges(allMatches);
     showPage('dashboard');
   } catch(e) {
     setContent(`<div class="spinner-wrap" style="color:var(--danger)">Failed to load data. <button class="btn btn-ghost" onclick="loadAll()" style="margin-top:12px">Retry</button></div>`);
@@ -1119,7 +1346,8 @@ function showPage(page) {
     settings:     'Settings',
     history:      'Match History',
     entry:        'Match Entry',
-    validEntries: 'Valid Entries'
+    validEntries: 'Valid Entries',
+    achievements: 'Achievements'
   };
   document.getElementById('topbar-title').textContent = titles[page] || page;
 
@@ -1128,6 +1356,7 @@ function showPage(page) {
   else if (page === 'entry')   renderEntry();
   else if (page === 'validEntries') renderValidEntries();
   else if (page === 'settings')     renderSettings();
+  else if (page === 'achievements') renderAchievements();
 }
 
 function showSetup() {
@@ -1360,6 +1589,12 @@ function renderDashboard() {
           </div>
         </div>
       </div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-header">
+        <div class="card-title">Achievements</div>
+      </div>
+      <div id="badge-shelf-content">${buildBadgeShelf()}</div>
     </div>
   `;
 
@@ -4565,6 +4800,10 @@ async function submitEntry() {
         result, notes: match.notes || ''
       });
       showToast('Match submitted!');
+      const _newBadges = await computeBadges(allMatches);
+      if (_newBadges.length > 0) {
+        setTimeout(() => queueBadgeModals(_newBadges), 600);
+      }
       // Capture the fields to preserve for next entry
       const keepFields = {
         type:       resolve('type'),
@@ -4693,6 +4932,335 @@ function showToast(msg, isError=false) {
   t.className = 'toast' + (isError?' error':'');
   setTimeout(() => t.classList.add('show'), 10);
   setTimeout(() => t.classList.remove('show'), msg.length > 80 ? 8000 : 3000);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BADGE SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+const BADGE_DEFS = [
+  {
+    id: 'first_rally', emoji: '🎾', name: 'First Rally',
+    desc: 'Logged your very first match.',
+    check: (m) => m.length >= 1,
+    progress: (m) => ({ val: Math.min(m.length,1), max:1, label: m.length>=1?'Done':'0 of 1' })
+  },
+  {
+    id: 'on_the_board', emoji: '📋', name: 'On the Board',
+    desc: 'Logged 10 matches.',
+    check: (m) => m.length >= 10,
+    progress: (m) => ({ val: Math.min(m.length,10), max:10, label:`${Math.min(m.length,10)} of 10` })
+  },
+  {
+    id: 'century', emoji: '💯', name: 'Century',
+    desc: 'Logged 100 matches.',
+    check: (m) => m.length >= 100,
+    progress: (m) => ({ val: Math.min(m.length,100), max:100, label:`${Math.min(m.length,100)} of 100` })
+  },
+  {
+    id: 'grand_slam', emoji: '🏆', name: 'Grand Slam',
+    desc: 'Logged 250 matches.',
+    check: (m) => m.length >= 250,
+    progress: (m) => ({ val: Math.min(m.length,250), max:250, label:`${250-m.length} to go` })
+  },
+  {
+    id: 'hot_streak', emoji: '🔥', name: 'Hot Streak',
+    desc: 'Won 5 matches in a row.',
+    check: (m) => calcMaxStreak(m) >= 5,
+    progress: (m) => ({ val: Math.min(calcMaxStreak(m),5), max:5, label:`Best streak: ${calcMaxStreak(m)}` })
+  },
+  {
+    id: 'on_fire', emoji: '⚡', name: 'On Fire',
+    desc: 'Won 10 matches in a row.',
+    check: (m) => calcMaxStreak(m) >= 10,
+    progress: (m) => ({ val: Math.min(calcMaxStreak(m),10), max:10, label:`Best streak: ${calcMaxStreak(m)}` })
+  },
+  {
+    id: 'above_500', emoji: '📈', name: 'Above .500',
+    desc: '50% win rate · min 50 matches',
+    check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.50,
+    progress: (m) => {
+      if (m.length < 50) return { val:m.length, max:50, label:`${m.length} of 50 matches` };
+      return { val: Math.min(badgeWinRate(m),0.50), max:0.50, label:`${(badgeWinRate(m)*100).toFixed(1)}% win rate` };
+    }
+  },
+  {
+    id: 'sharpshooter', emoji: '🎯', name: 'Sharpshooter',
+    desc: '60% win rate · min 50 matches',
+    check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.60,
+    progress: (m) => {
+      if (m.length < 50) return { val:m.length, max:50, label:`${m.length} of 50 matches` };
+      return { val: Math.min(badgeWinRate(m),0.60), max:0.60, label:`${(badgeWinRate(m)*100).toFixed(1)}% of 60%` };
+    }
+  },
+  {
+    id: 'elite', emoji: '🏅', name: 'Elite',
+    desc: '70% win rate · min 50 matches',
+    check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.70,
+    progress: (m) => {
+      if (m.length < 50) return { val:m.length, max:50, label:`${m.length} of 50 matches` };
+      return { val: Math.min(badgeWinRate(m),0.70), max:0.70, label:`${(badgeWinRate(m)*100).toFixed(1)}% of 70%` };
+    }
+  },
+  {
+    id: 'playoff_warrior', emoji: '⚔️', name: 'Playoff Warrior',
+    desc: 'Won your first playoff match.',
+    check: (m) => m.some(x => x.playoff && x.result==='W'),
+    progress: (m) => {
+      const pw = m.filter(x => x.playoff && x.result==='W').length;
+      return { val:Math.min(pw,1), max:1, label: pw>=1?'Done':'No playoff wins yet' };
+    }
+  },
+  {
+    id: 'team_player', emoji: '🤝', name: 'Team Player',
+    desc: 'Played 25 doubles matches.',
+    check: (m) => badgeDoublesCount(m) >= 25,
+    progress: (m) => ({ val:Math.min(badgeDoublesCount(m),25), max:25, label:`${Math.min(badgeDoublesCount(m),25)} of 25` })
+  },
+  {
+    id: 'solo_artist', emoji: '🎽', name: 'Solo Artist',
+    desc: 'Played 25 singles matches.',
+    check: (m) => badgeSinglesCount(m) >= 25,
+    progress: (m) => ({ val:Math.min(badgeSinglesCount(m),25), max:25, label:`${Math.min(badgeSinglesCount(m),25)} of 25` })
+  }
+];
+
+// ── Badge-specific helpers (prefixed to avoid any collision) ──
+function badgeWinRate(matches) {
+  const w = matches.filter(m => m.result==='W').length;
+  const l = matches.filter(m => m.result==='L').length;
+  return (w+l)===0 ? 0 : w/(w+l);
+}
+function badgeDoublesCount(matches) {
+  return matches.filter(m => m.type && m.type.toLowerCase().includes('doubles')).length;
+}
+function badgeSinglesCount(matches) {
+  return matches.filter(m => m.type && m.type.toLowerCase().includes('singles')).length;
+}
+function calcMaxStreak(matches) {
+  const sorted = [...matches].sort((a,b) => parseDate(a.date)-parseDate(b.date));
+  let max=0, cur=0;
+  sorted.forEach(m => { if (m.result==='W') { cur++; max=Math.max(max,cur); } else { cur=0; } });
+  return max;
+}
+
+// ── Earned badge storage ──────────────────────────────────────
+function getEarnedBadges() {
+  const raw = localStorage.getItem('earnedBadges') || '';
+  return raw ? raw.split(',').filter(Boolean) : [];
+}
+function getEarnedDates() {
+  try { return JSON.parse(localStorage.getItem('earnedBadgeDates') || '{}'); } catch(e) { return {}; }
+}
+async function persistEarnedBadges(ids, dates) {
+  localStorage.setItem('earnedBadges', ids.join(','));
+  localStorage.setItem('earnedBadgeDates', JSON.stringify(dates));
+  try {
+    await fetch(webAppUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action:'saveSettings', settings:{ earnedBadges:ids.join(','), earnedBadgeDates:JSON.stringify(dates) } })
+    });
+  } catch(e) { /* non-fatal */ }
+}
+
+// ── Compute badges ────────────────────────────────────────────
+async function computeBadges(matches) {
+  const alreadyEarned = getEarnedBadges();
+  const dates = getEarnedDates();
+  const newlyEarned = [];
+  BADGE_DEFS.forEach(def => {
+    if (alreadyEarned.includes(def.id)) return;
+    if (def.check(matches)) {
+      alreadyEarned.push(def.id);
+      dates[def.id] = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      newlyEarned.push(def.id);
+    }
+  });
+  if (newlyEarned.length > 0) await persistEarnedBadges(alreadyEarned, dates);
+  return newlyEarned;
+}
+
+// ── Modal queue ───────────────────────────────────────────────
+let _badgeQueue = [];
+let _badgeQueueActive = false;
+let _activeBadgeId = null;
+
+function queueBadgeModals(ids) {
+  _badgeQueue.push(...ids);
+  if (!_badgeQueueActive) drainBadgeQueue();
+}
+function drainBadgeQueue() {
+  if (_badgeQueue.length===0) { _badgeQueueActive=false; return; }
+  _badgeQueueActive = true;
+  showBadgeModal(_badgeQueue.shift());
+}
+function showBadgeModal(id) {
+  const def = BADGE_DEFS.find(d => d.id===id);
+  if (!def) { drainBadgeQueue(); return; }
+  _activeBadgeId = id;
+  document.getElementById('badge-modal-icon').textContent = def.emoji;
+  document.getElementById('badge-modal-name').textContent = def.name;
+  document.getElementById('badge-modal-desc').textContent = def.desc;
+  document.getElementById('badge-modal-share-options').style.display = 'none';
+  document.getElementById('badge-modal-overlay').classList.add('visible');
+}
+function closeBadgeModal() {
+  document.getElementById('badge-modal-overlay').classList.remove('visible');
+  _activeBadgeId = null;
+  setTimeout(drainBadgeQueue, 300);
+}
+function badgeModalViewAll() {
+  closeBadgeModal();
+  setTimeout(() => showPage('achievements'), 300);
+}
+
+// ── Share ─────────────────────────────────────────────────────
+async function badgeModalShare() {
+  const def = BADGE_DEFS.find(d => d.id===_activeBadgeId);
+  if (def) await shareBadge(def);
+}
+async function shareBadge(def) {
+  document.getElementById('share-card-icon').textContent = def.emoji;
+  document.getElementById('share-card-name').textContent = def.name;
+  document.getElementById('share-card-desc').textContent = def.desc;
+  let imageBlob = null;
+  try {
+    if (typeof html2canvas !== 'undefined') {
+      const canvas = await html2canvas(document.getElementById('badge-share-card'),
+        { scale:2, backgroundColor:'#2f4157', useCORS:true, logging:false });
+      imageBlob = await new Promise(res => canvas.toBlob(res,'image/png'));
+    }
+  } catch(e) { /* fall through */ }
+  const shareText = `I just earned the "${def.name}" badge on Match Tracker Pro — ${def.desc} #MatchTrackerPro`;
+  if (navigator.share) {
+    try {
+      const shareData = { title:'Match Tracker Pro', text:shareText };
+      if (imageBlob && navigator.canShare &&
+          navigator.canShare({ files:[new File([imageBlob],'badge.png',{type:'image/png'})] })) {
+        shareData.files = [new File([imageBlob],'badge.png',{type:'image/png'})];
+      }
+      await navigator.share(shareData);
+      return;
+    } catch(e) { /* user cancelled */ }
+  }
+  showDesktopShareOptions(def, shareText, imageBlob);
+}
+function showDesktopShareOptions(def, shareText, imageBlob) {
+  const panel = document.getElementById('badge-modal-share-options');
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+  const emailUrl   = `mailto:?subject=${encodeURIComponent('Check out my Match Tracker Pro badge!')}&body=${encodeURIComponent(shareText)}`;
+  let dlBtn = '';
+  if (imageBlob) {
+    const blobUrl = URL.createObjectURL(imageBlob);
+    dlBtn = `<button class="share-opt-btn" onclick="downloadBadgeImage('${blobUrl}','${def.id}')">⬇ Download</button>`;
+  }
+  panel.innerHTML = `
+    <div class="share-options-panel">
+      <button class="share-opt-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(shareText)}).then(()=>showToast('Copied!'))">📋 Copy Text</button>
+      <button class="share-opt-btn" onclick="window.open('${twitterUrl}','_blank')">𝕏 Post</button>
+      <button class="share-opt-btn" onclick="window.location.href='${emailUrl}'">✉ Email</button>
+      ${dlBtn}
+    </div>`;
+  panel.style.display = 'block';
+}
+function downloadBadgeImage(blobUrl, badgeId) {
+  const a = document.createElement('a');
+  a.href = blobUrl; a.download = `mtp-badge-${badgeId}.png`; a.click();
+}
+
+// ── Achievements page ─────────────────────────────────────────
+function renderAchievements() {
+  currentPage = 'achievements';
+  window.scrollTo(0,0);
+  closeSidebar();
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('topbar-title').textContent = 'Achievements';
+  document.getElementById('topbar-right').innerHTML = '';
+  document.getElementById('mobile-filters').innerHTML = '';
+  const earned = getEarnedBadges();
+  const dates  = getEarnedDates();
+  const cardsHtml = BADGE_DEFS.map(def => {
+    const isEarned = earned.includes(def.id);
+    const prog = def.progress(allMatches);
+    const pct  = Math.min(100, Math.round((prog.val/prog.max)*100));
+    const dateStr = dates[def.id] ? `<div class="badge-card-date">Earned ${dates[def.id]}</div>` : '';
+    return `
+      <div class="badge-card ${isEarned?'earned':'locked'}"
+           ${isEarned?`onclick="openEarnedBadge('${def.id}')"`:''}>
+        <div class="badge-card-icon">${isEarned ? def.emoji : '🔒'}</div>
+        <div class="badge-card-name">${def.name}</div>
+        <div class="badge-card-desc">${def.desc}</div>
+        ${dateStr}
+        <div class="badge-card-status">${isEarned ? 'Earned' : prog.label}</div>
+        ${!isEarned ? `<div style="width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:2px">
+          <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
+      </div>`;
+  }).join('');
+  document.getElementById('content').innerHTML = `
+    <button class="achievements-back" onclick="showPage('dashboard')">← Back to Dashboard</button>
+    <div class="achievements-header">
+      <div class="achievements-title">Achievements</div>
+      <div class="achievements-count">${earned.length} of ${BADGE_DEFS.length} earned</div>
+    </div>
+    <div class="achievements-grid">${cardsHtml}</div>`;
+}
+function openEarnedBadge(id) {
+  const def = BADGE_DEFS.find(d => d.id===id);
+  if (!def) return;
+  _activeBadgeId = id;
+  document.getElementById('badge-modal-icon').textContent = def.emoji;
+  document.getElementById('badge-modal-name').textContent = def.name;
+  document.getElementById('badge-modal-desc').textContent = def.desc;
+  document.getElementById('badge-modal-share-options').style.display = 'none';
+  document.getElementById('badge-modal-overlay').classList.add('visible');
+}
+
+// ── Dashboard badge shelf ─────────────────────────────────────
+function buildBadgeShelf() {
+  const earned = getEarnedBadges();
+  if (earned.length === 0) {
+    return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>
+      <div class="badge-shelf-footer"><span></span>
+        <button class="badge-shelf-link" onclick="showPage('achievements')">View all achievements →</button>
+      </div>`;
+  }
+  const recent = earned.slice(-3).reverse();
+  const shelfItems = recent.map(id => {
+    const def = BADGE_DEFS.find(d => d.id===id);
+    if (!def) return '';
+    return `<div class="badge-shelf-item">
+      <div class="badge-shelf-icon">${def.emoji}</div>
+      <div class="badge-shelf-info">
+        <div class="badge-shelf-name">${def.name}</div>
+        <div class="badge-shelf-desc">${def.desc}</div>
+      </div></div>`;
+  }).join('');
+  let nextUpHtml = '';
+  let bestPct = -1, bestDef = null, bestProg = null;
+  BADGE_DEFS.forEach(def => {
+    if (earned.includes(def.id)) return;
+    const prog = def.progress(allMatches);
+    const p = prog.val / prog.max;
+    if (p > bestPct) { bestPct=p; bestDef=def; bestProg=prog; }
+  });
+  if (bestDef) {
+    const fillPct = Math.min(100, Math.round(bestPct*100));
+    nextUpHtml = `<div class="badge-next-up">
+      <div class="badge-next-up-info">
+        <div class="badge-next-up-label">Next up</div>
+        <div class="badge-next-up-name">${bestDef.emoji} ${bestDef.name}</div>
+        <div class="badge-next-up-hint">${bestProg.label}</div>
+      </div>
+      <div class="badge-next-up-bar-wrap">
+        <div class="badge-next-up-pct">${fillPct}%</div>
+        <div class="badge-next-up-bar"><div class="badge-next-up-fill" style="width:${fillPct}%"></div></div>
+      </div></div>`;
+  }
+  return `<div class="badge-shelf">${shelfItems}</div>${nextUpHtml}
+    <div class="badge-shelf-footer">
+      <span class="badge-shelf-progress">${earned.length} of ${BADGE_DEFS.length} badges earned</span>
+      <button class="badge-shelf-link" onclick="showPage('achievements')">View all →</button>
+    </div>`;
 }
 </script>
 </body>
