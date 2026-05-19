@@ -162,7 +162,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .btn-ghost { background: var(--surface2); color: var(--label); border: 1px solid var(--border); }
 .btn-ghost:hover { background: var(--border); }
 
-.content { padding: 24px 28px; flex: 1; }
+.content { padding: 24px 28px; flex: 1; overflow-x: hidden; }
 
 /* ── Setup screen ───────────────────────────────────────── */
 .setup-wrap {
@@ -864,6 +864,16 @@ textarea:focus { border-color: var(--accent2) !important; }
 
 /* ── Dashboard badge shelf ───────────────────────────────── */
 .badge-shelf { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; }
+
+/* Achievements card sits below the dash-grid with matching gap */
+.achievements-card { margin-top: 20px; }
+@media (max-width: 768px) { .achievements-card { margin-top: 12px; } }
+
+/* ── Page slide transition ───────────────────────────────── */
+@keyframes slideInRight  { from { transform: translateX(60px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInLeft   { from { transform: translateX(-60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.slide-in-right { animation: slideInRight 0.22s ease both; }
+.slide-in-left  { animation: slideInLeft  0.22s ease both; }
 .badge-shelf-item {
   display: flex; align-items: center; gap: 10px;
   background: var(--surface2); border: 1px solid var(--border);
@@ -1119,7 +1129,7 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div class="badge-modal-name" id="badge-modal-name"></div>
     <div class="badge-modal-desc" id="badge-modal-desc"></div>
     <div class="badge-modal-actions">
-      <button class="badge-modal-btn-share" onclick="badgeModalShare()">↗ Share This Badge</button>
+      <button class="badge-modal-btn-share" onclick="badgeModalShare()">↗ Share</button>
       <div class="badge-modal-btn-row">
         <button class="badge-modal-btn-secondary" onclick="badgeModalViewAll()">View All</button>
         <button class="badge-modal-btn-secondary" onclick="closeBadgeModal()">Dismiss</button>
@@ -1256,9 +1266,9 @@ async function loadAll() {
         Object.keys(s).forEach(k => {
           if (k.startsWith('defaultPartner_')) localStorage.setItem(k, s[k]);
         });
-        // Badge state sync
-        if (s.earnedBadges)     localStorage.setItem('earnedBadges',     s.earnedBadges);
-        if (s.earnedBadgeDates) localStorage.setItem('earnedBadgeDates', s.earnedBadgeDates);
+        // Badge state sync — always write what the Sheet says, including empty (Sheet is source of truth)
+        localStorage.setItem('earnedBadges',     s.earnedBadges     ?? '');
+        localStorage.setItem('earnedBadgeDates', s.earnedBadgeDates ?? '{}');
       }
     } catch(e) { /* Settings sync unavailable — localStorage values used */ }
 
@@ -1590,7 +1600,7 @@ function renderDashboard() {
         </div>
       </div>
     </div>
-    <div class="card" style="margin-top:0">
+    <div class="card achievements-card">
       <div class="card-header">
         <div class="card-title">Achievements</div>
       </div>
@@ -5111,7 +5121,23 @@ function closeBadgeModal() {
 }
 function badgeModalViewAll() {
   closeBadgeModal();
-  setTimeout(() => showPage('achievements'), 300);
+  setTimeout(() => slideToAchievements(), 300);
+}
+
+// ── Slide navigation helpers ──────────────────────────────────
+function slideToAchievements() {
+  const contentEl = document.getElementById('content');
+  contentEl.classList.add('slide-in-right');
+  contentEl.addEventListener('animationend', () => contentEl.classList.remove('slide-in-right'), { once: true });
+  renderAchievements();
+}
+function slideToDashboard() {
+  // Apply the slide class to the content container itself before rendering,
+  // so the animation plays without disturbing the chart canvas reference.
+  const contentEl = document.getElementById('content');
+  contentEl.classList.add('slide-in-left');
+  contentEl.addEventListener('animationend', () => contentEl.classList.remove('slide-in-left'), { once: true });
+  showPage('dashboard');
 }
 
 // ── Share ─────────────────────────────────────────────────────
@@ -5147,19 +5173,15 @@ async function shareBadge(def) {
 }
 function showDesktopShareOptions(def, shareText, imageBlob) {
   const panel = document.getElementById('badge-modal-share-options');
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-  const emailUrl   = `mailto:?subject=${encodeURIComponent('Check out my Match Tracker Pro badge!')}&body=${encodeURIComponent(shareText)}`;
-  let dlBtn = '';
-  if (imageBlob) {
-    const blobUrl = URL.createObjectURL(imageBlob);
-    dlBtn = `<button class="share-opt-btn" onclick="downloadBadgeImage('${blobUrl}','${def.id}')">⬇ Download</button>`;
-  }
+  const encodedText = encodeURIComponent(shareText);
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?quote=${encodedText}&u=https://matchtrackerpro.com`;
+  const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodedText}`;
+  const emailUrl    = `mailto:?subject=${encodeURIComponent('Check out my Match Tracker Pro badge!')}&body=${encodedText}`;
   panel.innerHTML = `
     <div class="share-options-panel">
-      <button class="share-opt-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(shareText)}).then(()=>showToast('Copied!'))">📋 Copy Text</button>
+      <button class="share-opt-btn" onclick="window.open('${facebookUrl}','_blank')">f&nbsp; Facebook</button>
       <button class="share-opt-btn" onclick="window.open('${twitterUrl}','_blank')">𝕏 Post</button>
       <button class="share-opt-btn" onclick="window.location.href='${emailUrl}'">✉ Email</button>
-      ${dlBtn}
     </div>`;
   panel.style.display = 'block';
 }
@@ -5196,8 +5218,9 @@ function renderAchievements() {
           <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
       </div>`;
   }).join('');
-  document.getElementById('content').innerHTML = `
-    <button class="achievements-back" onclick="showPage('dashboard')">← Back to Dashboard</button>
+  const contentEl = document.getElementById('content');
+  contentEl.innerHTML = `
+    <button class="achievements-back" onclick="slideToDashboard()">← Back to Dashboard</button>
     <div class="achievements-header">
       <div class="achievements-title">Achievements</div>
       <div class="achievements-count">${earned.length} of ${BADGE_DEFS.length} earned</div>
@@ -5221,7 +5244,7 @@ function buildBadgeShelf() {
   if (earned.length === 0) {
     return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>
       <div class="badge-shelf-footer"><span></span>
-        <button class="badge-shelf-link" onclick="showPage('achievements')">View all achievements →</button>
+        <button class="badge-shelf-link" onclick="slideToAchievements()">View all achievements →</button>
       </div>`;
   }
   const recent = earned.slice(-3).reverse();
@@ -5259,7 +5282,7 @@ function buildBadgeShelf() {
   return `<div class="badge-shelf">${shelfItems}</div>${nextUpHtml}
     <div class="badge-shelf-footer">
       <span class="badge-shelf-progress">${earned.length} of ${BADGE_DEFS.length} badges earned</span>
-      <button class="badge-shelf-link" onclick="showPage('achievements')">View all →</button>
+      <button class="badge-shelf-link" onclick="slideToAchievements()">View all →</button>
     </div>`;
 }
 </script>
