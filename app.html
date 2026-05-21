@@ -3119,11 +3119,17 @@ function buildItem(field, v, i, firstInExtra) {
     </div>
     <div class="confirm-overlay" id="ve-confirm-rename">
       <div class="confirm-box">
-        <div class="confirm-title">&#x270F; Rename Entry?</div>
+        <div class="confirm-title">✏️ Rename Entry</div>
         <div class="confirm-body" id="ve-confirm-rename-body"></div>
+        <div style="margin-top:12px">
+          <input type="text" id="ve-rename-input"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;padding:9px 12px;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')veConfirmRename();if(event.key==='Escape')veCancelRename()">
+        </div>
         <div class="confirm-actions">
           <button class="btn btn-ghost" onclick="veCancelRename()">Cancel</button>
-          <button class="btn btn-primary" onclick="veConfirmRename()">Update</button>
+          <button class="btn btn-primary" onclick="veConfirmRename()">Rename</button>
         </div>
       </div>
     </div>
@@ -3219,21 +3225,20 @@ async function veAddEntry(field) {
 }
 
 function vePromptRename(field, oldValue) {
-  const newValue = window.prompt(`Rename "${oldValue}" to:`, oldValue);
-  if (!newValue || newValue.trim() === '' || newValue.trim() === oldValue) return;
-  const trimmed = newValue.trim();
-  if ((veEntries[field]||[]).includes(trimmed)) { showToast('That value already exists', true); return; }
   let matchCount = 0;
   try {
     const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
     const key = logColMap[field];
     if (key) matchCount = allMatches.filter(m => m[key] === oldValue).length;
   } catch(e) {}
-  vePendingRename = {field, oldValue, newValue: trimmed, inputEl: null};
+  vePendingRename = {field, oldValue, newValue: null, inputEl: null};
   document.getElementById('ve-confirm-rename-body').innerHTML =
-    `Rename <strong>"${escHtml(oldValue)}"</strong> to <strong>"${escHtml(trimmed)}"</strong>?` +
-    (matchCount > 0 ? `<br><br>This will also update <strong>${matchCount} match${matchCount!==1?'es':''}</strong> in your Match Log.` : '');
+    `Rename <strong>"${escHtml(oldValue)}"</strong> to:` +
+    (matchCount > 0 ? `<br><span style="font-size:12px;color:var(--muted)">This will also update <strong style="color:var(--text)">${matchCount} match${matchCount!==1?'es':''}</strong> in your Match Log.</span>` : '');
+  const input = document.getElementById('ve-rename-input');
+  input.value = oldValue;
   document.getElementById('ve-confirm-rename').classList.add('visible');
+  setTimeout(() => { input.focus(); input.select(); }, 50);
 }
 
 function veOnInput(inputEl, field, idx) {
@@ -3270,10 +3275,13 @@ async function veTriggerRename(field, idx) {
 }
 
 async function veConfirmRename() {
+  if (!vePendingRename) return;
+  const newValue = document.getElementById('ve-rename-input').value.trim();
+  if (!newValue || newValue === vePendingRename.oldValue) return;
+  if ((veEntries[vePendingRename.field]||[]).includes(newValue)) { showToast('That value already exists', true); return; }
   showSaving('Renaming…');
   document.getElementById('ve-confirm-rename').classList.remove('visible');
-  if (!vePendingRename) return;
-  const {field, oldValue, newValue} = vePendingRename;
+  const {field, oldValue} = vePendingRename;
   vePendingRename = null;
   try {
     const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
@@ -3289,6 +3297,7 @@ async function veConfirmRename() {
     const updated = data.matchesUpdated > 0 ? ` (${data.matchesUpdated} match${data.matchesUpdated!==1?'es':''} updated)` : '';
     showToast(`Renamed to "${newValue}"${updated}`);
   } catch(e) { showToast('Rename failed: '+e.message,true); }
+  finally { hideSaving(); }
 }
 
 function veCancelRename() {
