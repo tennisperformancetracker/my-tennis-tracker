@@ -994,9 +994,7 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div class="nav-item" onclick="navigateTo('entry')">
       <span class="nav-icon">📝</span> Match Entry
     </div>
-    <div class="nav-item" onclick="navigateTo('validEntries')">
-      <span class="nav-icon">🗂️</span> Valid Entries
-    </div>
+   
   </nav>
   <div style="padding:0 12px 8px">
     <div onclick="showPage('settings')" id="nav-settings" class="nav-item"
@@ -3286,7 +3284,7 @@ function renderVEContent() {
 function buildItem(field, v, i, firstInExtra) {
     return `<li class="ve-item${firstInExtra ? ' ve-item-divider' : ''}" id="ve-item-${field}-${i}" data-field="${field}" data-value="${escHtml(v)}">
       <span class="ve-value-text tip" data-tip="${escHtml(v)}" style="max-width:calc(100% - 64px)">${escHtml(v)}</span>
-      <button class="ve-rename-btn" onclick="vePromptRename('${escHtml(field)}','${escHtml(v)}')" title="Rename">✏️</button>
+      <button class="ve-rename-btn" onclick="vePromptRename(this)" title="Rename">✏️</button>
       <button class="ve-delete-btn" onclick="veTriggerDeleteEl(this)">&#x2715;</button>
     </li>`;
   }
@@ -3367,11 +3365,17 @@ function buildItem(field, v, i, firstInExtra) {
     </div>
     <div class="confirm-overlay" id="ve-confirm-rename">
       <div class="confirm-box">
-        <div class="confirm-title">&#x270F; Rename Entry?</div>
+        <div class="confirm-title">Rename Entry</div>
         <div class="confirm-body" id="ve-confirm-rename-body"></div>
+        <div style="margin-top:12px;margin-bottom:20px">
+          <input type="text" id="ve-rename-input"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:14px;padding:9px 12px;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')veConfirmRename();if(event.key==='Escape')veCancelRename()">
+        </div>
         <div class="confirm-actions">
           <button class="btn btn-ghost" onclick="veCancelRename()">Cancel</button>
-          <button class="btn btn-primary" onclick="veConfirmRename()">Update</button>
+          <button class="btn btn-primary" onclick="veConfirmRename()">Rename</button>
         </div>
       </div>
     </div>
@@ -3466,22 +3470,24 @@ async function veAddEntry(field) {
   finally { hideSaving(); }
 }
 
-function vePromptRename(field, oldValue) {
-  const newValue = window.prompt(`Rename "${oldValue}" to:`, oldValue);
-  if (!newValue || newValue.trim() === '' || newValue.trim() === oldValue) return;
-  const trimmed = newValue.trim();
-  if ((veEntries[field]||[]).includes(trimmed)) { showToast('That value already exists', true); return; }
+function vePromptRename(btn) {
+  const li = btn.closest('li');
+  const field    = li.dataset.field;
+  const oldValue = li.dataset.value;
   let matchCount = 0;
   try {
     const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
     const key = logColMap[field];
     if (key) matchCount = allMatches.filter(m => m[key] === oldValue).length;
   } catch(e) {}
-  vePendingRename = {field, oldValue, newValue: trimmed, inputEl: null};
+  vePendingRename = {field, oldValue, newValue: null, inputEl: null};
   document.getElementById('ve-confirm-rename-body').innerHTML =
-    `Rename <strong>"${escHtml(oldValue)}"</strong> to <strong>"${escHtml(trimmed)}"</strong>?` +
-    (matchCount > 0 ? `<br><br>This will also update <strong>${matchCount} match${matchCount!==1?'es':''}</strong> in your Match Log.` : '');
+    `Rename <strong>"${escHtml(oldValue)}"</strong> to:` +
+    (matchCount > 0 ? `<br><span style="font-size:12px;color:var(--muted)">This will also update <strong style="color:var(--text)">${matchCount} match${matchCount!==1?'es':''}</strong> in your Match Log.</span>` : '');
+  const input = document.getElementById('ve-rename-input');
+  input.value = oldValue;
   document.getElementById('ve-confirm-rename').classList.add('visible');
+  setTimeout(() => { input.focus(); input.select(); }, 50);
 }
 
 function veOnInput(inputEl, field, idx) {
@@ -3518,10 +3524,13 @@ async function veTriggerRename(field, idx) {
 }
 
 async function veConfirmRename() {
+  if (!vePendingRename) return;
+  const newValue = document.getElementById('ve-rename-input').value.trim();
+  if (!newValue || newValue === vePendingRename.oldValue) return;
+  if ((veEntries[vePendingRename.field]||[]).includes(newValue)) { showToast('That value already exists', true); return; }
   showSaving('Renaming…');
   document.getElementById('ve-confirm-rename').classList.remove('visible');
-  if (!vePendingRename) return;
-  const {field, oldValue, newValue} = vePendingRename;
+  const {field, oldValue} = vePendingRename;
   vePendingRename = null;
   try {
     const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
@@ -3537,6 +3546,7 @@ async function veConfirmRename() {
     const updated = data.matchesUpdated > 0 ? ` (${data.matchesUpdated} match${data.matchesUpdated!==1?'es':''} updated)` : '';
     showToast(`Renamed to "${newValue}"${updated}`);
   } catch(e) { showToast('Rename failed: '+e.message,true); }
+  finally { hideSaving(); }
 }
 
 function veCancelRename() {
@@ -3683,7 +3693,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-appearance')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">Display</div>
             <div class="settings-section-title">Display Preferences</div>
             <div class="settings-section-desc">Controls color-coding thresholds and how names appear across the app.</div>
           </div>
@@ -3766,7 +3775,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-history')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">Match History</div>
             <div class="settings-section-title">Match History Settings</div>
             <div class="settings-section-desc">Performance Breakdown categories and matches per page.</div>
           </div>
@@ -3812,7 +3820,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-entry')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">Match Entry</div>
             <div class="settings-section-title">Match Entry Defaults</div>
             <div class="settings-section-desc">Set optional defaults to save time during match entry.</div>
           </div>
@@ -3895,7 +3902,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-general')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">General</div>
             <div class="settings-section-title">Notifications & Connection</div>
             <div class="settings-section-desc">Update notifications and your Google Sheet connection.</div>
           </div>
@@ -3952,6 +3958,21 @@ function renderSettings() {
               </div>
             </div>
 
+          </div>
+        </div>
+      </div>
+
+    <!-- ── VALID ENTRIES ROW ── -->
+      <div class="settings-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;gap:24px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;">
+            <div class="settings-section-title">Valid Entries</div>
+            <div class="settings-section-desc">Manage dropdown values used across Match Entry (partners, seasons, leagues, etc.)</div>
+          </div>
+          <div style="flex-shrink:0;">
+            <button onclick="navigateTo('validEntries')" style="display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--accent2);border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent2);cursor:pointer;white-space:nowrap;font-family:var(--font);">
+              🗂️ Manage Valid Entries →
+            </button>
           </div>
         </div>
       </div>
