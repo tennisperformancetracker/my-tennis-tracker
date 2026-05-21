@@ -3037,7 +3037,8 @@ function renderVEContent() {
 
 function buildItem(field, v, i, firstInExtra) {
     return `<li class="ve-item${firstInExtra ? ' ve-item-divider' : ''}" id="ve-item-${field}-${i}" data-field="${field}" data-value="${escHtml(v)}">
-      <span class="ve-value-text tip" data-tip="${escHtml(v)}" style="max-width:calc(100% - 32px)">${escHtml(v)}</span>
+      <span class="ve-value-text tip" data-tip="${escHtml(v)}" style="max-width:calc(100% - 64px)">${escHtml(v)}</span>
+      <button class="ve-rename-btn" onclick="vePromptRename('${escHtml(field)}','${escHtml(v)}')" title="Rename">✏️</button>
       <button class="ve-delete-btn" onclick="veTriggerDeleteEl(this)">&#x2715;</button>
     </li>`;
   }
@@ -3094,6 +3095,8 @@ function buildItem(field, v, i, firstInExtra) {
       .ve-item-divider{border-top:1px solid var(--border) !important}
       .ve-delete-btn{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;flex-shrink:0}
       .ve-delete-btn:hover{color:var(--danger);background:var(--loss-bg)}
+      .ve-rename-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;flex-shrink:0}
+      .ve-rename-btn:hover{color:var(--accent2);background:var(--surface2)}
       .ve-add-row{display:flex;gap:8px;width:100%;box-sizing:border-box}
       .ve-add-input{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:7px 10px;outline:none;box-sizing:border-box}
       .ve-add-input:focus{border-color:var(--accent2)}
@@ -3215,6 +3218,24 @@ async function veAddEntry(field) {
   finally { hideSaving(); }
 }
 
+function vePromptRename(field, oldValue) {
+  const newValue = window.prompt(`Rename "${oldValue}" to:`, oldValue);
+  if (!newValue || newValue.trim() === '' || newValue.trim() === oldValue) return;
+  const trimmed = newValue.trim();
+  if ((veEntries[field]||[]).includes(trimmed)) { showToast('That value already exists', true); return; }
+  let matchCount = 0;
+  try {
+    const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
+    const key = logColMap[field];
+    if (key) matchCount = allMatches.filter(m => m[key] === oldValue).length;
+  } catch(e) {}
+  vePendingRename = {field, oldValue, newValue: trimmed, inputEl: null};
+  document.getElementById('ve-confirm-rename-body').innerHTML =
+    `Rename <strong>"${escHtml(oldValue)}"</strong> to <strong>"${escHtml(trimmed)}"</strong>?` +
+    (matchCount > 0 ? `<br><br>This will also update <strong>${matchCount} match${matchCount!==1?'es':''}</strong> in your Match Log.` : '');
+  document.getElementById('ve-confirm-rename').classList.add('visible');
+}
+
 function veOnInput(inputEl, field, idx) {
   const item = document.getElementById(`ve-item-${field}-${idx}`);
   const changed = inputEl.value.trim() !== inputEl.dataset.original && inputEl.value.trim() !== '';
@@ -3272,7 +3293,7 @@ async function veConfirmRename() {
 
 function veCancelRename() {
   document.getElementById('ve-confirm-rename').classList.remove('visible');
-  if (vePendingRename) { vePendingRename.inputEl.value = vePendingRename.oldValue; vePendingRename = null; }
+  if (vePendingRename) { if (vePendingRename.inputEl) vePendingRename.inputEl.value = vePendingRename.oldValue; vePendingRename = null; }
   renderVEContent();
 }
 
