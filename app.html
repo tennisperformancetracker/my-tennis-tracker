@@ -3445,7 +3445,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-appearance')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">Display</div>
             <div class="settings-section-title">Display Preferences</div>
             <div class="settings-section-desc">Controls color-coding thresholds and how names appear across the app.</div>
           </div>
@@ -3528,7 +3527,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-history')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">Match History</div>
             <div class="settings-section-title">Match History Settings</div>
             <div class="settings-section-desc">Performance Breakdown categories and matches per page.</div>
           </div>
@@ -3574,7 +3572,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-entry')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">Match Entry</div>
             <div class="settings-section-title">Match Entry Defaults</div>
             <div class="settings-section-desc">Set optional defaults to save time during match entry.</div>
           </div>
@@ -3657,7 +3654,6 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-hdr" onclick="toggleSettingsSection('sec-general')">
           <div class="settings-section-hdr-left">
-            <div class="settings-section-label">General</div>
             <div class="settings-section-title">Notifications & Connection</div>
             <div class="settings-section-desc">Update notifications and your Google Sheet connection.</div>
           </div>
@@ -3719,15 +3715,17 @@ function renderSettings() {
       </div>
 
     <!-- ── VALID ENTRIES ROW ── -->
-      <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:200px;">
-          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">Valid Entries</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">Manage the dropdown values used across Match Entry — partners, seasons, leagues, levels, and more. Renaming an entry automatically updates all existing matches.</div>
-        </div>
-        <div style="flex-shrink:0;padding-top:2px;">
-          <button onclick="navigateTo('validEntries')" style="display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--accent2);border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent2);cursor:pointer;white-space:nowrap;font-family:var(--font);">
-            🗂️ Manage Valid Entries →
-          </button>
+      <div class="settings-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;gap:24px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;">
+            <div class="settings-section-title">Valid Entries</div>
+            <div class="settings-section-desc">Manage dropdown values used across Match Entry (partners, seasons, leagues, etc.)</div>
+          </div>
+          <div style="flex-shrink:0;">
+            <button onclick="navigateTo('validEntries')" style="display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--accent2);border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent2);cursor:pointer;white-space:nowrap;font-family:var(--font);">
+              🗂️ Manage Valid Entries →
+            </button>
+          </div>
         </div>
       </div>
 
