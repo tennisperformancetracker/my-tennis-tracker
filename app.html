@@ -788,9 +788,7 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div class="nav-item" onclick="navigateTo('entry')">
       <span class="nav-icon">📝</span> Match Entry
     </div>
-    <div class="nav-item" onclick="navigateTo('validEntries')">
-      <span class="nav-icon">🗂️</span> Valid Entries
-    </div>
+    
   </nav>
   <div style="padding:0 12px 8px">
     <div onclick="showPage('settings')" id="nav-settings" class="nav-item"
@@ -3717,6 +3715,19 @@ function renderSettings() {
             </div>
 
           </div>
+        </div>
+      </div>
+
+    <!-- ── VALID ENTRIES ROW ── -->
+      <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">Valid Entries</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">Manage the dropdown values used across Match Entry — partners, seasons, leagues, levels, and more. Renaming an entry automatically updates all existing matches.</div>
+        </div>
+        <div style="flex-shrink:0;padding-top:2px;">
+          <button onclick="navigateTo('validEntries')" style="display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--accent2);border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent2);cursor:pointer;white-space:nowrap;font-family:var(--font);">
+            🗂️ Manage Valid Entries →
+          </button>
         </div>
       </div>
 
