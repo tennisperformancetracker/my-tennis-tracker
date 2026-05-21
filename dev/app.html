@@ -3210,12 +3210,6 @@ let vePendingDelete = null;
 let vePendingRename = null;
 
 async function renderValidEntries() {
-  const backBtn = '<button onclick="navigateTo(\'settings\')" class="btn btn-ghost" style="font-size:12px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px;">← Back to Settings</button>';
-  document.getElementById('topbar-right').innerHTML = backBtn;
-  const mf = document.getElementById('mobile-filters');
-  mf.innerHTML = '<div style="width:100%;display:flex;justify-content:flex-end;padding:4px 0">' + backBtn + '</div>';
-  mf.style.display = 'flex';
-
   // Use cached data if we already have entries loaded — no need to re-fetch
   if (veEntries && Object.keys(veEntries).length > 0) {
     renderVEContent();
@@ -3238,6 +3232,11 @@ async function renderValidEntries() {
 }
 
 function renderVEContent() {
+  const backBtn = '<button onclick="navigateTo(\'settings\')" class="btn btn-ghost" style="font-size:12px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px;">← Back to Settings</button>';
+  document.getElementById('topbar-right').innerHTML = backBtn;
+  const mf = document.getElementById('mobile-filters');
+  mf.innerHTML = '<div style="width:100%;display:flex;justify-content:flex-end;padding:4px 0">' + backBtn + '</div>';
+  mf.style.display = 'flex';
   const great = veThresholds.great;
   const poor  = veThresholds.poor;
   const SHOW  = 3;
