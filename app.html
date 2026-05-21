@@ -3038,7 +3038,7 @@ function renderVEContent() {
 function buildItem(field, v, i, firstInExtra) {
     return `<li class="ve-item${firstInExtra ? ' ve-item-divider' : ''}" id="ve-item-${field}-${i}" data-field="${field}" data-value="${escHtml(v)}">
       <span class="ve-value-text tip" data-tip="${escHtml(v)}" style="max-width:calc(100% - 64px)">${escHtml(v)}</span>
-      <button class="ve-rename-btn" onclick="vePromptRename('${escHtml(field)}','${escHtml(v)}')" title="Rename">✏️</button>
+      <button class="ve-rename-btn" onclick="vePromptRename(this)" title="Rename">✏️</button>
       <button class="ve-delete-btn" onclick="veTriggerDeleteEl(this)">&#x2715;</button>
     </li>`;
   }
@@ -3224,7 +3224,10 @@ async function veAddEntry(field) {
   finally { hideSaving(); }
 }
 
-function vePromptRename(field, oldValue) {
+function vePromptRename(btn) {
+  const li = btn.closest('li');
+  const field    = li.dataset.field;
+  const oldValue = li.dataset.value;
   let matchCount = 0;
   try {
     const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
