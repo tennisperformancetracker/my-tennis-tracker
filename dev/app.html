@@ -841,11 +841,23 @@ textarea:focus { border-color: var(--accent2) !important; }
 .tiers-modal-overlay.visible { opacity: 1; pointer-events: all; }
 .tiers-modal-box {
   background: var(--surface); border-radius: 16px;
-  padding: 28px 28px 24px; max-width: 340px; width: 90%;
+  padding: 0; max-width: 340px; width: 90%;
+  max-height: 80vh; display: flex; flex-direction: column;
   box-shadow: 0 8px 40px rgba(0,0,0,0.18);
   transform: scale(0.94) translateY(8px); transition: transform 0.2s;
+  overflow: hidden;
 }
 .tiers-modal-overlay.visible .tiers-modal-box { transform: scale(1) translateY(0); }
+.tiers-modal-header {
+  padding: 24px 28px 0; flex-shrink: 0;
+}
+.tiers-modal-scroll {
+  overflow-y: auto; flex: 1; padding: 0 28px;
+}
+.tiers-modal-footer {
+  padding: 12px 28px 20px; flex-shrink: 0;
+  border-top: 1px solid var(--border);
+}
 .tiers-modal-title {
   font-size: 16px; font-weight: 700; color: var(--text);
   margin-bottom: 16px; letter-spacing: -0.3px;
@@ -870,7 +882,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 .tiers-modal-req { font-size: 11px; color: var(--muted); margin-top: 1px; }
 .tiers-modal-earned { font-size: 11px; color: var(--win); font-weight: 600; }
 .tiers-modal-close {
-  display: block; width: 100%; margin-top: 18px;
+  display: block; width: 100%; margin-top: 0;
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 8px; font-family: var(--font); font-size: 13px;
   font-weight: 600; color: var(--label); padding: 10px;
@@ -895,8 +907,11 @@ textarea:focus { border-color: var(--accent2) !important; }
 .achievements-count { font-size: 13px; color: var(--muted); padding-bottom: 3px; }
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+}
+@media (max-width: 768px) {
+  .achievements-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .badge-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
@@ -1188,9 +1203,13 @@ textarea:focus { border-color: var(--accent2) !important; }
 <!-- ══ BADGE CELEBRATION MODAL ══ -->
 <div class="tiers-modal-overlay" id="tiers-modal-overlay" onclick="if(event.target===this)closeTiersModal()">
   <div class="tiers-modal-box">
-    <div class="tiers-modal-title" id="tiers-modal-title"></div>
-    <div id="tiers-modal-rows"></div>
-    <button class="tiers-modal-close" onclick="closeTiersModal()">Close</button>
+    <div class="tiers-modal-header">
+      <div class="tiers-modal-title" id="tiers-modal-title"></div>
+    </div>
+    <div class="tiers-modal-scroll" id="tiers-modal-rows"></div>
+    <div class="tiers-modal-footer">
+      <button class="tiers-modal-close" onclick="closeTiersModal()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -5243,6 +5262,17 @@ const BADGE_DEFS_TIERED = [
     getValue: (m) => m.filter(x => x.homeaway==='Away' && x.result==='W').length
   },
   {
+    id: 'win_streak',
+    emoji: '🔥',
+    baseName: 'Win Streak',
+    tiers: [
+      { level:1, threshold:5,  label:'Hot Streak',    desc:'Won 5 matches in a row.' },
+      { level:2, threshold:10, label:'On Fire',        desc:'Won 10 matches in a row.' },
+      { level:3, threshold:15, label:'Unstoppable',    desc:'Won 15 matches in a row.' }
+    ],
+    getValue: (m) => calcMaxStreak(m)
+  },
+  {
     id: 'sweet_revenge',
     emoji: '😤',
     baseName: 'Sweet Revenge',
@@ -5258,24 +5288,7 @@ const BADGE_DEFS_TIERED = [
 
 // Non-tiered / special badges
 const BADGE_DEFS = [
-  {
-    id: 'first_rally', emoji: '🎾', name: 'First Rally',
-    desc: 'Logged your very first match.',
-    check: (m) => m.length >= 1,
-    progress: (m) => ({ val: Math.min(m.length,1), max:1, label: m.length>=1?'Done':'0 of 1' })
-  },
-  {
-    id: 'hot_streak', emoji: '🔥', name: 'Hot Streak',
-    desc: 'Won 5 matches in a row.',
-    check: (m) => calcMaxStreak(m) >= 5,
-    progress: (m) => ({ val: Math.min(calcMaxStreak(m),5), max:5, label: calcMaxStreak(m)>=5 ? 'Done' : `${5-calcMaxStreak(m)} to go` })
-  },
-  {
-    id: 'on_fire', emoji: '⚡', name: 'On Fire',
-    desc: 'Won 10 matches in a row.',
-    check: (m) => calcMaxStreak(m) >= 10,
-    progress: (m) => ({ val: Math.min(calcMaxStreak(m),10), max:10, label: calcMaxStreak(m)>=10 ? 'Done' : `${10-calcMaxStreak(m)} to go` })
-  },
+
   {
     id: 'above_500', emoji: '📈', name: 'Above .500',
     desc: '50% win rate · min 50 matches',
@@ -5633,8 +5646,9 @@ async function shareBadge(def) {
       imageBlob = await new Promise(res => canvas.toBlob(res,'image/png'));
     }
   } catch(e) { /* fall through */ }
-  const shareText = `I just earned the "${def.name}" badge on Match Tracker Pro — ${def.desc} #MatchTrackerPro`;
-  if (navigator.share) {
+  const shareText = `I just earned the "${def.name || def.baseName || ''}" badge on Match Tracker Pro — ${def.desc || ''} #MatchTrackerPro`;
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile && navigator.share) {
     try {
       const shareData = { title:'Match Tracker Pro', text:shareText };
       if (imageBlob && navigator.canShare &&
