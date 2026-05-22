@@ -5233,7 +5233,8 @@ async function shareBadge(def) {
     }
   } catch(e) { /* fall through */ }
   const shareText = `I just earned the "${def.name}" badge on Match Tracker Pro — ${def.desc} #MatchTrackerPro`;
-  if (navigator.share) {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile && navigator.share) {
     try {
       const shareData = { title:'Match Tracker Pro', text:shareText };
       if (imageBlob && navigator.canShare &&
