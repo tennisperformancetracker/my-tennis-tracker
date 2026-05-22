@@ -909,6 +909,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  align-items: stretch;
 }
 @media (max-width: 768px) {
   .achievements-grid { grid-template-columns: repeat(2, 1fr); }
@@ -918,7 +919,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   padding: 20px 14px 16px; display: flex; flex-direction: column;
   align-items: center; gap: 10px; text-align: center;
   cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; position: relative;
-  justify-content: flex-start;
+  justify-content: flex-start; box-sizing: border-box; height: 100%;
 }
 .badge-card.earned { border-top: 3px solid var(--win); }
 .badge-card.locked { opacity: 0.5; cursor: default; }
@@ -5219,7 +5220,7 @@ const BADGE_DEFS_TIERED = [
   },
   {
     id: 'playoff_warrior',
-    emoji: '⚔️',
+    emoji: '🏆',
     baseName: 'Playoff Warrior',
     tiers: [
       { level:1, threshold:1,   label:'Level 1', desc:'Won your first playoff match.' },
@@ -5233,7 +5234,7 @@ const BADGE_DEFS_TIERED = [
   },
   {
     id: 'double_bagel',
-    emoji: '🫐',
+    emoji: '🥯',
     baseName: 'Double Bagel',
     tiers: [
       { level:1, threshold:1,  label:'Level 1', desc:'Won a match 6–0, 6–0.' },
@@ -5249,7 +5250,7 @@ const BADGE_DEFS_TIERED = [
   },
   {
     id: 'tiebreak_specialist',
-    emoji: '🎯',
+    emoji: '⚖️',
     baseName: 'Tiebreak Specialist',
     tiers: [
       { level:1, threshold:10,  label:'Level 1', desc:'Won 10 tiebreaks.' },
@@ -5261,13 +5262,13 @@ const BADGE_DEFS_TIERED = [
   },
   {
     id: 'clutch_performer',
-    emoji: '🧠',
+    emoji: '🚨',
     baseName: 'Clutch Performer',
     tiers: [
-      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches decided by a super tiebreak.' },
-      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches decided by a super tiebreak.' },
-      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches decided by a super tiebreak.' },
-      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches decided by a super tiebreak.' }
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches decided by a tiebreak in the third set.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches decided by a tiebreak in the third set.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches decided by a tiebreak in the third set.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches decided by a tiebreak in the third set.' }
     ],
     getValue: (m) => m.filter(x => {
       if (x.result !== 'W' || x.oppRet || x.weRet) return false;
@@ -5302,6 +5303,17 @@ const BADGE_DEFS_TIERED = [
     getValue: (m) => m.filter(x => x.homeaway==='Away' && x.result==='W').length
   },
   {
+    id: 'win_streak',
+    emoji: '🔥',
+    baseName: 'Win Streak',
+    tiers: [
+      { level:1, threshold:5,  label:'Hot Streak',    desc:'Won 5 matches in a row.' },
+      { level:2, threshold:10, label:'On Fire',        desc:'Won 10 matches in a row.' },
+      { level:3, threshold:15, label:'Unstoppable',    desc:'Won 15 matches in a row.' }
+    ],
+    getValue: (m) => calcMaxStreak(m)
+  },
+  {
     id: 'nemesis',
     emoji: '😈',
     baseName: 'Nemesis',
@@ -5333,17 +5345,6 @@ const BADGE_DEFS_TIERED = [
     ],
     getValue: (m) => badgeSweetRevengeCount(m)
   },
-  {
-    id: 'win_streak',
-    emoji: '🔥',
-    baseName: 'Win Streak',
-    tiers: [
-      { level:1, threshold:5,  label:'Hot Streak',    desc:'Won 5 matches in a row.' },
-      { level:2, threshold:10, label:'On Fire',        desc:'Won 10 matches in a row.' },
-      { level:3, threshold:15, label:'Unstoppable',    desc:'Won 15 matches in a row.' }
-    ],
-    getValue: (m) => calcMaxStreak(m)
-  },
 ];
 
 // Non-tiered / special badges
@@ -5359,7 +5360,7 @@ const BADGE_DEFS = [
     }
   },
   {
-    id: 'sharpshooter', emoji: '🏹', name: 'Sharpshooter',
+    id: 'sharpshooter', emoji: '🎯', name: 'Sharpshooter',
     desc: '60% win rate · min 50 matches',
     check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.60,
     progress: (m) => {
