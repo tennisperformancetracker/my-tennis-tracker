@@ -5559,6 +5559,10 @@ function replayBadgeHistory(matches) {
         if (val >= tier.threshold) {
           earned.push(tid);
           dates[tid] = dateLabel;
+          if (def.id === 'dynamic_duo') {
+            const tp = badgeTopPartnerWins(subset);
+            if (tp.partner) dates[tid + '_partner'] = tp.partner;
+          }
         }
       });
     });
@@ -5606,6 +5610,10 @@ async function computeBadges(matches) {
       if (val >= tier.threshold) {
         alreadyEarned.push(tid);
         dates[tid] = now;
+        if (def.id === 'dynamic_duo') {
+          const tp = badgeTopPartnerWins(matches);
+          if (tp.partner) dates[tid + '_partner'] = tp.partner;
+        }
         newlyEarned.push(tid);
       }
     });
@@ -5893,11 +5901,15 @@ function openTiersModal(defId) {
     const tid = tieredId(def, tier.level);
     const isEarned = earned.includes(tid);
     const dateStr = isEarned && dates[tid] ? `<div class="tiers-modal-earned">Earned ${dates[tid]}</div>` : '';
+    const partnerStr = (isEarned && def.id === 'dynamic_duo' && dates[tid + '_partner'])
+      ? `<div class="tiers-modal-req" style="margin-top:2px">w/ ${escHtml(formatPartnerName(dates[tid + '_partner']))}</div>`
+      : '';
     return `<div class="tiers-modal-row">
       <div class="tiers-modal-icon${isEarned?'':' locked'}">${isEarned ? def.emoji : '🔒'}</div>
       <div class="tiers-modal-info">
         <div class="tiers-modal-name${isEarned?'':' locked'}">${tier.label} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${tier.threshold}${tier.threshold===1?'':'+'})</span></div>
         <div class="tiers-modal-req">${tier.desc}</div>
+        ${partnerStr}
         ${dateStr}
       </div>
     </div>`;
