@@ -4048,6 +4048,15 @@ function renderSettings() {
               </div>
             </div>
 
+            <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px">
+              <div class="settings-sub-hdr">
+                <div class="settings-sub-hdr-title">Badge History</div>
+                <div class="settings-sub-hdr-desc">Recalculate badge earn dates using your actual match history. Useful if you imported past matches after setting up the app. This will overwrite all current badge dates.</div>
+              </div>
+              <button onclick="recalcBadgeDatesFromSettings()" class="settings-save-btn" id="recalc-badges-btn" style="margin-top:4px">Recalculate Badge Dates</button>
+              <div id="recalc-badges-msg" style="display:none;font-size:12px;margin-top:8px;color:var(--win)"></div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -4072,6 +4081,19 @@ function renderSettings() {
 }
 
 // ── Settings helpers ──────────────────────────────────────────
+
+async function recalcBadgeDatesFromSettings() {
+  const btn = document.getElementById('recalc-badges-btn');
+  const msg = document.getElementById('recalc-badges-msg');
+  if (btn) { btn.textContent = 'Recalculating…'; btn.disabled = true; }
+  try {
+    await recalcBadgeDates(allMatches);
+    if (msg) { msg.textContent = '✓ Badge dates updated from match history.'; msg.style.display = 'block'; setTimeout(() => { if (msg) msg.style.display = 'none'; }, 4000); }
+  } catch(e) {
+    showToast('Recalculation failed: ' + e.message, true);
+  }
+  if (btn) { btn.textContent = 'Recalculate Badge Dates'; btn.disabled = false; }
+}
 
 function toggleSettingsSection(id) {
   const ids = ['sec-appearance','sec-history','sec-entry','sec-general'];
@@ -5489,22 +5511,85 @@ async function persistEarnedBadges(ids, dates) {
 }
 
 // ── Compute badges ────────────────────────────────────────────
+// Historical replay — walks matches chronologically, stamps each badge
+// with the date it was first earned rather than today.
+function replayBadgeHistory(matches) {
+  const sorted = [...matches].sort((a,b) => parseDate(a.date) - parseDate(b.date));
+  const earned = [];
+  const dates  = {};
+  const monthly = {}; // for grinder tracking
+
+  sorted.forEach((m, idx) => {
+    const subset = sorted.slice(0, idx + 1);
+    const dateLabel = m.date
+      ? new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+      : new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+    // Track monthly match count for The Grinder
+    if (m.date) {
+      const d = new Date(m.date);
+      if (!isNaN(d)) {
+        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        monthly[key] = (monthly[key] || []);
+        monthly[key].push(d);
+        if (monthly[key].length === 10 && !earned.includes('the_grinder')) {
+          earned.push('the_grinder');
+          dates['the_grinder'] = dateLabel;
+          dates['the_grinder_month'] = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+        }
+      }
+    }
+
+    // Non-tiered flat badges (except the_grinder handled above)
+    BADGE_DEFS.forEach(def => {
+      if (def.id === 'the_grinder') return;
+      if (earned.includes(def.id)) return;
+      if (def.check(subset)) {
+        earned.push(def.id);
+        dates[def.id] = dateLabel;
+      }
+    });
+
+    // Tiered badges
+    BADGE_DEFS_TIERED.forEach(def => {
+      const val = def.getValue(subset);
+      def.tiers.forEach(tier => {
+        const tid = tieredId(def, tier.level);
+        if (earned.includes(tid)) return;
+        if (val >= tier.threshold) {
+          earned.push(tid);
+          dates[tid] = dateLabel;
+        }
+      });
+    });
+  });
+
+  return { earned, dates };
+}
+
 async function computeBadges(matches) {
   const alreadyEarned = getEarnedBadges();
   const dates = getEarnedDates();
+
+  // Fresh setup with no earned badges — run full historical replay
+  if (alreadyEarned.length === 0 && matches.length > 0) {
+    const { earned: replayEarned, dates: replayDates } = replayBadgeHistory(matches);
+    if (replayEarned.length > 0) {
+      await persistEarnedBadges(replayEarned, replayDates);
+    }
+    // Don't show modals for replayed badges — just return empty
+    return [];
+  }
+
+  // Incremental check — only find newly earned since last check
   const newlyEarned = [];
   const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
-  // Non-tiered badges
   BADGE_DEFS.forEach(def => {
-    if (alreadyEarned.includes(def.id)) {
-      // For dynamic badges (nemesis, grinder) re-check to update stored data
-      return;
-    }
+    if (alreadyEarned.includes(def.id)) return;
     if (def.check(matches)) {
       alreadyEarned.push(def.id);
       dates[def.id] = now;
-      // Special: store grinder month label
       if (def.id === 'the_grinder') {
         const mo = badgeGrinderMonth(matches);
         if (mo) dates['the_grinder_month'] = mo;
@@ -5513,7 +5598,6 @@ async function computeBadges(matches) {
     }
   });
 
-  // Tiered badges — check each tier level
   BADGE_DEFS_TIERED.forEach(def => {
     const val = def.getValue(matches);
     def.tiers.forEach(tier => {
@@ -5529,6 +5613,13 @@ async function computeBadges(matches) {
 
   if (newlyEarned.length > 0) await persistEarnedBadges(alreadyEarned, dates);
   return newlyEarned;
+}
+
+// Manual recalculate — wipes dates and reruns full replay
+async function recalcBadgeDates(matches) {
+  const { earned: replayEarned, dates: replayDates } = replayBadgeHistory(matches);
+  await persistEarnedBadges(replayEarned, replayDates);
+  showToast('✓ Badge dates recalculated from match history');
 }
 
 // Given a tiered badge def and earned list, return the highest earned tier def
