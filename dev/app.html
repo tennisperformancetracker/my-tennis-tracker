@@ -5198,8 +5198,23 @@ const BADGE_DEFS_TIERED = [
     ],
     getValue: (m) => badgeTopPartnerWins(m).wins,
     getDynamicName: (m) => {
-      const tp = badgeTopPartnerWins(m);
-      return tp.partner ? 'Dynamic Duo: ' + formatPartnerName(tp.partner) : 'Dynamic Duo';
+      const earned = getEarnedBadges();
+      const highestTier = getHighestEarnedTier({id:'dynamic_duo', tiers:[
+        {level:1,threshold:10},{level:2,threshold:25},{level:3,threshold:50},{level:4,threshold:100}
+      ]}, earned);
+      if (!highestTier) return 'Dynamic Duo';
+      // Find all partners who meet the current highest tier threshold
+      const counts = {};
+      m.forEach(x => {
+        if (x.partner && x.partner !== 'None' && x.partner !== '' && x.result === 'W') {
+          counts[x.partner] = (counts[x.partner] || 0) + 1;
+        }
+      });
+      const qualifiers = Object.entries(counts)
+        .filter(([,c]) => c >= highestTier.threshold)
+        .sort((a,b) => b[1]-a[1])
+        .map(([p]) => formatPartnerName(p));
+      return qualifiers.length > 0 ? 'Dynamic Duo: ' + qualifiers.join(', ') : 'Dynamic Duo';
     }
   },
   {
@@ -5256,7 +5271,10 @@ const BADGE_DEFS_TIERED = [
     ],
     getValue: (m) => m.filter(x => {
       if (x.result !== 'W' || x.oppRet || x.weRet) return false;
-      return Number(x.s3w)===1 && Number(x.s3l)===0;
+      const s3w = Number(x.s3w), s3l = Number(x.s3l);
+      if (x.s3w === '' || x.s3w === null || x.s3w === undefined) return false;
+      // Super tiebreak (1-0) or standard set 3 tiebreak (7-6)
+      return (s3w === 1 && s3l === 0) || (s3w === 7 && s3l === 6);
     }).length
   },
   {
@@ -5284,6 +5302,38 @@ const BADGE_DEFS_TIERED = [
     getValue: (m) => m.filter(x => x.homeaway==='Away' && x.result==='W').length
   },
   {
+    id: 'nemesis',
+    emoji: '😈',
+    baseName: 'Nemesis',
+    isSpecial: true,
+    tiers: [
+      { level:1, threshold:5, label:'Nemesis', desc:'Lost 5+ times to the same opponent.' }
+    ],
+    getValue: (m) => badgeNemesisMax(m),
+    getDynamicName: (m) => {
+      const opp = badgeNemesisOpponent(m);
+      return opp ? 'Nemesis: ' + formatPartnerName(opp) : 'Nemesis';
+    },
+    getDynamicDesc: (m) => {
+      const opp = badgeNemesisOpponent(m);
+      if (!opp) return 'Lost 5+ times to the same opponent.';
+      const rec = badgeNemesisRecord(m, opp);
+      return `Your nemesis: ${formatPartnerName(opp)}. Record: ${rec.w}–${rec.l} (${rec.pct}% wins).`;
+    }
+  },
+  {
+    id: 'sweet_revenge',
+    emoji: '😤',
+    baseName: 'Sweet Revenge',
+    tiers: [
+      { level:1, threshold:1,  label:'Level 1', desc:'Got revenge on 1 opponent you had lost to 5+ times.' },
+      { level:2, threshold:3,  label:'Level 2', desc:'Got revenge on 3 opponents you had lost to 5+ times.' },
+      { level:3, threshold:5,  label:'Level 3', desc:'Got revenge on 5 opponents you had lost to 5+ times.' },
+      { level:4, threshold:10, label:'Level 4', desc:'Got revenge on 10 opponents you had lost to 5+ times.' }
+    ],
+    getValue: (m) => badgeSweetRevengeCount(m)
+  },
+  {
     id: 'win_streak',
     emoji: '🔥',
     baseName: 'Win Streak',
@@ -5294,18 +5344,6 @@ const BADGE_DEFS_TIERED = [
     ],
     getValue: (m) => calcMaxStreak(m)
   },
-  {
-    id: 'sweet_revenge',
-    emoji: '😤',
-    baseName: 'Sweet Revenge',
-    tiers: [
-      { level:1, threshold:1,  label:'Level 1', desc:'Got revenge on 1 opponent you had lost to 3+ times.' },
-      { level:2, threshold:3,  label:'Level 2', desc:'Got revenge on 3 opponents you had lost to 3+ times.' },
-      { level:3, threshold:5,  label:'Level 3', desc:'Got revenge on 5 opponents you had lost to 3+ times.' },
-      { level:4, threshold:10, label:'Level 4', desc:'Got revenge on 10 opponents you had lost to 3+ times.' }
-    ],
-    getValue: (m) => badgeSweetRevengeCount(m)
-  }
 ];
 
 // Non-tiered / special badges
@@ -5352,24 +5390,6 @@ const BADGE_DEFS = [
       return mo ? `Played 10+ matches in ${mo}.` : 'Played 10+ matches in a single calendar month.';
     }
   },
-  {
-    id: 'nemesis', emoji: '😈', name: 'Nemesis',
-    desc: 'Lost 3+ times to the same opponent.',
-    isOneTime: true,
-    check: (m) => badgeNemesisOpponent(m) !== null,
-    progress: (m) => {
-      const max3 = badgeNemesisMax(m);
-      return { val: Math.min(max3,3), max:3, label: max3>=3?'Done':`${max3} losses to same opponent` };
-    },
-    getDynamicDesc: (m) => {
-      const opp = badgeNemesisOpponent(m);
-      return opp ? `Your nemesis: ${formatPartnerName(opp)}.` : 'Lost 3+ times to the same opponent.';
-    },
-    getDynamicName: (m) => {
-      const opp = badgeNemesisOpponent(m);
-      return opp ? 'Nemesis: ' + formatPartnerName(opp) : 'Nemesis';
-    }
-  }
 ];
 
 function badgeWinRate(matches) {
@@ -5440,35 +5460,46 @@ function badgeGrinderMonth(matches) {
   }
   return null;
 }
-function badgeNemesisOpponent(matches) {
-  const losses = {};
+function badgeNemesisStats(matches) {
+  // Build w/l record against every opponent
+  const stats = {};
   matches.forEach(m => {
-    if (m.result !== 'L') return;
-    if (m.opp1 && m.opp1.trim()) losses[m.opp1.trim()] = (losses[m.opp1.trim()]||0) + 1;
-    if (m.opp2 && m.opp2.trim()) losses[m.opp2.trim()] = (losses[m.opp2.trim()]||0) + 1;
-  });
-  let best = null, bestCount = 0;
-  Object.entries(losses).forEach(([opp, c]) => { if (c > bestCount) { best = opp; bestCount = c; } });
-  return bestCount >= 3 ? best : null;
-}
-function badgeNemesisMax(matches) {
-  const losses = {};
-  matches.forEach(m => {
-    if (m.result !== 'L') return;
-    if (m.opp1 && m.opp1.trim()) losses[m.opp1.trim()] = (losses[m.opp1.trim()]||0) + 1;
-    if (m.opp2 && m.opp2.trim()) losses[m.opp2.trim()] = (losses[m.opp2.trim()]||0) + 1;
-  });
-  return Object.values(losses).reduce((a,b) => Math.max(a,b), 0);
-}
-function badgeSweetRevengeCount(matches) {
-  const losses = {};
-  matches.forEach(m => {
-    if (m.result !== 'L') return;
     [m.opp1, m.opp2].forEach(opp => {
-      if (opp && opp.trim()) losses[opp.trim()] = (losses[opp.trim()]||0) + 1;
+      if (!opp || !opp.trim()) return;
+      const key = opp.trim();
+      if (!stats[key]) stats[key] = { w:0, l:0 };
+      if (m.result === 'W') stats[key].w++;
+      else if (m.result === 'L') stats[key].l++;
     });
   });
-  const nemeses = new Set(Object.entries(losses).filter(([,c]) => c >= 3).map(([o]) => o));
+  return stats;
+}
+function badgeNemesisOpponent(matches) {
+  const stats = badgeNemesisStats(matches);
+  // Must have 5+ losses — pick the one with the worst win percentage
+  let best = null, bestPct = Infinity;
+  Object.entries(stats).forEach(([opp, rec]) => {
+    if (rec.l < 5) return;
+    const total = rec.w + rec.l;
+    const pct = total === 0 ? 0 : rec.w / total;
+    if (pct < bestPct) { bestPct = pct; best = opp; }
+  });
+  return best;
+}
+function badgeNemesisRecord(matches, opp) {
+  const stats = badgeNemesisStats(matches);
+  const rec = stats[opp] || { w:0, l:0 };
+  const total = rec.w + rec.l;
+  return { w: rec.w, l: rec.l, pct: total === 0 ? 0 : Math.round((rec.w / total) * 100) };
+}
+function badgeNemesisMax(matches) {
+  const stats = badgeNemesisStats(matches);
+  return Object.values(stats).reduce((a, rec) => Math.max(a, rec.l), 0);
+}
+function badgeSweetRevengeCount(matches) {
+  // Only opponents with 5+ losses qualify (matching nemesis threshold)
+  const stats = badgeNemesisStats(matches);
+  const nemeses = new Set(Object.entries(stats).filter(([,rec]) => rec.l >= 5).map(([o]) => o));
   if (nemeses.size === 0) return 0;
   const revenged = new Set();
   matches.forEach(m => {
@@ -5863,7 +5894,7 @@ function renderAchievements() {
     const displayName = def.getDynamicName ? def.getDynamicName(allMatches) : (def.baseName + (isEarned ? ': ' + displayTier.label : ''));
     const displayDesc = isEarned ? displayTier.desc : def.tiers[0].desc;
     const levelPill = isEarned ? `<div class="badge-level-pill">${displayTier.label}</div>` : '';
-    const seeAllBtn = `<button class="badge-see-tiers" onclick="event.stopPropagation();openTiersModal('${def.id}')">See all tiers →</button>`;
+    const seeAllBtn = def.isSpecial ? '' : `<button class="badge-see-tiers" onclick="event.stopPropagation();openTiersModal('${def.id}')">See all tiers →</button>`;
     return `
       <div class="badge-card ${isEarned?'earned':'locked'}"
            ${isEarned?`onclick="openEarnedBadge('${displayId}')"`:''}>
@@ -5901,15 +5932,11 @@ function openTiersModal(defId) {
     const tid = tieredId(def, tier.level);
     const isEarned = earned.includes(tid);
     const dateStr = isEarned && dates[tid] ? `<div class="tiers-modal-earned">Earned ${dates[tid]}</div>` : '';
-    const partnerStr = (isEarned && def.id === 'dynamic_duo' && dates[tid + '_partner'])
-      ? `<div class="tiers-modal-req" style="margin-top:2px">w/ ${escHtml(formatPartnerName(dates[tid + '_partner']))}</div>`
-      : '';
     return `<div class="tiers-modal-row">
       <div class="tiers-modal-icon${isEarned?'':' locked'}">${isEarned ? def.emoji : '🔒'}</div>
       <div class="tiers-modal-info">
         <div class="tiers-modal-name${isEarned?'':' locked'}">${tier.label} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${tier.threshold}${tier.threshold===1?'':'+'})</span></div>
         <div class="tiers-modal-req">${tier.desc}</div>
-        ${partnerStr}
         ${dateStr}
       </div>
     </div>`;
