@@ -660,8 +660,8 @@
     <a href="#dashboard"><span class="icon">📊</span> Dashboard</a>
     <a href="#match-history"><span class="icon">🎾</span> Match History</a>
     <a href="#match-entry"><span class="icon">📝</span> Match Entry</a>
-    <a href="#valid-entries"><span class="icon">🗂️</span> Valid Entries</a>
     <a href="#settings"><span class="icon">⚙️</span> Settings</a>
+    
     <a href="#importing-matches"><span class="icon">📥</span> Importing Matches</a>
   </nav>
 
@@ -680,6 +680,9 @@
     <p class="cover-sub">
       Everything you need to connect your spreadsheet, log your matches, and gain real insights into your game. <br><br>This guide walks you through setup and each section of the app so you can start logging your matches now!
     </p>
+    <div class="cover-tags">
+      <a href="https://youtu.be/pi7LTBR6ksM" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;">▶ Watch Setup Walkthrough Video</a>
+    </div>
     
   </div>
 
@@ -691,8 +694,8 @@
       <li><a href="#dashboard">Dashboard</a> <span>Your performance command center</span></li>
       <li><a href="#match-history">Match History</a> <span>Search, filter, and analyze your record</span></li>
       <li><a href="#match-entry">Match Entry</a> <span>Logging every match, every detail</span></li>
-      <li><a href="#valid-entries">Valid Entries</a> <span>Managing dropdown lists</span></li>
       <li><a href="#settings">Settings</a> <span>Display, Match History, Match Entry, notifications &amp; connection</span></li>
+      
       <li><a href="#importing-matches">Importing Matches</a> <span>Bringing in data from another spreadsheet</span></li>
     </ol>
   </div>
@@ -708,6 +711,15 @@
     <p class="section-intro">
       Match Tracker Pro runs as a web app that reads from and writes to your Google Sheet. Before you can log a single match, you need to deploy an Apps Script web app from your spreadsheet and paste its URL into the tracker. This is a one-time process — once it's connected, you won't need to touch the spreadsheet again.
     </p>
+
+    <a href="https://youtu.be/pi7LTBR6ksM" target="_blank" style="display:flex;align-items:center;gap:16px;background:var(--navy);border-radius:10px;padding:18px 22px;margin-bottom:24px;text-decoration:none;">
+      <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">▶</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;">Watch the Setup Walkthrough Video</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.55);">Prefer to see it done? This short video walks through the entire connection process step by step.</div>
+      </div>
+      <div style="margin-left:auto;font-size:18px;color:rgba(255,255,255,0.35);">↗</div>
+    </a>
 
     <div class="page-label">
       <span>📱</span> Setup Screen
@@ -1116,67 +1128,8 @@
 
   <hr class="divider">
 
-  <!-- ══════════════════════════════════════════
-       SECTION 5 — VALID ENTRIES
-  ═══════════════════════════════════════════ -->
-  <section class="section" id="valid-entries">
-    <div class="section-header">
-      <div class="section-icon">⚙️</div>
-      <h2>Valid Entries</h2>
-    </div>
-    <p class="section-intro">
-      Valid Entries is the control room for your dropdown lists. Every selectable option that appears in Match Entry — partners, seasons, leagues, levels, lines, surfaces, and playoff rounds — is managed here. If something isn't in a list, it won't show up as an option when logging a match. This page also houses the Performance Thresholds settings that control color-coding throughout the app.
-    </p>
-
-    <div class="page-label">
-      <span>⚙️</span> Valid Entries Page
-    </div>
-
-    <!-- LIST MANAGEMENT -->
-    <div class="card">
-      <div class="card-title">Managing Your Lists</div>
-      <p>Valid Entries displays nine category panels in a grid layout. Each panel shows the current entries for that category, a count of how many exist, and controls for adding or removing entries. Categories that have more entries than fit in the visible preview show a <strong>Show X more</strong> link — click it to expand the full list.</p>
-
-      <table class="field-table">
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>What It Controls</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Partners</td><td>All doubles partners selectable in Match Entry. Add a partner here before logging your first match with them.</td></tr>
-          <tr><td>Seasons</td><td>Seasonal labels used to group matches — typically Winter, Spring, Summer, and Fall, but customizable to match your league calendar.</td></tr>
-          <tr><td>Leagues</td><td>The league or organization each match is played under (e.g., ALTA, T2, Ultimate). Add a new league here when you join a new team or program.</td></tr>
-          <tr><td>Levels</td><td>Competitive levels or ratings used in your leagues (e.g., A-8, B-1, B-2). Add new levels as your rating changes or new divisions become relevant.</td></tr>
-          <tr><td>Match Types</td><td><p>The match formats available in the Type dropdown — Singles, Doubles, Mixed Doubles, and any others you want to track.</p><i><strong><p>Note:</strong> For optimal results, include the word "Doubles" in any type of doubles you add to this list. For example, Men's Doubles, Mixed Doubles, Senior Mixed Doubles, etc.</p></td></tr>
-          <tr><td>Lines</td><td>Court line numbers used in team matches (e.g., Line 1, Line 2). Add or remove lines to match the structure of your team's format.</td></tr>
-          <tr><td>Home / Away</td><td>Location designations — Home, Away, and Neutral are the defaults. These power the Home/Away breakdown on the Dashboard.</td></tr>
-          <tr><td>Surfaces</td><td>Court surfaces — Hard (Outdoor), Clay (Outdoor), Hard (Indoor), and any other surface types relevant to your match venues.</td></tr>
-          <tr><td>Playoff Rounds</td><td>The rounds available when logging a playoff match — for example, Round 1, Quarterfinal, Semifinal, Final, and so on.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- ADDING ENTRIES -->
-    <div class="card">
-      <div class="card-title">Adding and Removing Entries</div>
-      <p>To add a new entry to any category, type the value into the <strong>Add new…</strong> field at the bottom of that category's panel and click <strong>+ Add</strong>. The new entry will appear in the list immediately and become available as a dropdown option in Match Entry.</p>
-      <p>To remove an entry, click the <strong>✕</strong> icon to the right of any existing entry. Removing an entry does not delete historical match data that was logged with that value — it only prevents it from appearing as a selectable option going forward.</p>
-
-      <div class="note note-warn">
-        <strong>Before removing an entry</strong>, make sure you're not actively using it for upcoming matches. For example, removing a partner mid-season means you'll need to re-add them if you want to log future matches with them via the dropdown.
-      </div>
-    </div>
-
-    
-
-  </section>
-  
-  <hr class="divider">
-
 <!-- ══════════════════════════════════════════
-     SECTION 6 — SETTINGS
+     SECTION 5 — SETTINGS
 ═══════════════════════════════════════════ -->
 <section class="section" id="settings">
   <div class="section-header">
@@ -1316,6 +1269,64 @@
   </div>
 
 </section>
+
+<hr class="divider">
+
+  <!-- ══════════════════════════════════════════
+       SECTION 6 — VALID ENTRIES
+  ═══════════════════════════════════════════ -->
+  <section class="section" id="valid-entries">
+    <div class="section-header">
+      <div class="section-icon">🗂️</div>
+      <h2>Valid Entries</h2>
+    </div>
+    <p class="section-intro">
+      Valid Entries is the control room for your dropdown lists. Every selectable option that appears in Match Entry — partners, seasons, leagues, levels, lines, surfaces, and playoff rounds — is managed here. If something isn't in a list, it won't show up as an option when logging a match.
+    </p>
+
+    <div class="page-label">
+      <span>🗂️</span> Valid Entries Page
+    </div>
+
+    <!-- LIST MANAGEMENT -->
+    <div class="card">
+      <div class="card-title">Managing Your Lists</div>
+      <p>Valid Entries displays nine category panels in a grid layout. Each panel shows the current entries for that category, a count of how many exist, and controls for adding or removing entries. Categories that have more entries than fit in the visible preview show a <strong>Show X more</strong> link — click it to expand the full list.</p>
+
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>What It Controls</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Partners</td><td>All doubles partners selectable in Match Entry. Add a partner here before logging your first match with them.</td></tr>
+          <tr><td>Seasons</td><td>Seasonal labels used to group matches — typically Winter, Spring, Summer, and Fall, but customizable to match your league calendar.</td></tr>
+          <tr><td>Leagues</td><td>The league or organization each match is played under (e.g., ALTA, T2, Ultimate). Add a new league here when you join a new team or program.</td></tr>
+          <tr><td>Levels</td><td>Competitive levels or ratings used in your leagues (e.g., A-8, B-1, B-2). Add new levels as your rating changes or new divisions become relevant.</td></tr>
+          <tr><td>Match Types</td><td><p>The match formats available in the Type dropdown — Singles, Doubles, Mixed Doubles, and any others you want to track.</p><i><strong><p>Note:</strong> For optimal results, include the word "Doubles" in any type of doubles you add to this list. For example, Men's Doubles, Mixed Doubles, Senior Mixed Doubles, etc.</p></td></tr>
+          <tr><td>Lines</td><td>Court line numbers used in team matches (e.g., Line 1, Line 2). Add or remove lines to match the structure of your team's format.</td></tr>
+          
+          <tr><td>Surfaces</td><td>Court surfaces — Hard (Outdoor), Clay (Outdoor), Hard (Indoor), and any other surface types relevant to your match venues.</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ADDING ENTRIES -->
+    <div class="card">
+      <div class="card-title">Adding and Removing Entries</div>
+      <p>To add a new entry to any category, type the value into the <strong>Add new…</strong> field at the bottom of that category's panel and click <strong>+ Add</strong>. The new entry will appear in the list immediately and become available as a dropdown option in Match Entry.</p>
+<p>To edit an existing entry, click the <strong>✏️ pencil icon</strong> next to it. Before saving, the app shows how many matches the change will affect — so you can confirm the update with confidence. Once saved, all matching historical records are updated automatically.</p>
+      <p>To remove an entry, click the <strong>✕</strong> icon to the right of any existing entry. Removing an entry does not delete historical match data that was logged with that value — it only prevents it from appearing as a selectable option going forward.</p>
+
+      <div class="note note-warn">
+        <strong>Before removing an entry</strong>, make sure you're not actively using it for upcoming matches. For example, removing a partner mid-season means you'll need to re-add them if you want to log future matches with them via the dropdown.
+      </div>
+    </div>
+
+  </section>
 
 <hr class="divider">
 
