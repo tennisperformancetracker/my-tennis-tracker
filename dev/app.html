@@ -816,6 +816,67 @@ textarea:focus { border-color: var(--accent2) !important; }
 }
 .badge-modal-btn-secondary:hover { background: var(--border); }
 
+/* ── Tiered badge level pill ─────────────────────────────── */
+.badge-level-pill {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.8px; text-transform: uppercase;
+  background: rgba(99,133,162,0.12); color: var(--muted);
+  border-radius: 100px; padding: 2px 8px; margin-top: 4px;
+}
+.badge-card.earned .badge-level-pill {
+  background: rgba(30,107,58,0.12); color: var(--win);
+}
+.badge-see-tiers {
+  background: none; border: none; font-family: var(--font);
+  font-size: 11px; color: var(--accent2); cursor: pointer;
+  padding: 4px 0 0; text-decoration: underline; text-underline-offset: 2px;
+}
+.badge-see-tiers:hover { color: var(--accent); }
+/* ── Tiers modal ─────────────────────────────────────────── */
+.tiers-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 600; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.tiers-modal-overlay.visible { opacity: 1; pointer-events: all; }
+.tiers-modal-box {
+  background: var(--surface); border-radius: 16px;
+  padding: 28px 28px 24px; max-width: 340px; width: 90%;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  transform: scale(0.94) translateY(8px); transition: transform 0.2s;
+}
+.tiers-modal-overlay.visible .tiers-modal-box { transform: scale(1) translateY(0); }
+.tiers-modal-title {
+  font-size: 16px; font-weight: 700; color: var(--text);
+  margin-bottom: 16px; letter-spacing: -0.3px;
+}
+.tiers-modal-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.tiers-modal-row:last-child { border-bottom: none; }
+.tiers-modal-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+  background: var(--win-bg);
+}
+.tiers-modal-icon.locked {
+  background: var(--surface2); filter: grayscale(1); opacity: 0.45;
+}
+.tiers-modal-info { flex: 1; min-width: 0; }
+.tiers-modal-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.tiers-modal-name.locked { color: var(--muted); }
+.tiers-modal-req { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.tiers-modal-earned { font-size: 11px; color: var(--win); font-weight: 600; }
+.tiers-modal-close {
+  display: block; width: 100%; margin-top: 18px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; font-family: var(--font); font-size: 13px;
+  font-weight: 600; color: var(--label); padding: 10px;
+  cursor: pointer;
+}
+.tiers-modal-close:hover { background: var(--border); }
 /* ── Achievements page ───────────────────────────────────── */
 .achievements-back {
   display: inline-flex; align-items: center; gap: 7px;
@@ -1125,6 +1186,14 @@ textarea:focus { border-color: var(--accent2) !important; }
 <div class="toast" id="toast"></div>
 
 <!-- ══ BADGE CELEBRATION MODAL ══ -->
+<div class="tiers-modal-overlay" id="tiers-modal-overlay" onclick="if(event.target===this)closeTiersModal()">
+  <div class="tiers-modal-box">
+    <div class="tiers-modal-title" id="tiers-modal-title"></div>
+    <div id="tiers-modal-rows"></div>
+    <button class="tiers-modal-close" onclick="closeTiersModal()">Close</button>
+  </div>
+</div>
+
 <div class="badge-modal-overlay" id="badge-modal-overlay" onclick="badgeModalOverlayClick(event)">
   <div class="badge-modal-box">
     <button id="badge-modal-x" onclick="closeBadgeModal()" style="display:none;position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px;">✕</button>
@@ -5004,30 +5073,196 @@ function showToast(msg, isError=false) {
 //  BADGE SYSTEM
 // ══════════════════════════════════════════════════════════════
 
+// ── Tiered badge helper ───────────────────────────────────────
+// Each tiered badge has: id (base), emoji, name (base), tiers array
+// tiers: [{level, threshold, label, desc}]
+// For non-tiered: tiers is absent, use check/progress as before
+
+const BADGE_DEFS_TIERED = [
+  {
+    id: 'match_logger',
+    emoji: '📓',
+    baseName: 'Match Logger',
+    tiers: [
+      { level:1,  threshold:1,    label:'Rookie',         desc:'Logged your first match.' },
+      { level:2,  threshold:10,   label:'Club Player',    desc:'Logged 10 matches.' },
+      { level:3,  threshold:25,   label:'League Regular', desc:'Logged 25 matches.' },
+      { level:4,  threshold:50,   label:'Veteran',        desc:'Logged 50 matches.' },
+      { level:5,  threshold:100,  label:'Century Club',   desc:'Logged 100 matches.' },
+      { level:6,  threshold:200,  label:'Double Century', desc:'Logged 200 matches.' },
+      { level:7,  threshold:300,  label:'Triple Century', desc:'Logged 300 matches.' },
+      { level:8,  threshold:400,  label:'400 Club',       desc:'Logged 400 matches.' },
+      { level:9,  threshold:500,  label:'500 Club',       desc:'Logged 500 matches.' },
+      { level:10, threshold:600,  label:'600 Club',       desc:'Logged 600 matches.' },
+      { level:11, threshold:700,  label:'700 Club',       desc:'Logged 700 matches.' },
+      { level:12, threshold:800,  label:'800 Club',       desc:'Logged 800 matches.' },
+      { level:13, threshold:900,  label:'900 Club',       desc:'Logged 900 matches.' },
+      { level:14, threshold:1000, label:'Elite',          desc:'Logged 1000 matches.' },
+      { level:15, threshold:2000, label:'Legend',         desc:'Logged 2000 matches.' }
+    ],
+    getValue: (m) => m.length
+  },
+  {
+    id: 'never_say_die',
+    emoji: '💪',
+    baseName: 'Never Say Die',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Came back to win after losing the first set — 10 times.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Came back to win after losing the first set — 25 times.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Came back to win after losing the first set — 50 times.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Came back to win after losing the first set — 100 times.' }
+    ],
+    getValue: (m) => m.filter(x => {
+      if (!x.s1w || !x.s1l || x.result !== 'W' || x.oppRet || x.weRet) return false;
+      return Number(x.s1w) < Number(x.s1l);
+    }).length
+  },
+  {
+    id: 'singles_milestones',
+    emoji: '🎽',
+    baseName: 'Singles',
+    tiers: [
+      { level:1, threshold:25,   label:'Level 1', desc:'Played 25 singles matches.' },
+      { level:2, threshold:50,   label:'Level 2', desc:'Played 50 singles matches.' },
+      { level:3, threshold:100,  label:'Level 3', desc:'Played 100 singles matches.' },
+      { level:4, threshold:250,  label:'Level 4', desc:'Played 250 singles matches.' },
+      { level:5, threshold:500,  label:'Level 5', desc:'Played 500 singles matches.' },
+      { level:6, threshold:1000, label:'Level 6', desc:'Played 1000 singles matches.' }
+    ],
+    getValue: (m) => badgeSinglesCount(m)
+  },
+  {
+    id: 'doubles_milestones',
+    emoji: '🤝',
+    baseName: 'Doubles',
+    tiers: [
+      { level:1, threshold:25,   label:'Level 1', desc:'Played 25 doubles matches.' },
+      { level:2, threshold:50,   label:'Level 2', desc:'Played 50 doubles matches.' },
+      { level:3, threshold:100,  label:'Level 3', desc:'Played 100 doubles matches.' },
+      { level:4, threshold:250,  label:'Level 4', desc:'Played 250 doubles matches.' },
+      { level:5, threshold:500,  label:'Level 5', desc:'Played 500 doubles matches.' },
+      { level:6, threshold:1000, label:'Level 6', desc:'Played 1000 doubles matches.' }
+    ],
+    getValue: (m) => badgeDoublesCount(m)
+  },
+  {
+    id: 'dynamic_duo',
+    emoji: '👥',
+    baseName: 'Dynamic Duo',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches with your top partner.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches with your top partner.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches with your top partner.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches with your top partner.' }
+    ],
+    getValue: (m) => badgeTopPartnerWins(m).wins,
+    getDynamicName: (m) => {
+      const tp = badgeTopPartnerWins(m);
+      return tp.partner ? 'Dynamic Duo: ' + formatPartnerName(tp.partner) : 'Dynamic Duo';
+    }
+  },
+  {
+    id: 'playoff_warrior',
+    emoji: '⚔️',
+    baseName: 'Playoff Warrior',
+    tiers: [
+      { level:1, threshold:1,   label:'Level 1', desc:'Won your first playoff match.' },
+      { level:2, threshold:5,   label:'Level 2', desc:'Won 5 playoff matches.' },
+      { level:3, threshold:10,  label:'Level 3', desc:'Won 10 playoff matches.' },
+      { level:4, threshold:25,  label:'Level 4', desc:'Won 25 playoff matches.' },
+      { level:5, threshold:50,  label:'Level 5', desc:'Won 50 playoff matches.' },
+      { level:6, threshold:100, label:'Level 6', desc:'Won 100 playoff matches.' }
+    ],
+    getValue: (m) => m.filter(x => x.playoff && x.result==='W').length
+  },
+  {
+    id: 'double_bagel',
+    emoji: '🫐',
+    baseName: 'Double Bagel',
+    tiers: [
+      { level:1, threshold:1,  label:'Level 1', desc:'Won a match 6–0, 6–0.' },
+      { level:2, threshold:10, label:'Level 2', desc:'Won 10 matches 6–0, 6–0.' },
+      { level:3, threshold:25, label:'Level 3', desc:'Won 25 matches 6–0, 6–0.' },
+      { level:4, threshold:50, label:'Level 4', desc:'Won 50 matches 6–0, 6–0.' }
+    ],
+    getValue: (m) => m.filter(x => {
+      if (x.oppRet || x.weRet || x.result !== 'W') return false;
+      if (x.s3w !== '' && x.s3w !== null && x.s3w !== undefined) return false;
+      return Number(x.s1w)===6 && Number(x.s1l)===0 && Number(x.s2w)===6 && Number(x.s2l)===0;
+    }).length
+  },
+  {
+    id: 'tiebreak_specialist',
+    emoji: '🎯',
+    baseName: 'Tiebreak Specialist',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 tiebreaks.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 tiebreaks.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 tiebreaks.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 tiebreaks.' }
+    ],
+    getValue: (m) => badgeTiebreaksWon(m)
+  },
+  {
+    id: 'clutch_performer',
+    emoji: '🧠',
+    baseName: 'Clutch Performer',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches decided by a super tiebreak.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches decided by a super tiebreak.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches decided by a super tiebreak.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches decided by a super tiebreak.' }
+    ],
+    getValue: (m) => m.filter(x => {
+      if (x.result !== 'W' || x.oppRet || x.weRet) return false;
+      return Number(x.s3w)===1 && Number(x.s3l)===0;
+    }).length
+  },
+  {
+    id: 'home_court',
+    emoji: '🏠',
+    baseName: 'Home Court Advantage',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches at home.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches at home.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches at home.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches at home.' }
+    ],
+    getValue: (m) => m.filter(x => x.homeaway==='Home' && x.result==='W').length
+  },
+  {
+    id: 'road_warrior',
+    emoji: '✈️',
+    baseName: 'Road Warrior',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 away matches.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 away matches.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 away matches.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 away matches.' }
+    ],
+    getValue: (m) => m.filter(x => x.homeaway==='Away' && x.result==='W').length
+  },
+  {
+    id: 'sweet_revenge',
+    emoji: '😤',
+    baseName: 'Sweet Revenge',
+    tiers: [
+      { level:1, threshold:1,  label:'Level 1', desc:'Got revenge on 1 opponent you had lost to 3+ times.' },
+      { level:2, threshold:3,  label:'Level 2', desc:'Got revenge on 3 opponents you had lost to 3+ times.' },
+      { level:3, threshold:5,  label:'Level 3', desc:'Got revenge on 5 opponents you had lost to 3+ times.' },
+      { level:4, threshold:10, label:'Level 4', desc:'Got revenge on 10 opponents you had lost to 3+ times.' }
+    ],
+    getValue: (m) => badgeSweetRevengeCount(m)
+  }
+];
+
+// Non-tiered / special badges
 const BADGE_DEFS = [
   {
     id: 'first_rally', emoji: '🎾', name: 'First Rally',
     desc: 'Logged your very first match.',
     check: (m) => m.length >= 1,
     progress: (m) => ({ val: Math.min(m.length,1), max:1, label: m.length>=1?'Done':'0 of 1' })
-  },
-  {
-    id: 'on_the_board', emoji: '📋', name: 'On the Board',
-    desc: 'Logged 10 matches.',
-    check: (m) => m.length >= 10,
-    progress: (m) => ({ val: Math.min(m.length,10), max:10, label: m.length>=10 ? 'Done' : `${10-m.length} to go` })
-  },
-  {
-    id: 'century', emoji: '💯', name: 'Century',
-    desc: 'Logged 100 matches.',
-    check: (m) => m.length >= 100,
-    progress: (m) => ({ val: Math.min(m.length,100), max:100, label: m.length>=100 ? 'Done' : `${100-m.length} to go` })
-  },
-  {
-    id: 'grand_slam', emoji: '🏆', name: 'Grand Slam',
-    desc: 'Logged 250 matches.',
-    check: (m) => m.length >= 250,
-    progress: (m) => ({ val: Math.min(m.length,250), max:250, label:`${250-m.length} to go` })
   },
   {
     id: 'hot_streak', emoji: '🔥', name: 'Hot Streak',
@@ -5051,7 +5286,7 @@ const BADGE_DEFS = [
     }
   },
   {
-    id: 'sharpshooter', emoji: '🎯', name: 'Sharpshooter',
+    id: 'sharpshooter', emoji: '🏹', name: 'Sharpshooter',
     desc: '60% win rate · min 50 matches',
     check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.60,
     progress: (m) => {
@@ -5060,7 +5295,7 @@ const BADGE_DEFS = [
     }
   },
   {
-    id: 'elite', emoji: '🏅', name: 'Elite',
+    id: 'elite_rate', emoji: '🏅', name: 'Elite',
     desc: '70% win rate · min 50 matches',
     check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.70,
     progress: (m) => {
@@ -5069,29 +5304,39 @@ const BADGE_DEFS = [
     }
   },
   {
-    id: 'playoff_warrior', emoji: '⚔️', name: 'Playoff Warrior',
-    desc: 'Won your first playoff match.',
-    check: (m) => m.some(x => x.playoff && x.result==='W'),
+    id: 'the_grinder', emoji: '⚙️', name: 'The Grinder',
+    desc: 'Played 10+ matches in a single calendar month.',
+    isOneTime: true,
+    check: (m) => badgeGrinderMonth(m) !== null,
     progress: (m) => {
-      const pw = m.filter(x => x.playoff && x.result==='W').length;
-      return { val:Math.min(pw,1), max:1, label: pw>=1?'Done':'No playoff wins yet' };
+      const best = badgeGrinderBest(m);
+      return { val: Math.min(best,10), max:10, label: best>=10?'Done':`${best} matches in best month` };
+    },
+    getDynamicDesc: (m, dates) => {
+      const mo = dates['the_grinder_month'];
+      return mo ? `Played 10+ matches in ${mo}.` : 'Played 10+ matches in a single calendar month.';
     }
   },
   {
-    id: 'team_player', emoji: '🤝', name: 'Team Player',
-    desc: 'Played 25 doubles matches.',
-    check: (m) => badgeDoublesCount(m) >= 25,
-    progress: (m) => ({ val:Math.min(badgeDoublesCount(m),25), max:25, label: badgeDoublesCount(m)>=25 ? 'Done' : `${25-badgeDoublesCount(m)} to go` })
-  },
-  {
-    id: 'solo_artist', emoji: '🎽', name: 'Solo Artist',
-    desc: 'Played 25 singles matches.',
-    check: (m) => badgeSinglesCount(m) >= 25,
-    progress: (m) => ({ val:Math.min(badgeSinglesCount(m),25), max:25, label: badgeSinglesCount(m)>=25 ? 'Done' : `${25-badgeSinglesCount(m)} to go` })
+    id: 'nemesis', emoji: '😈', name: 'Nemesis',
+    desc: 'Lost 3+ times to the same opponent.',
+    isOneTime: true,
+    check: (m) => badgeNemesisOpponent(m) !== null,
+    progress: (m) => {
+      const max3 = badgeNemesisMax(m);
+      return { val: Math.min(max3,3), max:3, label: max3>=3?'Done':`${max3} losses to same opponent` };
+    },
+    getDynamicDesc: (m) => {
+      const opp = badgeNemesisOpponent(m);
+      return opp ? `Your nemesis: ${formatPartnerName(opp)}.` : 'Lost 3+ times to the same opponent.';
+    },
+    getDynamicName: (m) => {
+      const opp = badgeNemesisOpponent(m);
+      return opp ? 'Nemesis: ' + formatPartnerName(opp) : 'Nemesis';
+    }
   }
 ];
 
-// ── Badge-specific helpers (prefixed to avoid any collision) ──
 function badgeWinRate(matches) {
   const w = matches.filter(m => m.result==='W').length;
   const l = matches.filter(m => m.result==='L').length;
@@ -5109,6 +5354,107 @@ function calcMaxStreak(matches) {
   sorted.forEach(m => { if (m.result==='W') { cur++; max=Math.max(max,cur); } else { cur=0; } });
   return max;
 }
+function badgeTopPartnerWins(matches) {
+  const counts = {};
+  matches.forEach(m => {
+    if (m.partner && m.partner !== 'None' && m.partner !== '' && m.result === 'W') {
+      counts[m.partner] = (counts[m.partner] || 0) + 1;
+    }
+  });
+  let best = null, bestCount = 0;
+  Object.entries(counts).forEach(([p, c]) => { if (c > bestCount) { best = p; bestCount = c; } });
+  return { partner: best, wins: bestCount };
+}
+function badgeTiebreaksWon(matches) {
+  let count = 0;
+  matches.forEach(m => {
+    if (Number(m.s1w)===7 && Number(m.s1l)===6) count++;
+    if (Number(m.s2w)===7 && Number(m.s2l)===6) count++;
+    if (Number(m.s3w)===7 && Number(m.s3l)===6) count++;
+  });
+  return count;
+}
+function badgeGrinderBest(matches) {
+  const monthly = {};
+  matches.forEach(m => {
+    if (!m.date) return;
+    const d = new Date(m.date);
+    if (isNaN(d)) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    monthly[key] = (monthly[key]||0) + 1;
+  });
+  return Object.values(monthly).reduce((a,b) => Math.max(a,b), 0);
+}
+function badgeGrinderMonth(matches) {
+  const monthly = {};
+  matches.forEach(m => {
+    if (!m.date) return;
+    const d = new Date(m.date);
+    if (isNaN(d)) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if (!monthly[key]) monthly[key] = { count:0, dates:[] };
+    monthly[key].count++;
+    monthly[key].dates.push(d);
+  });
+  for (const [, obj] of Object.entries(monthly)) {
+    if (obj.count >= 10) {
+      const sorted = obj.dates.sort((a,b) => a-b);
+      const tenth = sorted[9];
+      return tenth.toLocaleDateString('en-US',{month:'long', year:'numeric'});
+    }
+  }
+  return null;
+}
+function badgeNemesisOpponent(matches) {
+  const losses = {};
+  matches.forEach(m => {
+    if (m.result !== 'L') return;
+    if (m.opp1 && m.opp1.trim()) losses[m.opp1.trim()] = (losses[m.opp1.trim()]||0) + 1;
+    if (m.opp2 && m.opp2.trim()) losses[m.opp2.trim()] = (losses[m.opp2.trim()]||0) + 1;
+  });
+  let best = null, bestCount = 0;
+  Object.entries(losses).forEach(([opp, c]) => { if (c > bestCount) { best = opp; bestCount = c; } });
+  return bestCount >= 3 ? best : null;
+}
+function badgeNemesisMax(matches) {
+  const losses = {};
+  matches.forEach(m => {
+    if (m.result !== 'L') return;
+    if (m.opp1 && m.opp1.trim()) losses[m.opp1.trim()] = (losses[m.opp1.trim()]||0) + 1;
+    if (m.opp2 && m.opp2.trim()) losses[m.opp2.trim()] = (losses[m.opp2.trim()]||0) + 1;
+  });
+  return Object.values(losses).reduce((a,b) => Math.max(a,b), 0);
+}
+function badgeSweetRevengeCount(matches) {
+  const losses = {};
+  matches.forEach(m => {
+    if (m.result !== 'L') return;
+    [m.opp1, m.opp2].forEach(opp => {
+      if (opp && opp.trim()) losses[opp.trim()] = (losses[opp.trim()]||0) + 1;
+    });
+  });
+  const nemeses = new Set(Object.entries(losses).filter(([,c]) => c >= 3).map(([o]) => o));
+  if (nemeses.size === 0) return 0;
+  const revenged = new Set();
+  matches.forEach(m => {
+    if (m.result !== 'W') return;
+    [m.opp1, m.opp2].forEach(opp => {
+      if (opp && nemeses.has(opp.trim())) revenged.add(opp.trim());
+    });
+  });
+  return revenged.size;
+}
+function getTieredEarnedLevel(def, matches) {
+  const val = def.getValue(matches);
+  let earnedTier = null;
+  def.tiers.forEach(t => { if (val >= t.threshold) earnedTier = t; });
+  return earnedTier;
+}
+function getTieredNextTier(def, matches) {
+  const val = def.getValue(matches);
+  return def.tiers.find(t => val < t.threshold) || null;
+}
+function tieredId(def, level) { return def.id + '_t' + level; }
 
 // ── Earned badge storage ──────────────────────────────────────
 function getEarnedBadges() {
@@ -5134,16 +5480,51 @@ async function computeBadges(matches) {
   const alreadyEarned = getEarnedBadges();
   const dates = getEarnedDates();
   const newlyEarned = [];
+  const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  // Non-tiered badges
   BADGE_DEFS.forEach(def => {
-    if (alreadyEarned.includes(def.id)) return;
+    if (alreadyEarned.includes(def.id)) {
+      // For dynamic badges (nemesis, grinder) re-check to update stored data
+      return;
+    }
     if (def.check(matches)) {
       alreadyEarned.push(def.id);
-      dates[def.id] = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      dates[def.id] = now;
+      // Special: store grinder month label
+      if (def.id === 'the_grinder') {
+        const mo = badgeGrinderMonth(matches);
+        if (mo) dates['the_grinder_month'] = mo;
+      }
       newlyEarned.push(def.id);
     }
   });
+
+  // Tiered badges — check each tier level
+  BADGE_DEFS_TIERED.forEach(def => {
+    const val = def.getValue(matches);
+    def.tiers.forEach(tier => {
+      const tid = tieredId(def, tier.level);
+      if (alreadyEarned.includes(tid)) return;
+      if (val >= tier.threshold) {
+        alreadyEarned.push(tid);
+        dates[tid] = now;
+        newlyEarned.push(tid);
+      }
+    });
+  });
+
   if (newlyEarned.length > 0) await persistEarnedBadges(alreadyEarned, dates);
   return newlyEarned;
+}
+
+// Given a tiered badge def and earned list, return the highest earned tier def
+function getHighestEarnedTier(def, earned) {
+  let highest = null;
+  def.tiers.forEach(t => {
+    if (earned.includes(tieredId(def, t.level))) highest = t;
+  });
+  return highest;
 }
 
 // ── Modal queue ───────────────────────────────────────────────
@@ -5171,19 +5552,39 @@ function drainBadgeQueue() {
   showBadgeModal(_badgeQueue.shift());
 }
 function showBadgeModal(id) {
-  const def = BADGE_DEFS.find(d => d.id===id);
-  if (!def) { drainBadgeQueue(); return; }
+  // Could be a tiered id like 'match_logger_t3' or a flat id like 'first_rally'
+  const resolved = resolveBadgeId(id);
+  if (!resolved) { drainBadgeQueue(); return; }
   _activeBadgeId = id;
   _modalMode = 'achievement';
-  document.getElementById('badge-modal-icon').textContent = def.emoji;
-  document.getElementById('badge-modal-name').textContent = def.name;
-  document.getElementById('badge-modal-desc').textContent = def.desc;
+  document.getElementById('badge-modal-icon').textContent = resolved.emoji;
+  document.getElementById('badge-modal-name').textContent = resolved.name;
+  document.getElementById('badge-modal-desc').textContent = resolved.desc;
   document.getElementById('badge-modal-share-options').style.display = 'none';
-  // Achievement mode: show eyebrow + View All/Dismiss row, hide X
   document.getElementById('badge-modal-eyebrow').style.display = '';
   document.getElementById('badge-modal-btn-row').style.display = '';
   document.getElementById('badge-modal-x').style.display = 'none';
   document.getElementById('badge-modal-overlay').classList.add('visible');
+}
+// Resolve any badge id (tiered or flat) to {emoji, name, desc}
+function resolveBadgeId(id) {
+  // Check flat badges first
+  const flat = BADGE_DEFS.find(d => d.id===id);
+  if (flat) {
+    const name = flat.getDynamicName ? flat.getDynamicName(allMatches) : flat.name;
+    const desc = flat.getDynamicDesc ? flat.getDynamicDesc(allMatches, getEarnedDates()) : flat.desc;
+    return { emoji: flat.emoji, name, desc };
+  }
+  // Check tiered badges
+  for (const def of BADGE_DEFS_TIERED) {
+    for (const tier of def.tiers) {
+      if (tieredId(def, tier.level) === id) {
+        const name = def.getDynamicName ? def.getDynamicName(allMatches) : (def.baseName + ': ' + tier.label);
+        return { emoji: def.emoji, name, desc: tier.desc };
+      }
+    }
+  }
+  return null;
 }
 function closeBadgeModal() {
   document.getElementById('badge-modal-overlay').classList.remove('visible');
@@ -5217,13 +5618,13 @@ function slideToDashboard() {
 
 // ── Share ─────────────────────────────────────────────────────
 async function badgeModalShare() {
-  const def = BADGE_DEFS.find(d => d.id===_activeBadgeId);
-  if (def) await shareBadge(def);
+  const resolved = resolveBadgeId(_activeBadgeId);
+  if (resolved) await shareBadge(resolved);
 }
 async function shareBadge(def) {
   document.getElementById('share-card-icon').textContent = def.emoji;
-  document.getElementById('share-card-name').textContent = def.name;
-  document.getElementById('share-card-desc').textContent = def.desc;
+  document.getElementById('share-card-name').textContent = def.name || def.baseName || '';
+  document.getElementById('share-card-desc').textContent = def.desc || '';
   let imageBlob = null;
   try {
     if (typeof html2canvas !== 'undefined') {
@@ -5233,8 +5634,7 @@ async function shareBadge(def) {
     }
   } catch(e) { /* fall through */ }
   const shareText = `I just earned the "${def.name}" badge on Match Tracker Pro — ${def.desc} #MatchTrackerPro`;
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile && navigator.share) {
+  if (navigator.share) {
     try {
       const shareData = { title:'Match Tracker Pro', text:shareText };
       if (imageBlob && navigator.canShare &&
@@ -5251,32 +5651,20 @@ function showDesktopShareOptions(def, shareText, imageBlob) {
   const panel = document.getElementById('badge-modal-share-options');
   panel.innerHTML = `
     <div class="share-options-panel">
-      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareImage()">📋 Copy Image</button>
+      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareText()">📋 Copy</button>
     </div>`;
   panel.style.display = 'block';
-  window._pendingShareBlob = imageBlob;
+  window._pendingShareText = shareText;
 }
 
-async function copyShareImage() {
-  const blob = window._pendingShareBlob;
-  if (!blob) { showToast('No image to copy', true); return; }
-  try {
-    if (navigator.clipboard && window.ClipboardItem && window.isSecureContext) {
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      confirmCopied();
-    } else {
-      // Fallback — download the image if clipboard API not available
-      const url = URL.createObjectURL(blob);
-      downloadBadgeImage(url, 'badge');
-      URL.revokeObjectURL(url);
-      showToast('Image downloaded — clipboard not available in this browser', false);
-    }
-  } catch(e) {
-    // Final fallback — download
-    const url = URL.createObjectURL(blob);
-    downloadBadgeImage(url, 'badge');
-    URL.revokeObjectURL(url);
-    showToast('Image downloaded — could not copy to clipboard', false);
+function copyShareText() {
+  const text = window._pendingShareText || '';
+  if (!text) return;
+  // Try modern clipboard API first, fall back to execCommand for http/file contexts
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => confirmCopied()).catch(() => execCommandCopy(text));
+  } else {
+    execCommandCopy(text);
   }
 }
 
@@ -5298,7 +5686,7 @@ function execCommandCopy(text) {
 
 function confirmCopied() {
   const btn = document.getElementById('share-copy-btn');
-  if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy Image'; }, 2000); }
+  if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
 }
 function downloadBadgeImage(blobUrl, badgeId) {
   const a = document.createElement('a');
@@ -5316,42 +5704,114 @@ function renderAchievements() {
   document.getElementById('mobile-filters').innerHTML = '';
   const earned = getEarnedBadges();
   const dates  = getEarnedDates();
-  const cardsHtml = BADGE_DEFS.map(def => {
+
+  // Count total earned — for tiered badges only count if at least tier 1 earned
+  let earnedCount = 0;
+  let totalCount = 0;
+
+  // Non-tiered cards
+  const flatCards = BADGE_DEFS.map(def => {
+    totalCount++;
     const isEarned = earned.includes(def.id);
+    if (isEarned) earnedCount++;
     const prog = def.progress(allMatches);
     const pct  = Math.min(100, Math.round((prog.val/prog.max)*100));
     const dateStr = dates[def.id] ? `<div class="badge-card-date">Earned ${dates[def.id]}</div>` : '';
+    const name = def.getDynamicName ? def.getDynamicName(allMatches) : def.name;
+    const desc = def.getDynamicDesc ? def.getDynamicDesc(allMatches, dates) : def.desc;
     return `
       <div class="badge-card ${isEarned?'earned':'locked'}"
            ${isEarned?`onclick="openEarnedBadge('${def.id}')"`:''}>
         <div class="badge-card-icon">${isEarned ? def.emoji : '🔒'}</div>
-        <div class="badge-card-name">${def.name}</div>
-        <div class="badge-card-desc">${def.desc}</div>
+        <div class="badge-card-name">${name}</div>
+        <div class="badge-card-desc">${desc}</div>
         ${dateStr}
         <div class="badge-card-status">${isEarned ? 'Earned' : prog.label}</div>
         ${!isEarned ? `<div style="width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:2px">
           <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
       </div>`;
-  }).join('');
+  });
+
+  // Tiered cards — show highest earned tier, or lowest locked tier if none earned
+  const tieredCards = BADGE_DEFS_TIERED.map(def => {
+    totalCount++;
+    const highestTier = getHighestEarnedTier(def, earned);
+    const isEarned = highestTier !== null;
+    if (isEarned) earnedCount++;
+    const displayTier = isEarned ? highestTier : def.tiers[0];
+    const displayId = tieredId(def, displayTier.level);
+    const val = def.getValue(allMatches);
+    const nextTier = getTieredNextTier(def, allMatches);
+    const pct = nextTier ? Math.min(100, Math.round((val / nextTier.threshold) * 100)) : 100;
+    const progressLabel = isEarned
+      ? (nextTier ? `${val} / ${nextTier.threshold} to Level ${nextTier.level}` : 'Max level!')
+      : (nextTier ? `${val} / ${nextTier.threshold}` : 'Done');
+    const dateStr = isEarned && dates[displayId] ? `<div class="badge-card-date">Earned ${dates[displayId]}</div>` : '';
+    const displayName = def.getDynamicName ? def.getDynamicName(allMatches) : (def.baseName + (isEarned ? ': ' + displayTier.label : ''));
+    const displayDesc = isEarned ? displayTier.desc : def.tiers[0].desc;
+    const levelPill = isEarned ? `<div class="badge-level-pill">${displayTier.label}</div>` : '';
+    const seeAllBtn = `<button class="badge-see-tiers" onclick="event.stopPropagation();openTiersModal('${def.id}')">See all tiers →</button>`;
+    return `
+      <div class="badge-card ${isEarned?'earned':'locked'}"
+           ${isEarned?`onclick="openEarnedBadge('${displayId}')"`:''}>
+        <div class="badge-card-icon">${isEarned ? def.emoji : '🔒'}</div>
+        <div class="badge-card-name">${displayName}</div>
+        ${levelPill}
+        <div class="badge-card-desc">${displayDesc}</div>
+        ${dateStr}
+        <div class="badge-card-status">${isEarned ? progressLabel : progressLabel}</div>
+        ${!isEarned || nextTier ? `<div style="width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:2px">
+          <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
+        ${seeAllBtn}
+      </div>`;
+  });
+
+  const allCards = [...flatCards, ...tieredCards].join('');
   const contentEl = document.getElementById('content');
   contentEl.innerHTML = `
     <button class="achievements-back" onclick="slideToDashboard()">← Back to Dashboard</button>
     <div class="achievements-header">
       <div class="achievements-title">Achievements</div>
-      <div class="achievements-count">${earned.length} of ${BADGE_DEFS.length} earned</div>
+      <div class="achievements-count">${earnedCount} of ${totalCount} earned</div>
     </div>
-    <div class="achievements-grid">${cardsHtml}</div>`;
+    <div class="achievements-grid">${allCards}</div>`;
+}
+
+// ── Tiers modal ───────────────────────────────────────────────
+function openTiersModal(defId) {
+  const def = BADGE_DEFS_TIERED.find(d => d.id === defId);
+  if (!def) return;
+  const earned = getEarnedBadges();
+  const dates  = getEarnedDates();
+  document.getElementById('tiers-modal-title').textContent = def.baseName + ' — All Levels';
+  const rowsHtml = def.tiers.map(tier => {
+    const tid = tieredId(def, tier.level);
+    const isEarned = earned.includes(tid);
+    const dateStr = isEarned && dates[tid] ? `<div class="tiers-modal-earned">Earned ${dates[tid]}</div>` : '';
+    return `<div class="tiers-modal-row">
+      <div class="tiers-modal-icon${isEarned?'':' locked'}">${isEarned ? def.emoji : '🔒'}</div>
+      <div class="tiers-modal-info">
+        <div class="tiers-modal-name${isEarned?'':' locked'}">${tier.label} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${tier.threshold}${tier.threshold===1?'':'+'})</span></div>
+        <div class="tiers-modal-req">${tier.desc}</div>
+        ${dateStr}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('tiers-modal-rows').innerHTML = rowsHtml;
+  document.getElementById('tiers-modal-overlay').classList.add('visible');
+}
+function closeTiersModal() {
+  document.getElementById('tiers-modal-overlay').classList.remove('visible');
 }
 function openEarnedBadge(id) {
-  const def = BADGE_DEFS.find(d => d.id===id);
-  if (!def) return;
+  const resolved = resolveBadgeId(id);
+  if (!resolved) return;
   _activeBadgeId = id;
   _modalMode = 'view';
-  document.getElementById('badge-modal-icon').textContent = def.emoji;
-  document.getElementById('badge-modal-name').textContent = def.name;
-  document.getElementById('badge-modal-desc').textContent = def.desc;
+  document.getElementById('badge-modal-icon').textContent = resolved.emoji;
+  document.getElementById('badge-modal-name').textContent = resolved.name;
+  document.getElementById('badge-modal-desc').textContent = resolved.desc;
   document.getElementById('badge-modal-share-options').style.display = 'none';
-  // View mode: hide eyebrow + View All/Dismiss row, show X close button
   document.getElementById('badge-modal-eyebrow').style.display = 'none';
   document.getElementById('badge-modal-btn-row').style.display = 'none';
   document.getElementById('badge-modal-x').style.display = '';
@@ -5361,6 +5821,12 @@ function openEarnedBadge(id) {
 // ── Dashboard badge shelf ─────────────────────────────────────
 function buildBadgeShelf() {
   const earned = getEarnedBadges();
+  const totalBadges = BADGE_DEFS.length + BADGE_DEFS_TIERED.length;
+  // Count earned for display — tiered badges count once (if any tier earned)
+  let earnedDisplayCount = 0;
+  BADGE_DEFS.forEach(def => { if (earned.includes(def.id)) earnedDisplayCount++; });
+  BADGE_DEFS_TIERED.forEach(def => { if (getHighestEarnedTier(def, earned)) earnedDisplayCount++; });
+
   if (earned.length === 0) {
     return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>
       <div class="badge-shelf-footer"><span></span>
@@ -5369,30 +5835,44 @@ function buildBadgeShelf() {
   }
   const recent = earned.slice(-3).reverse();
   const shelfItems = recent.map(id => {
-    const def = BADGE_DEFS.find(d => d.id===id);
-    if (!def) return '';
+    const resolved = resolveBadgeId(id);
+    if (!resolved) return '';
     return `<div class="badge-shelf-item">
-      <div class="badge-shelf-icon">${def.emoji}</div>
+      <div class="badge-shelf-icon">${resolved.emoji}</div>
       <div class="badge-shelf-info">
-        <div class="badge-shelf-name">${def.name}</div>
-        <div class="badge-shelf-desc">${def.desc}</div>
+        <div class="badge-shelf-name">${resolved.name}</div>
+        <div class="badge-shelf-desc">${resolved.desc}</div>
       </div></div>`;
   }).join('');
-  let nextUpHtml = '';
-  let bestPct = -1, bestDef = null, bestProg = null;
+
+  // Next up — check both flat and tiered
+  let bestPct = -1, bestEmoji = '', bestName = '', bestLabel = '';
   BADGE_DEFS.forEach(def => {
     if (earned.includes(def.id)) return;
     const prog = def.progress(allMatches);
     const p = prog.val / prog.max;
-    if (p > bestPct) { bestPct=p; bestDef=def; bestProg=prog; }
+    if (p > bestPct) { bestPct=p; bestEmoji=def.emoji; bestName=def.name; bestLabel=prog.label; }
   });
-  if (bestDef) {
+  BADGE_DEFS_TIERED.forEach(def => {
+    const nextTier = getTieredNextTier(def, allMatches);
+    if (!nextTier) return;
+    const val = def.getValue(allMatches);
+    const p = val / nextTier.threshold;
+    if (p > bestPct) {
+      bestPct = p;
+      bestEmoji = def.emoji;
+      bestName = (def.baseName + ': ' + nextTier.label);
+      bestLabel = `${val} / ${nextTier.threshold}`;
+    }
+  });
+  let nextUpHtml = '';
+  if (bestName) {
     const fillPct = Math.min(100, Math.round(bestPct*100));
     nextUpHtml = `<div class="badge-next-up">
       <div class="badge-next-up-info">
         <div class="badge-next-up-label">Next up</div>
-        <div class="badge-next-up-name">${bestDef.emoji} ${bestDef.name}</div>
-        <div class="badge-next-up-hint">${bestProg.label}</div>
+        <div class="badge-next-up-name">${bestEmoji} ${bestName}</div>
+        <div class="badge-next-up-hint">${bestLabel}</div>
       </div>
       <div class="badge-next-up-bar-wrap">
         <div class="badge-next-up-pct">${fillPct}%</div>
@@ -5401,7 +5881,7 @@ function buildBadgeShelf() {
   }
   return `<div class="badge-shelf">${shelfItems}</div>${nextUpHtml}
     <div class="badge-shelf-footer">
-      <span class="badge-shelf-progress">${earned.length} of ${BADGE_DEFS.length} badges earned</span>
+      <span class="badge-shelf-progress">${earnedDisplayCount} of ${totalBadges} badges earned</span>
       <button class="badge-shelf-link" onclick="slideToAchievements()">View all →</button>
     </div>`;
 }
