@@ -5251,20 +5251,32 @@ function showDesktopShareOptions(def, shareText, imageBlob) {
   const panel = document.getElementById('badge-modal-share-options');
   panel.innerHTML = `
     <div class="share-options-panel">
-      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareText()">📋 Copy</button>
+      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareImage()">📋 Copy Image</button>
     </div>`;
   panel.style.display = 'block';
-  window._pendingShareText = shareText;
+  window._pendingShareBlob = imageBlob;
 }
 
-function copyShareText() {
-  const text = window._pendingShareText || '';
-  if (!text) return;
-  // Try modern clipboard API first, fall back to execCommand for http/file contexts
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(() => confirmCopied()).catch(() => execCommandCopy(text));
-  } else {
-    execCommandCopy(text);
+async function copyShareImage() {
+  const blob = window._pendingShareBlob;
+  if (!blob) { showToast('No image to copy', true); return; }
+  try {
+    if (navigator.clipboard && window.ClipboardItem && window.isSecureContext) {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      confirmCopied();
+    } else {
+      // Fallback — download the image if clipboard API not available
+      const url = URL.createObjectURL(blob);
+      downloadBadgeImage(url, 'badge');
+      URL.revokeObjectURL(url);
+      showToast('Image downloaded — clipboard not available in this browser', false);
+    }
+  } catch(e) {
+    // Final fallback — download
+    const url = URL.createObjectURL(blob);
+    downloadBadgeImage(url, 'badge');
+    URL.revokeObjectURL(url);
+    showToast('Image downloaded — could not copy to clipboard', false);
   }
 }
 
@@ -5286,7 +5298,7 @@ function execCommandCopy(text) {
 
 function confirmCopied() {
   const btn = document.getElementById('share-copy-btn');
-  if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
+  if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy Image'; }, 2000); }
 }
 function downloadBadgeImage(blobUrl, badgeId) {
   const a = document.createElement('a');
