@@ -3822,7 +3822,7 @@ function renderSettings() {
                 <div class="settings-sub-card-title">Performance Thresholds</div>
                 <div class="settings-sub-card-desc">Controls how win percentages are color-coded across the app.</div>
               </div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;width:100%">
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-width:420px;">
               <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600;flex-wrap:wrap">
                 <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
                 <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
@@ -3830,12 +3830,12 @@ function renderSettings() {
                 <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
                 <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
               </div>
-              <div id="thresh-bar" style="height:5px;border-radius:4px;overflow:hidden;display:flex;width:100%">
+              <div id="thresh-bar" style="height:5px;border-radius:4px;overflow:hidden;display:flex;">
                 <div id="thresh-bar-green"  style="background:var(--win);transition:width 0.3s;width:${100-great}%"></div>
                 <div id="thresh-bar-orange" style="background:#d4820a;transition:width 0.3s;width:${great-poor}%"></div>
                 <div id="thresh-bar-red"    style="background:var(--danger);transition:width 0.3s;width:${poor}%"></div>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:10px;width:100%">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:10px;">
                 <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
                   <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--win)">Great Threshold</label>
                   <div style="display:flex;align-items:center;gap:6px">
