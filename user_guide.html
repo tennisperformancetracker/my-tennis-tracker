@@ -663,6 +663,7 @@
     <a href="#settings"><span class="icon">⚙️</span> Settings</a>
     
     <a href="#importing-matches"><span class="icon">📥</span> Importing Matches</a>
+    <a href="#importing-with-ai" style="padding-left:38px;font-size:12px;"><span class="icon">🤖</span> Reformat with AI</a>
   </nav>
 
   <div class="sidebar-footer">
@@ -696,7 +697,7 @@
       <li><a href="#match-entry">Match Entry</a> <span>Logging every match, every detail</span></li>
       <li><a href="#settings">Settings</a> <span>Display, Match History, Match Entry, notifications &amp; connection</span></li>
       
-      <li><a href="#importing-matches">Importing Matches</a> <span>Bringing in data from another spreadsheet</span></li>
+      <li><a href="#importing-matches">Importing Matches</a> <span>Bringing in data from another spreadsheet · <a href="#importing-with-ai" style="color:var(--slate);">Reformat with AI</a></span></li>
     </ol>
   </div>
 
@@ -887,6 +888,12 @@
       <p>The Top Partners panel ranks your doubles partners by win percentage, giving you a data-backed look at your most effective on-court pairings. Partners are sorted by win percentage descending, with wins, losses, and win percentage shown for each.</p>
       <p>Use the <strong>Min</strong> dropdown to set a minimum match threshold — for example, setting it to 5 means only partners with at least 5 matches together are included in the ranking. This filters out statistical noise from one-off pairings and keeps the list meaningful.</p>
       <p>You can click a partner's name to view your performance breakdown with that partner. While viewing your breakdown, you can click <strong>History</strong> to jump directly to a filtered view of all matches played with that partner in Match History.</p>
+    </div>
+
+    <!-- ACHIEVEMENTS SHELF -->
+    <div class="card">
+      <div class="card-title">Achievements</div>
+      <p>At the bottom of the Dashboard, the Achievements section shows your three most recently earned badges alongside a progress bar showing how close you are to your next one. Click <strong>View all →</strong> to open the full Achievements page where every badge is displayed. See the <a href="#achievements" style="color:var(--navy);font-weight:600">Achievements</a> section of this guide for the complete list and details.</p>
     </div>
 
   </section>
@@ -1266,6 +1273,12 @@
     <div class="note">
       <strong>Not sure if your URL is still valid?</strong> If the app stops loading data or shows connection errors, this is the first place to check. A valid URL always starts with <code style="background:var(--light-blue);color:var(--navy);padding:1px 6px;border-radius:4px;font-family:'Courier New',monospace;font-size:12px">https://script.google.com/macros/s/</code> and ends with <code style="background:var(--light-blue);color:var(--navy);padding:1px 6px;border-radius:4px;font-family:'Courier New',monospace;font-size:12px">/exec</code>.
     </div>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:28px 0 8px">Badge History</h4>
+    <p>If you imported a large batch of past matches after your initial setup, your badge earn dates may show as today rather than the historical date you actually hit each milestone. Tap <strong>Recalculate Badge Dates</strong> to fix this. The app will replay your full match history chronologically and stamp each badge with the date it was actually earned.</p>
+    <div class="note note-warn">
+      <strong>This overwrites all existing badge dates.</strong> It's safe to run at any time, but be aware that any badges earned live (logged in real time) will have their dates replaced with the historically calculated date.
+    </div>
   </div>
 
 </section>
@@ -1443,6 +1456,144 @@
     </div>
   </div>
 
+  <!-- AI REFORMATTER -->
+  <div class="card" id="importing-with-ai">
+    <div class="card-title">Don't Want to Reformat Manually? Use AI. <span class="badge">Recommended</span></div>
+    <p>If manually rearranging your spreadsheet sounds tedious, you can use an AI assistant — Claude or ChatGPT — to do it for you. Paste the prompt below into either tool, attach your spreadsheet file, and the AI will output your data in the exact format Match Import expects. The whole process typically takes under a minute.</p>
+    <ol class="import-steps">
+      <li>Copy the prompt below using the <strong>Copy Prompt</strong> button.
+
+    <!-- ACCORDION -->
+    <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0 6px;">
+      <button onclick="toggleAiPrompt(this)" aria-expanded="false" style="width:100%;background:none;border:none;cursor:pointer;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;font-family:'Poppins',sans-serif;transition:background 0.15s;" onmouseover="this.style.background='var(--light-blue)'" onmouseout="this.style.background='none'">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🤖</div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--navy);">Match Tracker Pro — Data Reformatter Prompt</div>
+            <div style="font-size:12px;color:var(--text-body);margin-top:2px;">Click to expand · Copy and paste into Claude or ChatGPT</div>
+          </div>
+        </div>
+        <svg id="aiPromptChevron" style="width:18px;height:18px;flex-shrink:0;color:var(--slate);transition:transform 0.25s;" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 7.5l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div id="aiPromptBody" style="display:none;border-top:1px solid var(--border);">
+        <!-- Toolbar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#1e2d3d;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Prompt</span>
+          <button id="aiCopyBtn" onclick="copyAiPrompt()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:rgba(255,255,255,0.7);font-family:'Poppins',sans-serif;font-size:12px;font-weight:500;padding:5px 13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/></svg>
+            Copy Prompt
+          </button>
+        </div>
+
+        <!-- Prompt content -->
+        <div style="background:#1e2d3d;padding:22px 26px 26px;font-family:'Poppins',sans-serif;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.75;">
+          <div style="font-size:13px;font-weight:700;color:#7ecba1;margin-bottom:12px;">Match Tracker Pro — Data Reformatter Prompt</div>
+          <div style="margin-bottom:16px;">I need you to reformat my tennis match data into a specific CSV format for import into Match Tracker Pro.</div>
+
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a8c4d8;margin-bottom:10px;margin-top:18px;">The output must be exactly 23 tab-separated columns in this order, one match per row, no header row:</div>
+
+          <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:4px;">
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">1.</span><span><strong style="color:#fff;">Date</strong> <span style="color:rgba(255,255,255,0.5)">(MM/DD/YYYY)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">2.</span><span><strong style="color:#fff;">Season</strong> <span style="color:rgba(255,255,255,0.5)">(Spring / Summer / Fall / Winter — leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">3.</span><span><strong style="color:#fff;">League</strong> <span style="color:rgba(255,255,255,0.5)">(ALTA / USTA / Club / etc. — leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">4.</span><span><strong style="color:#fff;">Level</strong> <span style="color:rgba(255,255,255,0.5)">(3.5 / 4.0 / etc. — leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">5.</span><span><strong style="color:#fff;">Type</strong> <span style="color:rgba(255,255,255,0.5)">(Singles, Doubles, Men's Doubles, Mixed Doubles, etc. If a partner exists it default to Doubles if no type is specified)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">6.</span><span><strong style="color:#fff;">Line</strong> <span style="color:rgba(255,255,255,0.5)">(1 / 2 / 3 / etc. — leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">7.</span><span><strong style="color:#fff;">Location</strong> <span style="color:rgba(255,255,255,0.5)">(venue name — leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">8.</span><span><strong style="color:#fff;">Home/Away</strong> <span style="color:rgba(255,255,255,0.5)">(Home / Away / Neutral — leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">9.</span><span><strong style="color:#fff;">Surface</strong> <span style="color:rgba(255,255,255,0.5)">(leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">10.</span><span><strong style="color:#fff;">Time of Day</strong> <span style="color:rgba(255,255,255,0.5)">(Morning / Afternoon / Night — leave blank if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">11.</span><span><strong style="color:#fff;">Playoff</strong> <span style="color:rgba(255,255,255,0.5)">(TRUE or FALSE — use FALSE if unknown)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">12.</span><span><strong style="color:#fff;">Playoff Round</strong> <span style="color:rgba(255,255,255,0.5)">(QF / SF / F / 1 / 2 / etc. — leave blank if not a playoff match)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">13.</span><span><strong style="color:#fff;">Opponent 1</strong> <span style="color:rgba(255,255,255,0.5)">(required — First Last if both names available)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">14.</span><span><strong style="color:#fff;">Opponent 2</strong> <span style="color:rgba(255,255,255,0.5)">(doubles only — leave blank for singles)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">15.</span><span><strong style="color:#fff;">Partner</strong> <span style="color:rgba(255,255,255,0.5)">(doubles only — leave blank for singles)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">16.</span><span><strong style="color:#fff;">Set 1 Wins</strong> <span style="color:rgba(255,255,255,0.5)">(my games won in set 1 — required)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">17.</span><span><strong style="color:#fff;">Set 1 Losses</strong> <span style="color:rgba(255,255,255,0.5)">(my games lost in set 1 — required)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">18.</span><span><strong style="color:#fff;">Set 2 Wins</strong> <span style="color:rgba(255,255,255,0.5)">(required)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">19.</span><span><strong style="color:#fff;">Set 2 Losses</strong> <span style="color:rgba(255,255,255,0.5)">(required)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">20.</span><span><strong style="color:#fff;">Set 3 Wins</strong> <span style="color:rgba(255,255,255,0.5)">(leave blank if no third set)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">21.</span><span><strong style="color:#fff;">Set 3 Losses</strong> <span style="color:rgba(255,255,255,0.5)">(leave blank if no third set)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">22.</span><span><strong style="color:#fff;">Opponent Retired</strong> <span style="color:rgba(255,255,255,0.5)">(TRUE or FALSE — leave blank if neither player retired)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">23.</span><span><strong style="color:#fff;">We Retired</strong> <span style="color:rgba(255,255,255,0.5)">(TRUE or FALSE — leave blank if neither player retired)</span></span></div>
+          </div>
+
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a8c4d8;margin-bottom:10px;margin-top:22px;">Rules:</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;">
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Output raw tab-separated data only — no headers, no markdown, no explanation</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If my data has a combined score like "6-4, 6-2" split it: Set1Wins=6, Set1Losses=4, Set2Wins=6, Set2Losses=2</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If my data has a Win/Loss column, ignore it — do not output it (the sheet calculates this from scores)</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If Type is missing, default to Singles if no partner exists. Default to doubles if partner exists.</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If a match has two opponents and a partner listed, it's Doubles</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Every row must have all 23 columns, even if most are blank (use empty string, not a placeholder)</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Do not skip any rows from my data</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If only a year is available with no season, default the date to 1/1/YYYY. If a year and season are available but no exact date, use the first day of that season: Winter (January–February) → 1/1/YYYY, Spring (March–May) → 3/1/YYYY, Summer (June–August) → 6/1/YYYY, Fall (September–December) → 9/1/YYYY. In all cases, add a note at the very end of the output listing which rows had estimated dates and what was used, so the user can correct them before importing.</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Do not include any introduction, confirmation, or closing message. Output only the data rows, followed by the date notes if applicable.</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Do not wrap the output in a code block or any markdown formatting. Plain text only.</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>This needs to be in a format that i can easily copy and paste back into google sheets.</li>
+          </ul>
+
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);font-size:13px;color:rgba(255,255,255,0.5);font-style:italic;">My data is attached. Please reformat it now and output only the CSV.</div>
+        </div>
+      </div>
+    </div>
+      </li>
+      <li>Open <a href="https://claude.ai" target="_blank" style="color:var(--navy);font-weight:600">claude.ai</a> or <a href="https://chatgpt.com" target="_blank" style="color:var(--navy);font-weight:600">chatgpt.com</a> and paste the prompt into the message box.</li>
+      <li>Attach your existing spreadsheet file (.xlsx or .csv) and send.</li>
+      <li>Select all of the output, copy it, and continue to Step 1 below.</li>
+    </ol>
+    <div class="note note-tip">
+      <strong>This prompt works for most data structures out of the box.</strong> If your data uses shorthand values (like "H" for Hard or "W" for Win), or your opponent names are split into separate first/last columns, add a brief note describing that at the end of the prompt before attaching your file.
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <div class="card-title">Step 1 — Reformat Your Existing Spreadsheet</div>
+    <p>
+      The easiest and most reliable way to import matches is to reorganize your existing spreadsheet so the columns match the exact layout of the <strong>Match Import</strong> tab.
+    </p>
+    <ul class="guide-list">
+      <li>Move columns in your original spreadsheet as needed so they line up correctly.</li>
+      <li>Add any missing columns required by Match Import.</li>
+      <li>If you do not have data for a particular column, simply leave it blank.</li>
+      <li><p><strong>Playoff</strong> (Column K) and <strong>Retired</strong> (Columns V and W) must contain either TRUE or FALSE values.</p></li>
+    </ul>
+    <div class="note">
+      <strong>Formatting matters.</strong> Match Import expects the columns to appear in the exact same order as the Match Import tab.
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <div class="card-title">Required Match Import Column Layout</div>
+      <div class="import-grid">
+        <div>A - Date</div>
+        <div>B - Season</div>
+        <div>C - League</div>
+        <div>D - Level</div>
+        <div>E - Type</div>
+        <div>F - Line</div>
+        <div>G - Location</div>
+        <div>H - Home/Away</div>
+        <div>I - Surface</div>
+        <div>J - Time</div>
+        <div>K - Playoff</div>
+        <div>L - Playoff Round</div>
+        <div>M - Opponent 1</div>
+        <div>N - Opponent 2</div>
+        <div>O - Partner</div>
+        <div>P - Set 1 Wins</div>
+        <div>Q - Set 1 Losses</div>
+        <div>R - Set 2 Wins</div>
+        <div>S - Set 2 Losses</div>
+        <div>T - Set 3 Wins</div>
+        <div>U - Set 3 Losses</div>
+        <div>V - Opp Retired</div>
+        <div>W - I/We Retired</div>
+      </div>
+    </div>
+  </div>
   <!-- STEP 2 -->
   <div class="card">
     <div class="card-title">Step 2 — Paste Your Match Data</div>
@@ -1537,6 +1688,86 @@
 
 </section>
 
+<hr class="divider">
+
+  <!-- ══════════════════════════════════════════
+       ACHIEVEMENTS
+  ═══════════════════════════════════════════ -->
+  <section class="section" id="achievements">
+    <div class="section-header">
+      <div class="section-icon">🏅</div>
+      <h2>Achievements</h2>
+    </div>
+
+    <p class="section-intro">
+      Achievements are badges earned automatically as you log matches and hit milestones. They're calculated from your full match history — so if you imported past matches all at once, your badges will be dated to when you actually hit each milestone, not when you imported. Every badge is displayed on the Achievements page, accessible from the Dashboard shelf or the sidebar.
+    </p>
+
+    <div class="page-label">
+      <span>🏅</span> Achievements Page
+    </div>
+
+    <!-- BADGE DISPLAY -->
+    <div class="card">
+      <div class="card-title">How Badges Work</div>
+      <p>Badges are grouped into two types — <strong>flat badges</strong> and <strong>tiered badges</strong>.</p>
+      <p><strong>Flat badges</strong> are earned once when a condition is met — for example, reaching a 50% win rate across 50+ matches. They don't have levels.</p>
+      <p><strong>Tiered badges</strong> have multiple levels (Level 1, Level 2, etc.) that unlock as you hit higher thresholds. The Achievements page always shows your highest earned tier for each badge. Beneath each tiered badge is a <strong>See all tiers →</strong> link that opens a panel showing every tier — earned ones shown normally, future ones shown grayed out so you always know what's coming next.</p>
+      <p>Earning a new badge or a new tier triggers a congratulations window that you can dismiss or share directly from.</p>
+      <div class="note note-tip">
+        <strong>Progress bars</strong> appear on unearned badges and on earned tiered badges where a next level exists — so you can always see exactly how close you are to your next milestone.
+      </div>
+    </div>
+
+    <!-- BADGE LIST -->
+    <div class="card">
+      <div class="card-title">Badge List</div>
+
+      <table class="field-table">
+        <thead>
+          <tr><th>Badge</th><th>How to Earn It</th><th>Tiers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>📈 Above .500</td><td>Reach a 50% win rate across 50+ matches</td><td>One-time</td></tr>
+          <tr><td>🎯 Sharpshooter</td><td>Reach a 60% win rate across 50+ matches</td><td>One-time</td></tr>
+          <tr><td>🏅 Elite</td><td>Reach a 70% win rate across 50+ matches</td><td>One-time</td></tr>
+          <tr><td>⚙️ The Grinder</td><td>Play 10+ matches in a single calendar month</td><td>One-time · shows month earned</td></tr>
+          <tr><td>📓 Match Logger</td><td>Total matches logged — from Rookie (1) to Legend (2000+)</td><td>15 levels</td></tr>
+          <tr><td>🔥 Win Streak</td><td>Win 5 (Hot Streak), 10 (On Fire), or 15 (Unstoppable) in a row</td><td>3 levels</td></tr>
+          <tr><td>💪 Never Say Die</td><td>Win a completed match after losing the first set</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+          <tr><td>🎽 Singles</td><td>Singles matches played</td><td>6 levels (25 to 1000)</td></tr>
+          <tr><td>🤝 Doubles</td><td>Doubles matches played (any doubles type)</td><td>6 levels (25 to 1000)</td></tr>
+          <tr><td>👥 Dynamic Duo</td><td>Wins with your single most-won-with partner</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+          <tr><td>🏆 Playoff Warrior</td><td>Playoff matches won</td><td>6 levels (1 to 100)</td></tr>
+          <tr><td>🥯 Double Bagel</td><td>Win a match 6–0, 6–0 in straight sets with no retirements</td><td>4 levels (1 / 10 / 25 / 50)</td></tr>
+          <tr><td>⚖️ Tiebreak Specialist</td><td>Tiebreaks won (7–6 in any set), regardless of match outcome</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+          <tr><td>🚨 Clutch Performer</td><td>Win a match decided by a tiebreak in the third set (7–6 or 1–0), no retirements</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+          <tr><td>🏠 Home Court Advantage</td><td>Wins in matches logged as Home</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+          <tr><td>✈️ Road Warrior</td><td>Wins in matches logged as Away</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SHARING -->
+    <div class="card">
+      <div class="card-title">Sharing a Badge</div>
+      <p>Every earned badge has a <strong>Share</strong> button inside its window. On mobile, tapping <strong>Share</strong> opens the native share sheet so you can send it to Messages, AirDrop, Instagram, or anywhere else. On desktop, click the <strong>Share</strong> button and then the <strong>Copy</strong> button to copy the badge image to your clipboard so you can paste it wherever you like.</p>
+      <div class="note note-tip">
+        The shared image is a styled badge card — your badge name, icon, and a Match Tracker Pro credit — designed to look great in a group chat or on social media.
+      </div>
+    </div>
+
+    <!-- BADGE HISTORY -->
+    <div class="card">
+      <div class="card-title">Recalculating Badge Dates</div>
+      <p>If you imported a large batch of past matches after your initial setup, your badge earn dates may show as today rather than the historical date you actually hit each milestone. To fix this, go to <strong>Settings → General → Badge History</strong> and tap <strong>Recalculate Badge Dates</strong>. The app will replay your full match history chronologically and stamp each badge with the date it was actually earned.</p>
+      <div class="note note-warn">
+        <strong>This overwrites all existing badge dates.</strong> It's safe to run at any time, but be aware that any badges earned live (logged in real time) will have their dates replaced with the historically calculated date.
+      </div>
+    </div>
+
+  </section>
+
 </main>
 
 <!-- ══ IMPORT QUOTE MODAL ══ -->
@@ -1612,6 +1843,76 @@
     </div>
   </div>
 </div>
+
+<script>
+const AI_PROMPT_TEXT = `Match Tracker Pro — Data Reformatter Prompt
+I need you to reformat my tennis match data into a specific CSV format for import into Match Tracker Pro.
+The output must be exactly 23 tab-separated columns in this order, one match per row, no header row:
+
+1. Date (MM/DD/YYYY)
+2. Season (Spring / Summer / Fall / Winter — leave blank if unknown)
+3. League (ALTA / USTA / Club / etc. — leave blank if unknown)
+4. Level (3.5 / 4.0 / etc. — leave blank if unknown)
+5. Type (Singles, Doubles, Men's Doubles, Mixed Doubles, etc. If a partner exists it default to Doubles if no type is specified)
+6. Line (1 / 2 / 3 / etc. — leave blank if unknown)
+7. Location (venue name — leave blank if unknown)
+8. Home/Away (Home / Away / Neutral — leave blank if unknown)
+9. Surface (leave blank if unknown)
+10. Time of Day (Morning / Afternoon / Night — leave blank if unknown)
+11. Playoff (TRUE or FALSE — use FALSE if unknown)
+12. Playoff Round (QF / SF / F / 1 / 2 / etc. — leave blank if not a playoff match)
+13. Opponent 1 (required — First Last if both names available)
+14. Opponent 2 (doubles only — leave blank for singles)
+15. Partner (doubles only — leave blank for singles)
+16. Set 1 Wins (my games won in set 1 — required)
+17. Set 1 Losses (my games lost in set 1 — required)
+18. Set 2 Wins (required)
+19. Set 2 Losses (required)
+20. Set 3 Wins (leave blank if no third set)
+21. Set 3 Losses (leave blank if no third set)
+22. Opponent Retired (TRUE or FALSE — leave blank if neither player retired)
+23. We Retired (TRUE or FALSE — leave blank if neither player retired)
+
+Rules:
+* Output raw tab-separated data only — no headers, no markdown, no explanation
+* If my data has a combined score like "6-4, 6-2" split it: Set1Wins=6, Set1Losses=4, Set2Wins=6, Set2Losses=2
+* If my data has a Win/Loss column, ignore it — do not output it (the sheet calculates this from scores)
+* If Type is missing, default to Singles if no partner exists. Default to doubles if partner exists.
+* If a match has two opponents and a partner listed, it's Doubles
+* Every row must have all 23 columns, even if most are blank (use empty string, not a placeholder)
+* Do not skip any rows from my data
+* If only a year is available with no season, default the date to 1/1/YYYY. If a year and season are available but no exact date, use the first day of that season: Winter (January–February) → 1/1/YYYY, Spring (March–May) → 3/1/YYYY, Summer (June–August) → 6/1/YYYY, Fall (September–December) → 9/1/YYYY. In all cases, add a note at the very end of the output listing which rows had estimated dates and what was used, so the user can correct them before importing.
+* Do not include any introduction, confirmation, or closing message. Output only the data rows, followed by the date notes if applicable.
+* Do not wrap the output in a code block or any markdown formatting. Plain text only.
+* This needs to be in a format that i can easily copy and paste back into google sheets.
+
+My data is attached. Please reformat it now and output only the CSV.`;
+
+function toggleAiPrompt(btn) {
+  const body = document.getElementById('aiPromptBody');
+  const chevron = document.getElementById('aiPromptChevron');
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', !expanded);
+  body.style.display = expanded ? 'none' : 'block';
+  chevron.style.transform = expanded ? '' : 'rotate(180deg)';
+}
+
+function copyAiPrompt() {
+  navigator.clipboard.writeText(AI_PROMPT_TEXT).then(() => {
+    const btn = document.getElementById('aiCopyBtn');
+    btn.style.background = 'rgba(46,125,82,0.25)';
+    btn.style.borderColor = 'rgba(126,203,161,0.3)';
+    btn.style.color = '#7ecba1';
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4 4 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!';
+    setTimeout(() => {
+      btn.style.background = 'rgba(255,255,255,0.08)';
+      btn.style.borderColor = 'rgba(255,255,255,0.12)';
+      btn.style.color = 'rgba(255,255,255,0.7)';
+      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/></svg> Copy Prompt';
+    }, 2500);
+  });
+}
+</script>
 
 <!-- EmailJS -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
