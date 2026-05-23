@@ -14,6 +14,7 @@
 <text y=%22.9em%22 font-size=%2290%22>🎾</text>
 </svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ── Variables ─────────────────────────────────────────── */
 :root {
@@ -161,7 +162,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .btn-ghost { background: var(--surface2); color: var(--label); border: 1px solid var(--border); }
 .btn-ghost:hover { background: var(--border); }
 
-.content { padding: 24px 28px; flex: 1; }
+.content { padding: 24px 28px; flex: 1; overflow-x: hidden; }
 
 /* ── Setup screen ───────────────────────────────────────── */
 .setup-wrap {
@@ -764,6 +765,288 @@ textarea:focus { border-color: var(--accent2) !important; }
 }
 .tip:hover::after,
 .tip:hover::before { opacity: 1; }
+
+/* ══ BADGE SYSTEM ════════════════════════════════════════════ */
+
+/* ── Badge celebration modal ─────────────────────────────── */
+.badge-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 800;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.badge-modal-overlay.visible { opacity: 1; pointer-events: all; }
+.badge-modal-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 36px 32px 28px; max-width: 360px; width: 100%;
+  text-align: center; position: relative;
+  transform: scale(0.92) translateY(12px); transition: transform 0.25s;
+}
+.badge-modal-overlay.visible .badge-modal-box { transform: scale(1) translateY(0); }
+.badge-modal-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--win); margin-bottom: 20px;
+}
+.badge-modal-icon {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: var(--win-bg); display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px; font-size: 36px;
+  border: 3px solid rgba(46,125,82,0.2);
+}
+.badge-modal-name {
+  font-size: 22px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.badge-modal-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 28px;
+}
+.badge-modal-actions { display: flex; flex-direction: column; gap: 8px; }
+.badge-modal-btn-share {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 600;
+  padding: 11px 20px; cursor: pointer; transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.badge-modal-btn-share:hover { background: var(--accent2); }
+.badge-modal-btn-row { display: flex; gap: 8px; }
+.badge-modal-btn-secondary {
+  flex: 1; background: var(--surface2); color: var(--label);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  padding: 10px 12px; cursor: pointer; transition: background 0.15s;
+}
+.badge-modal-btn-secondary:hover { background: var(--border); }
+
+/* ── Tiered badge level pill ─────────────────────────────── */
+.badge-level-pill {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.8px; text-transform: uppercase;
+  background: rgba(99,133,162,0.12); color: var(--muted);
+  border-radius: 100px; padding: 2px 8px; margin-top: 4px;
+}
+.badge-card.earned .badge-level-pill {
+  background: rgba(30,107,58,0.12); color: var(--win);
+}
+.badge-see-tiers {
+  background: none; border: none; font-family: var(--font);
+  font-size: 11px; color: var(--accent2); cursor: pointer;
+  padding: 4px 0 0; text-decoration: underline; text-underline-offset: 2px;
+}
+.badge-see-tiers:hover { color: var(--accent); }
+/* ── Tiers modal ─────────────────────────────────────────── */
+.tiers-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 600; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.tiers-modal-overlay.visible { opacity: 1; pointer-events: all; }
+.tiers-modal-box {
+  background: var(--surface); border-radius: 16px;
+  padding: 0; max-width: 340px; width: 90%;
+  max-height: 80vh; display: flex; flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  transform: scale(0.94) translateY(8px); transition: transform 0.2s;
+  overflow: hidden;
+}
+.tiers-modal-overlay.visible .tiers-modal-box { transform: scale(1) translateY(0); }
+.tiers-modal-header {
+  padding: 24px 28px 0; flex-shrink: 0;
+}
+.tiers-modal-scroll {
+  overflow-y: auto; flex: 1; padding: 0 28px;
+}
+.tiers-modal-footer {
+  padding: 12px 28px 20px; flex-shrink: 0;
+  border-top: 1px solid var(--border);
+}
+.tiers-modal-title {
+  font-size: 16px; font-weight: 700; color: var(--text);
+  margin-bottom: 16px; letter-spacing: -0.3px;
+}
+.tiers-modal-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.tiers-modal-row:last-child { border-bottom: none; }
+.tiers-modal-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+  background: var(--win-bg);
+}
+.tiers-modal-icon.locked {
+  background: var(--surface2); filter: grayscale(1); opacity: 0.45;
+}
+.tiers-modal-info { flex: 1; min-width: 0; }
+.tiers-modal-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.tiers-modal-name.locked { color: var(--muted); }
+.tiers-modal-req { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.tiers-modal-earned { font-size: 11px; color: var(--win); font-weight: 600; }
+.tiers-modal-close {
+  display: block; width: 100%; margin-top: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; font-family: var(--font); font-size: 13px;
+  font-weight: 600; color: var(--label); padding: 10px;
+  cursor: pointer;
+}
+.tiers-modal-close:hover { background: var(--border); }
+/* ── Achievements page ───────────────────────────────────── */
+.achievements-back {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: none; color: var(--accent2);
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  cursor: pointer; padding: 0; margin-bottom: 20px;
+}
+.achievements-back:hover { color: var(--accent); }
+.achievements-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 8px;
+}
+.achievements-title {
+  font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px;
+}
+.achievements-count { font-size: 13px; color: var(--muted); padding-bottom: 3px; }
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+@media (max-width: 768px) {
+  .achievements-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.badge-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px 14px 16px; display: flex; flex-direction: column;
+  align-items: center; gap: 10px; text-align: center;
+  cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; position: relative;
+  justify-content: flex-start; box-sizing: border-box; height: 100%;
+}
+.badge-card.earned { border-top: 3px solid var(--win); }
+.badge-card.locked { opacity: 0.5; cursor: default; }
+.badge-card.earned:hover {
+  box-shadow: 0 4px 16px rgba(47,65,87,0.1);
+  border-color: rgba(46,125,82,0.4);
+}
+.badge-card-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.badge-card.earned .badge-card-icon { background: var(--win-bg); }
+.badge-card.locked .badge-card-icon { background: var(--surface2); font-size: 20px; }
+.badge-card-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.badge-card-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.badge-card-status {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 3px 10px; border-radius: 100px;
+  margin-top: auto;
+}
+.badge-card.earned .badge-card-status { background: var(--win-bg); color: var(--win); }
+.badge-card.locked .badge-card-status { background: var(--surface2); color: var(--muted); }
+.badge-card-date { font-size: 10px; color: var(--muted); margin-top: -4px; }
+
+/* ── Dashboard badge shelf ───────────────────────────────── */
+.badge-shelf { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; }
+
+/* Achievements card sits below the dash-grid with matching gap */
+.achievements-card { margin-top: 20px; }
+@media (max-width: 768px) { .achievements-card { margin-top: 12px; } }
+
+/* ── Page slide transition ───────────────────────────────── */
+@keyframes slideInRight  { from { transform: translateX(60px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInLeft   { from { transform: translateX(-60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.slide-in-right { animation: slideInRight 0.22s ease both; }
+.slide-in-left  { animation: slideInLeft  0.22s ease both; }
+.badge-shelf-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 140px;
+}
+.badge-shelf-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--win-bg); display: flex; align-items: center;
+  justify-content: center; font-size: 17px; flex-shrink: 0;
+}
+.badge-shelf-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.badge-shelf-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.badge-shelf-desc { font-size: 11px; color: var(--muted); }
+.badge-shelf-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);
+}
+.badge-shelf-progress { font-size: 12px; color: var(--muted); }
+.badge-shelf-link {
+  font-size: 12px; font-weight: 600; color: var(--accent2);
+  background: none; border: none; cursor: pointer; font-family: var(--font); padding: 0;
+}
+.badge-shelf-link:hover { color: var(--accent); }
+.badge-shelf-empty { font-size: 13px; color: var(--muted); padding: 8px 0; }
+
+/* Next-up progress bar */
+.badge-next-up {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 10px;
+}
+.badge-next-up-info { display: flex; flex-direction: column; gap: 3px; }
+.badge-next-up-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+}
+.badge-next-up-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.badge-next-up-hint { font-size: 11px; color: var(--muted); }
+.badge-next-up-bar-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.badge-next-up-pct { font-size: 11px; color: var(--muted); }
+.badge-next-up-bar { width: 120px; height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.badge-next-up-fill { height: 100%; background: var(--warn); border-radius: 100px; }
+
+/* ── Share card (off-screen, captured by html2canvas) ────── */
+#badge-share-card {
+  position: fixed; top: -9999px; left: -9999px;
+  width: 480px; background: #2f4157;
+  border-radius: 16px; padding: 40px 36px 32px;
+  font-family: 'Poppins', sans-serif; text-align: center;
+}
+.share-card-eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: rgba(168,196,216,0.8); margin-bottom: 24px;
+}
+.share-card-eyebrow span { color: #7ecba1; }
+.share-card-icon {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(126,203,161,0.15); border: 2px solid rgba(126,203,161,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px; margin: 0 auto 20px;
+}
+.share-card-name {
+  font-size: 28px; font-weight: 700; color: #fff;
+  letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.share-card-desc {
+  font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 28px;
+}
+.share-card-divider {
+  width: 40px; height: 2px; background: rgba(126,203,161,0.4);
+  margin: 0 auto 20px; border-radius: 2px;
+}
+.share-card-brand {
+  font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.35);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;
+}
+.share-card-brand span { color: #7ecba1; }
+.share-card-hashtag { font-size: 12px; color: rgba(126,203,161,0.7); letter-spacing: 0.5px; }
+
+/* ── Desktop share fallback ──────────────────────────────── */
+.share-options-panel { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.share-opt-btn {
+  flex: 1; min-width: 100px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  color: var(--label); padding: 9px 10px; cursor: pointer;
+  transition: background 0.15s; display: flex; align-items: center;
+  justify-content: center; gap: 6px;
+}
+.share-opt-btn:hover { background: var(--border); }
 </style>
 </head>
 <body>
@@ -788,7 +1071,7 @@ textarea:focus { border-color: var(--accent2) !important; }
     <div class="nav-item" onclick="navigateTo('entry')">
       <span class="nav-icon">📝</span> Match Entry
     </div>
-    
+   
   </nav>
   <div style="padding:0 12px 8px">
     <div onclick="showPage('settings')" id="nav-settings" class="nav-item"
@@ -918,6 +1201,48 @@ textarea:focus { border-color: var(--accent2) !important; }
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- ══ BADGE CELEBRATION MODAL ══ -->
+<div class="tiers-modal-overlay" id="tiers-modal-overlay" onclick="if(event.target===this)closeTiersModal()">
+  <div class="tiers-modal-box">
+    <div class="tiers-modal-header">
+      <div class="tiers-modal-title" id="tiers-modal-title"></div>
+    </div>
+    <div class="tiers-modal-scroll" id="tiers-modal-rows"></div>
+    <div class="tiers-modal-footer">
+      <button class="tiers-modal-close" onclick="closeTiersModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="badge-modal-overlay" id="badge-modal-overlay" onclick="badgeModalOverlayClick(event)">
+  <div class="badge-modal-box">
+    <button id="badge-modal-x" onclick="closeBadgeModal()" style="display:none;position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:4px;">✕</button>
+    <div class="badge-modal-eyebrow" id="badge-modal-eyebrow">🏆 Achievement Unlocked</div>
+    <div class="badge-modal-icon" id="badge-modal-icon"></div>
+    <div class="badge-modal-name" id="badge-modal-name"></div>
+    <div class="badge-modal-desc" id="badge-modal-desc"></div>
+    <div class="badge-modal-actions">
+      <button class="badge-modal-btn-share" onclick="badgeModalShare()">↗ Share</button>
+      <div class="badge-modal-btn-row" id="badge-modal-btn-row">
+        <button class="badge-modal-btn-secondary" onclick="badgeModalViewAll()">View All</button>
+        <button class="badge-modal-btn-secondary" onclick="closeBadgeModal()">Dismiss</button>
+      </div>
+    </div>
+    <div id="badge-modal-share-options" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══ SHARE CARD (off-screen, captured by html2canvas) ══ -->
+<div id="badge-share-card">
+  <div class="share-card-eyebrow">Match Tracker <span>Pro</span></div>
+  <div class="share-card-icon" id="share-card-icon"></div>
+  <div class="share-card-name" id="share-card-name"></div>
+  <div class="share-card-desc" id="share-card-desc"></div>
+  <div class="share-card-divider"></div>
+  <div class="share-card-brand">Match Tracker <span>Pro</span></div>
+  <div class="share-card-hashtag">#MatchTrackerPro</div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 // 
@@ -1034,9 +1359,13 @@ async function loadAll() {
         Object.keys(s).forEach(k => {
           if (k.startsWith('defaultPartner_')) localStorage.setItem(k, s[k]);
         });
+        // Badge state sync — always write what the Sheet says, including empty (Sheet is source of truth)
+        localStorage.setItem('earnedBadges',     s.earnedBadges     ?? '');
+        localStorage.setItem('earnedBadgeDates', s.earnedBadgeDates ?? '{}');
       }
     } catch(e) { /* Settings sync unavailable — localStorage values used */ }
 
+    await computeBadges(allMatches);
     showPage('dashboard');
   } catch(e) {
     setContent(`<div class="spinner-wrap" style="color:var(--danger)">Failed to load data. <button class="btn btn-ghost" onclick="loadAll()" style="margin-top:12px">Retry</button></div>`);
@@ -1120,7 +1449,8 @@ function showPage(page) {
     settings:     'Settings',
     history:      'Match History',
     entry:        'Match Entry',
-    validEntries: 'Valid Entries'
+    validEntries: 'Valid Entries',
+    achievements: 'Achievements'
   };
   document.getElementById('topbar-title').textContent = titles[page] || page;
 
@@ -1129,6 +1459,7 @@ function showPage(page) {
   else if (page === 'entry')   renderEntry();
   else if (page === 'validEntries') renderValidEntries();
   else if (page === 'settings')     renderSettings();
+  else if (page === 'achievements') renderAchievements();
 }
 
 function showSetup() {
@@ -1361,6 +1692,12 @@ function renderDashboard() {
           </div>
         </div>
       </div>
+    </div>
+    <div class="card achievements-card">
+      <div class="card-header">
+        <div class="card-title">Achievements</div>
+      </div>
+      <div id="badge-shelf-content">${buildBadgeShelf()}</div>
     </div>
   `;
 
@@ -3440,6 +3777,9 @@ function renderSettings() {
       .settings-sub-hdr { background:var(--surface2);border-radius:6px;padding:10px 14px;margin-bottom:14px; }
       .settings-sub-hdr-title { font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px; }
       .settings-sub-hdr-desc { font-size:12px;color:var(--muted);line-height:1.5; }
+      .settings-sub-card { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:14px; }
+      .settings-sub-card-title { font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px; }
+      .settings-sub-card-desc { font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:4px; }
     </style>
     <div style="max-width:820px;display:flex;flex-direction:column;gap:12px">
 
@@ -3453,13 +3793,13 @@ function renderSettings() {
           <span class="settings-section-chev open" id="chev-sec-appearance">▼</span>
         </div>
         <div class="settings-section-body open" id="sec-appearance">
-          <div style="margin-top:16px">
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
 
             <!-- Partner Name Format -->
-            <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
-              <div class="settings-sub-hdr">
-                <div class="settings-sub-hdr-title">Partner Name Format</div>
-                <div class="settings-sub-hdr-desc">Controls how partner names appear throughout the app — in the Dashboard, Match History, and Partner Performance cards.</div>
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Partner Name Format</div>
+                <div class="settings-sub-card-desc">Controls how partner names appear throughout the app — in the Dashboard, Match History, and Partner Performance cards.</div>
               </div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 ${[
@@ -3479,10 +3819,11 @@ function renderSettings() {
             </div>
 
             <!-- Performance Thresholds -->
-            <div class="settings-sub-hdr">
-              <div class="settings-sub-hdr-title">Performance Thresholds</div>
-              <div class="settings-sub-hdr-desc">Controls how win percentages are color-coded across the app.</div>
-            </div>
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Performance Thresholds</div>
+                <div class="settings-sub-card-desc">Controls how win percentages are color-coded across the app.</div>
+              </div>
             <div style="display:inline-flex;flex-direction:column;gap:6px;margin-bottom:8px">
               <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
                 <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
@@ -3518,8 +3859,9 @@ function renderSettings() {
               </div>
             </div>
             <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px"></div>
-            <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-              <button onclick="saveDisplaySettings()" class="settings-save-btn" id="save-thresh-btn">Save</button>
+            <div style="display:flex;justify-content:flex-end;padding-top:4px">
+                <button onclick="saveDisplaySettings()" class="settings-save-btn" id="save-thresh-btn">Save</button>
+              </div>
             </div>
           </div>
         </div>
@@ -3535,13 +3877,13 @@ function renderSettings() {
           <span class="settings-section-chev" id="chev-sec-history">▼</span>
         </div>
         <div class="settings-section-body" id="sec-history">
-          <div style="margin-top:16px">
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
 
             <!-- Matches per page -->
-            <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
-              <div class="settings-sub-hdr">
-                <div class="settings-sub-hdr-title">Matches Per Page</div>
-                <div class="settings-sub-hdr-desc">How many matches to show per page in Match History.</div>
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Matches Per Page</div>
+                <div class="settings-sub-card-desc">How many matches to show per page in Match History.</div>
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap">
                 ${['10','25','50'].map(v => `
@@ -3553,18 +3895,20 @@ function renderSettings() {
             </div>
 
             <!-- Performance Breakdown Categories -->
-            <div class="settings-sub-hdr">
-              <div class="settings-sub-hdr-title">Performance Breakdown Categories</div>
-              <div class="settings-sub-hdr-desc">Choose which categories appear in the Performance Breakdown card. Max 6.</div>
-            </div>
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Performance Breakdown Categories</div>
+                <div class="settings-sub-card-desc">Choose which categories appear in the Performance Breakdown card. Max 6.</div>
+              </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px">
               <div>${col1.map(catRow).join('')}</div>
               <div>${col2.map(catRow).join('')}</div>
             </div>
             <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
             <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
-            <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-              <button onclick="saveHistorySettings()" class="settings-save-btn" id="save-cats-btn">Save</button>
+            <div style="display:flex;justify-content:flex-end;padding-top:4px">
+                <button onclick="saveHistorySettings()" class="settings-save-btn" id="save-cats-btn">Save</button>
+              </div>
             </div>
           </div>
         </div>
@@ -3580,7 +3924,12 @@ function renderSettings() {
           <span class="settings-section-chev" id="chev-sec-entry">▼</span>
         </div>
         <div class="settings-section-body" id="sec-entry">
-          <div style="margin-top:16px">
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">General Defaults & Partner Defaults</div>
+                <div class="settings-sub-card-desc">Set optional defaults to save time during match entry. Any field left blank shows no pre-selection.</div>
+              </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
               <div style="display:flex;flex-direction:column;gap:10px">
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
@@ -3645,8 +3994,10 @@ function renderSettings() {
                   : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
               </div>
             </div>
-            <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-              <button onclick="saveDefaultSettings()" class="settings-save-btn" id="save-defaults-btn">Save</button>
+            <div style="display:flex;justify-content:flex-end;padding-top:4px">
+                <button onclick="saveDefaultSettings()" class="settings-save-btn" id="save-defaults-btn">Save</button>
+              </div>
+            </div>
             </div>
           </div>
         </div>
@@ -3662,12 +4013,12 @@ function renderSettings() {
           <span class="settings-section-chev" id="chev-sec-general">▼</span>
         </div>
         <div class="settings-section-body" id="sec-general">
-          <div style="margin-top:16px;display:flex;flex-direction:column;gap:24px">
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
 
-            <div>
-              <div class="settings-sub-hdr">
-                <div class="settings-sub-hdr-title">Update Notifications</div>
-                <div class="settings-sub-hdr-desc">Receive occasional emails when new features are released. Always optional, always free.</div>
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Update Notifications</div>
+                <div class="settings-sub-card-desc">Receive occasional emails when new features are released. Always optional, always free.</div>
               </div>
               <div style="display:flex;flex-direction:column;gap:14px">
                 <div class="field">
@@ -3695,10 +4046,10 @@ function renderSettings() {
               </div>
             </div>
 
-            <div style="border-top:1px solid var(--border);padding-top:20px">
-              <div class="settings-sub-hdr">
-                <div class="settings-sub-hdr-title">Google Sheet Connection</div>
-                <div class="settings-sub-hdr-desc">Your Google Apps Script Web App URL. This connects Match Tracker Pro to your Google Sheet.</div>
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Google Sheet Connection</div>
+                <div class="settings-sub-card-desc">Your Google Apps Script Web App URL. This connects Match Tracker Pro to your Google Sheet.</div>
               </div>
               <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap">
                 <input type="text" id="settings-url" value="${currentUrl}"
@@ -3707,8 +4058,19 @@ function renderSettings() {
                   onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
               </div>
               <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
-              <div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+              <div style="display:flex;justify-content:flex-end;padding-top:4px">
                 <button onclick="saveUrlSettings()" class="settings-save-btn" id="save-url-btn">Save</button>
+              </div>
+            </div>
+
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Badge History</div>
+                <div class="settings-sub-card-desc">Recalculate badge earn dates using your actual match history. Useful if you imported past matches after setting up the app. This will overwrite all current badge dates.</div>
+              </div>
+              <div>
+                <button onclick="recalcBadgeDatesFromSettings()" class="settings-save-btn" id="recalc-badges-btn">Recalculate Badge Dates</button>
+                <div id="recalc-badges-msg" style="display:none;font-size:12px;margin-top:8px;color:var(--win)"></div>
               </div>
             </div>
 
@@ -3736,6 +4098,19 @@ function renderSettings() {
 }
 
 // ── Settings helpers ──────────────────────────────────────────
+
+async function recalcBadgeDatesFromSettings() {
+  const btn = document.getElementById('recalc-badges-btn');
+  const msg = document.getElementById('recalc-badges-msg');
+  if (btn) { btn.textContent = 'Recalculating…'; btn.disabled = true; }
+  try {
+    await recalcBadgeDates(allMatches);
+    if (msg) { msg.textContent = '✓ Badge dates updated from match history.'; msg.style.display = 'block'; setTimeout(() => { if (msg) msg.style.display = 'none'; }, 4000); }
+  } catch(e) {
+    showToast('Recalculation failed: ' + e.message, true);
+  }
+  if (btn) { btn.textContent = 'Recalculate Badge Dates'; btn.disabled = false; }
+}
 
 function toggleSettingsSection(id) {
   const ids = ['sec-appearance','sec-history','sec-entry','sec-general'];
@@ -4618,6 +4993,10 @@ async function submitEntry() {
         result, notes: match.notes || ''
       });
       showToast('Match submitted!');
+      const _newBadges = await computeBadges(allMatches);
+      if (_newBadges.length > 0) {
+        setTimeout(() => queueBadgeModals(_newBadges), 600);
+      }
       // Capture the fields to preserve for next entry
       const keepFields = {
         type:       resolve('type'),
@@ -4746,6 +5125,897 @@ function showToast(msg, isError=false) {
   t.className = 'toast' + (isError?' error':'');
   setTimeout(() => t.classList.add('show'), 10);
   setTimeout(() => t.classList.remove('show'), msg.length > 80 ? 8000 : 3000);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BADGE SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+// ── Tiered badge helper ───────────────────────────────────────
+// Each tiered badge has: id (base), emoji, name (base), tiers array
+// tiers: [{level, threshold, label, desc}]
+// For non-tiered: tiers is absent, use check/progress as before
+
+const BADGE_DEFS_TIERED = [
+  {
+    id: 'match_logger',
+    emoji: '📓',
+    baseName: 'Match Logger',
+    tiers: [
+      { level:1,  threshold:1,    label:'Rookie',         desc:'Logged your first match.' },
+      { level:2,  threshold:10,   label:'Club Player',    desc:'Logged 10 matches.' },
+      { level:3,  threshold:25,   label:'League Regular', desc:'Logged 25 matches.' },
+      { level:4,  threshold:50,   label:'Veteran',        desc:'Logged 50 matches.' },
+      { level:5,  threshold:100,  label:'Century Club',   desc:'Logged 100 matches.' },
+      { level:6,  threshold:200,  label:'Double Century', desc:'Logged 200 matches.' },
+      { level:7,  threshold:300,  label:'Triple Century', desc:'Logged 300 matches.' },
+      { level:8,  threshold:400,  label:'400 Club',       desc:'Logged 400 matches.' },
+      { level:9,  threshold:500,  label:'500 Club',       desc:'Logged 500 matches.' },
+      { level:10, threshold:600,  label:'600 Club',       desc:'Logged 600 matches.' },
+      { level:11, threshold:700,  label:'700 Club',       desc:'Logged 700 matches.' },
+      { level:12, threshold:800,  label:'800 Club',       desc:'Logged 800 matches.' },
+      { level:13, threshold:900,  label:'900 Club',       desc:'Logged 900 matches.' },
+      { level:14, threshold:1000, label:'Elite',          desc:'Logged 1000 matches.' },
+      { level:15, threshold:2000, label:'Legend',         desc:'Logged 2000 matches.' }
+    ],
+    getValue: (m) => m.length
+  },
+  {
+    id: 'never_say_die',
+    emoji: '💪',
+    baseName: 'Never Say Die',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Came back to win after losing the first set — 10 times.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Came back to win after losing the first set — 25 times.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Came back to win after losing the first set — 50 times.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Came back to win after losing the first set — 100 times.' }
+    ],
+    getValue: (m) => m.filter(x => {
+      if (!x.s1w || !x.s1l || x.result !== 'W' || x.oppRet || x.weRet) return false;
+      return Number(x.s1w) < Number(x.s1l);
+    }).length
+  },
+  {
+    id: 'singles_milestones',
+    emoji: '🎽',
+    baseName: 'Singles',
+    tiers: [
+      { level:1, threshold:25,   label:'Level 1', desc:'Played 25 singles matches.' },
+      { level:2, threshold:50,   label:'Level 2', desc:'Played 50 singles matches.' },
+      { level:3, threshold:100,  label:'Level 3', desc:'Played 100 singles matches.' },
+      { level:4, threshold:250,  label:'Level 4', desc:'Played 250 singles matches.' },
+      { level:5, threshold:500,  label:'Level 5', desc:'Played 500 singles matches.' },
+      { level:6, threshold:1000, label:'Level 6', desc:'Played 1000 singles matches.' }
+    ],
+    getValue: (m) => badgeSinglesCount(m)
+  },
+  {
+    id: 'doubles_milestones',
+    emoji: '🤝',
+    baseName: 'Doubles',
+    tiers: [
+      { level:1, threshold:25,   label:'Level 1', desc:'Played 25 doubles matches.' },
+      { level:2, threshold:50,   label:'Level 2', desc:'Played 50 doubles matches.' },
+      { level:3, threshold:100,  label:'Level 3', desc:'Played 100 doubles matches.' },
+      { level:4, threshold:250,  label:'Level 4', desc:'Played 250 doubles matches.' },
+      { level:5, threshold:500,  label:'Level 5', desc:'Played 500 doubles matches.' },
+      { level:6, threshold:1000, label:'Level 6', desc:'Played 1000 doubles matches.' }
+    ],
+    getValue: (m) => badgeDoublesCount(m)
+  },
+  {
+    id: 'dynamic_duo',
+    emoji: '👥',
+    baseName: 'Dynamic Duo',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches with your top partner.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches with your top partner.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches with your top partner.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches with your top partner.' }
+    ],
+    getValue: (m) => badgeTopPartnerWins(m).wins,
+    getDynamicName: (m) => {
+      const earned = getEarnedBadges();
+      const highestTier = getHighestEarnedTier({id:'dynamic_duo', tiers:[
+        {level:1,threshold:10},{level:2,threshold:25},{level:3,threshold:50},{level:4,threshold:100}
+      ]}, earned);
+      if (!highestTier) return 'Dynamic Duo';
+      // Find all partners who meet the current highest tier threshold
+      const counts = {};
+      m.forEach(x => {
+        if (x.partner && x.partner !== 'None' && x.partner !== '' && x.result === 'W') {
+          counts[x.partner] = (counts[x.partner] || 0) + 1;
+        }
+      });
+      const qualifiers = Object.entries(counts)
+        .filter(([,c]) => c >= highestTier.threshold)
+        .sort((a,b) => b[1]-a[1])
+        .map(([p]) => formatPartnerName(p));
+      return qualifiers.length > 0 ? 'Dynamic Duo: ' + qualifiers.join(', ') : 'Dynamic Duo';
+    }
+  },
+  {
+    id: 'playoff_warrior',
+    emoji: '🏆',
+    baseName: 'Playoff Warrior',
+    tiers: [
+      { level:1, threshold:1,   label:'Level 1', desc:'Won your first playoff match.' },
+      { level:2, threshold:5,   label:'Level 2', desc:'Won 5 playoff matches.' },
+      { level:3, threshold:10,  label:'Level 3', desc:'Won 10 playoff matches.' },
+      { level:4, threshold:25,  label:'Level 4', desc:'Won 25 playoff matches.' },
+      { level:5, threshold:50,  label:'Level 5', desc:'Won 50 playoff matches.' },
+      { level:6, threshold:100, label:'Level 6', desc:'Won 100 playoff matches.' }
+    ],
+    getValue: (m) => m.filter(x => x.playoff && x.result==='W').length
+  },
+  {
+    id: 'double_bagel',
+    emoji: '🥯',
+    baseName: 'Double Bagel',
+    tiers: [
+      { level:1, threshold:1,  label:'Level 1', desc:'Won a match 6–0, 6–0.' },
+      { level:2, threshold:10, label:'Level 2', desc:'Won 10 matches 6–0, 6–0.' },
+      { level:3, threshold:25, label:'Level 3', desc:'Won 25 matches 6–0, 6–0.' },
+      { level:4, threshold:50, label:'Level 4', desc:'Won 50 matches 6–0, 6–0.' }
+    ],
+    getValue: (m) => m.filter(x => {
+      if (x.oppRet || x.weRet || x.result !== 'W') return false;
+      if (x.s3w !== '' && x.s3w !== null && x.s3w !== undefined) return false;
+      return Number(x.s1w)===6 && Number(x.s1l)===0 && Number(x.s2w)===6 && Number(x.s2l)===0;
+    }).length
+  },
+  {
+    id: 'tiebreak_specialist',
+    emoji: '⚖️',
+    baseName: 'Tiebreak Specialist',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 tiebreaks.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 tiebreaks.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 tiebreaks.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 tiebreaks.' }
+    ],
+    getValue: (m) => badgeTiebreaksWon(m)
+  },
+  {
+    id: 'clutch_performer',
+    emoji: '🚨',
+    baseName: 'Clutch Performer',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches decided by a tiebreak in the third set.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches decided by a tiebreak in the third set.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches decided by a tiebreak in the third set.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches decided by a tiebreak in the third set.' }
+    ],
+    getValue: (m) => m.filter(x => {
+      if (x.result !== 'W' || x.oppRet || x.weRet) return false;
+      const s3w = Number(x.s3w), s3l = Number(x.s3l);
+      if (x.s3w === '' || x.s3w === null || x.s3w === undefined) return false;
+      // Super tiebreak (1-0) or standard set 3 tiebreak (7-6)
+      return (s3w === 1 && s3l === 0) || (s3w === 7 && s3l === 6);
+    }).length
+  },
+  {
+    id: 'home_court',
+    emoji: '🏠',
+    baseName: 'Home Court Advantage',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches at home.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches at home.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches at home.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches at home.' }
+    ],
+    getValue: (m) => m.filter(x => x.homeaway==='Home' && x.result==='W').length
+  },
+  {
+    id: 'road_warrior',
+    emoji: '✈️',
+    baseName: 'Road Warrior',
+    tiers: [
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 away matches.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 away matches.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 away matches.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 away matches.' }
+    ],
+    getValue: (m) => m.filter(x => x.homeaway==='Away' && x.result==='W').length
+  },
+  {
+    id: 'win_streak',
+    emoji: '🔥',
+    baseName: 'Win Streak',
+    tiers: [
+      { level:1, threshold:5,  label:'Hot Streak',    desc:'Won 5 matches in a row.' },
+      { level:2, threshold:10, label:'On Fire',        desc:'Won 10 matches in a row.' },
+      { level:3, threshold:15, label:'Unstoppable',    desc:'Won 15 matches in a row.' }
+    ],
+    getValue: (m) => calcMaxStreak(m)
+  },
+  ];
+
+// Non-tiered / special badges
+const BADGE_DEFS = [
+
+  {
+    id: 'above_500', emoji: '📈', name: 'Above .500',
+    desc: '50% win rate · min 50 matches',
+    check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.50,
+    progress: (m) => {
+      if (m.length < 50) return { val:m.length, max:50, label:`${m.length} of 50 matches` };
+      return { val: Math.min(badgeWinRate(m),0.50), max:0.50, label:`${(badgeWinRate(m)*100).toFixed(1)}% win rate` };
+    }
+  },
+  {
+    id: 'sharpshooter', emoji: '🎯', name: 'Sharpshooter',
+    desc: '60% win rate · min 50 matches',
+    check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.60,
+    progress: (m) => {
+      if (m.length < 50) return { val:m.length, max:50, label:`${m.length} of 50 matches` };
+      return { val: Math.min(badgeWinRate(m),0.60), max:0.60, label:`${(badgeWinRate(m)*100).toFixed(1)}% of 60%` };
+    }
+  },
+  {
+    id: 'elite_rate', emoji: '🏅', name: 'Elite',
+    desc: '70% win rate · min 50 matches',
+    check: (m) => m.length >= 50 && badgeWinRate(m) >= 0.70,
+    progress: (m) => {
+      if (m.length < 50) return { val:m.length, max:50, label:`${m.length} of 50 matches` };
+      return { val: Math.min(badgeWinRate(m),0.70), max:0.70, label:`${(badgeWinRate(m)*100).toFixed(1)}% of 70%` };
+    }
+  },
+  {
+    id: 'the_grinder', emoji: '⚙️', name: 'The Grinder',
+    desc: 'Played 10+ matches in a single calendar month.',
+    isOneTime: true,
+    check: (m) => badgeGrinderMonth(m) !== null,
+    progress: (m) => {
+      const best = badgeGrinderBest(m);
+      return { val: Math.min(best,10), max:10, label: best>=10?'Done':`${best} matches in best month` };
+    },
+    getDynamicDesc: (m, dates) => {
+      const mo = dates['the_grinder_month'];
+      return mo ? `Played 10+ matches in ${mo}.` : 'Played 10+ matches in a single calendar month.';
+    }
+  },
+];
+
+function badgeWinRate(matches) {
+  const w = matches.filter(m => m.result==='W').length;
+  const l = matches.filter(m => m.result==='L').length;
+  return (w+l)===0 ? 0 : w/(w+l);
+}
+function badgeDoublesCount(matches) {
+  return matches.filter(m => m.type && m.type.toLowerCase().includes('doubles')).length;
+}
+function badgeSinglesCount(matches) {
+  return matches.filter(m => m.type && m.type.toLowerCase().includes('singles')).length;
+}
+function calcMaxStreak(matches) {
+  const sorted = [...matches].sort((a,b) => parseDate(a.date)-parseDate(b.date));
+  let max=0, cur=0;
+  sorted.forEach(m => { if (m.result==='W') { cur++; max=Math.max(max,cur); } else { cur=0; } });
+  return max;
+}
+function badgeTopPartnerWins(matches) {
+  const counts = {};
+  matches.forEach(m => {
+    if (m.partner && m.partner !== 'None' && m.partner !== '' && m.result === 'W') {
+      counts[m.partner] = (counts[m.partner] || 0) + 1;
+    }
+  });
+  let best = null, bestCount = 0;
+  Object.entries(counts).forEach(([p, c]) => { if (c > bestCount) { best = p; bestCount = c; } });
+  return { partner: best, wins: bestCount };
+}
+function badgeTiebreaksWon(matches) {
+  let count = 0;
+  matches.forEach(m => {
+    if (Number(m.s1w)===7 && Number(m.s1l)===6) count++;
+    if (Number(m.s2w)===7 && Number(m.s2l)===6) count++;
+    if (Number(m.s3w)===7 && Number(m.s3l)===6) count++;
+  });
+  return count;
+}
+function badgeGrinderBest(matches) {
+  const monthly = {};
+  matches.forEach(m => {
+    if (!m.date) return;
+    const d = new Date(m.date);
+    if (isNaN(d)) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    monthly[key] = (monthly[key]||0) + 1;
+  });
+  return Object.values(monthly).reduce((a,b) => Math.max(a,b), 0);
+}
+function badgeGrinderMonth(matches) {
+  const monthly = {};
+  matches.forEach(m => {
+    if (!m.date) return;
+    const d = new Date(m.date);
+    if (isNaN(d)) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if (!monthly[key]) monthly[key] = { count:0, dates:[] };
+    monthly[key].count++;
+    monthly[key].dates.push(d);
+  });
+  for (const [, obj] of Object.entries(monthly)) {
+    if (obj.count >= 10) {
+      const sorted = obj.dates.sort((a,b) => a-b);
+      const tenth = sorted[9];
+      return tenth.toLocaleDateString('en-US',{month:'long', year:'numeric'});
+    }
+  }
+  return null;
+}
+function badgeNemesisStats(matches) {
+  // Build w/l record against every opponent
+  const stats = {};
+  matches.forEach(m => {
+    [m.opp1, m.opp2].forEach(opp => {
+      if (!opp || !opp.trim()) return;
+      const key = opp.trim();
+      if (!stats[key]) stats[key] = { w:0, l:0 };
+      if (m.result === 'W') stats[key].w++;
+      else if (m.result === 'L') stats[key].l++;
+    });
+  });
+  return stats;
+}
+function badgeNemesisOpponent(matches) {
+  const stats = badgeNemesisStats(matches);
+  // Must have 5+ losses — pick the one with the worst win percentage
+  let best = null, bestPct = Infinity;
+  Object.entries(stats).forEach(([opp, rec]) => {
+    if (rec.l < 5) return;
+    const total = rec.w + rec.l;
+    const pct = total === 0 ? 0 : rec.w / total;
+    if (pct < bestPct) { bestPct = pct; best = opp; }
+  });
+  return best;
+}
+function badgeNemesisRecord(matches, opp) {
+  const stats = badgeNemesisStats(matches);
+  const rec = stats[opp] || { w:0, l:0 };
+  const total = rec.w + rec.l;
+  return { w: rec.w, l: rec.l, pct: total === 0 ? 0 : Math.round((rec.w / total) * 100) };
+}
+function badgeNemesisMax(matches) {
+  const stats = badgeNemesisStats(matches);
+  return Object.values(stats).reduce((a, rec) => Math.max(a, rec.l), 0);
+}
+function badgeSweetRevengeCount(matches) {
+  // Only opponents with 5+ losses qualify (matching nemesis threshold)
+  const stats = badgeNemesisStats(matches);
+  const nemeses = new Set(Object.entries(stats).filter(([,rec]) => rec.l >= 5).map(([o]) => o));
+  if (nemeses.size === 0) return 0;
+  const revenged = new Set();
+  matches.forEach(m => {
+    if (m.result !== 'W') return;
+    [m.opp1, m.opp2].forEach(opp => {
+      if (opp && nemeses.has(opp.trim())) revenged.add(opp.trim());
+    });
+  });
+  return revenged.size;
+}
+function getTieredEarnedLevel(def, matches) {
+  const val = def.getValue(matches);
+  let earnedTier = null;
+  def.tiers.forEach(t => { if (val >= t.threshold) earnedTier = t; });
+  return earnedTier;
+}
+function getTieredNextTier(def, matches) {
+  const val = def.getValue(matches);
+  return def.tiers.find(t => val < t.threshold) || null;
+}
+function tieredId(def, level) { return def.id + '_t' + level; }
+
+// ── Earned badge storage ──────────────────────────────────────
+function getEarnedBadges() {
+  const raw = localStorage.getItem('earnedBadges') || '';
+  return raw ? raw.split(',').filter(Boolean) : [];
+}
+function getEarnedDates() {
+  try { return JSON.parse(localStorage.getItem('earnedBadgeDates') || '{}'); } catch(e) { return {}; }
+}
+async function persistEarnedBadges(ids, dates) {
+  localStorage.setItem('earnedBadges', ids.join(','));
+  localStorage.setItem('earnedBadgeDates', JSON.stringify(dates));
+  try {
+    await fetch(webAppUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action:'saveSettings', settings:{ earnedBadges:ids.join(','), earnedBadgeDates:JSON.stringify(dates) } })
+    });
+  } catch(e) { /* non-fatal */ }
+}
+
+// ── Compute badges ────────────────────────────────────────────
+// Historical replay — walks matches chronologically, stamps each badge
+// with the date it was first earned rather than today.
+function replayBadgeHistory(matches) {
+  const sorted = [...matches].sort((a,b) => parseDate(a.date) - parseDate(b.date));
+  const earned = [];
+  const dates  = {};
+  const monthly = {}; // for grinder tracking
+
+  sorted.forEach((m, idx) => {
+    const subset = sorted.slice(0, idx + 1);
+    const dateLabel = m.date
+      ? new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+      : new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+    // Track monthly match count for The Grinder
+    if (m.date) {
+      const d = new Date(m.date);
+      if (!isNaN(d)) {
+        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        monthly[key] = (monthly[key] || []);
+        monthly[key].push(d);
+        if (monthly[key].length === 10 && !earned.includes('the_grinder')) {
+          earned.push('the_grinder');
+          dates['the_grinder'] = dateLabel;
+          dates['the_grinder_month'] = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+        }
+      }
+    }
+
+    // Non-tiered flat badges (except the_grinder handled above)
+    BADGE_DEFS.forEach(def => {
+      if (def.id === 'the_grinder') return;
+      if (earned.includes(def.id)) return;
+      if (def.check(subset)) {
+        earned.push(def.id);
+        dates[def.id] = dateLabel;
+      }
+    });
+
+    // Tiered badges
+    BADGE_DEFS_TIERED.forEach(def => {
+      const val = def.getValue(subset);
+      def.tiers.forEach(tier => {
+        const tid = tieredId(def, tier.level);
+        if (earned.includes(tid)) return;
+        if (val >= tier.threshold) {
+          earned.push(tid);
+          dates[tid] = dateLabel;
+          if (def.id === 'dynamic_duo') {
+            const tp = badgeTopPartnerWins(subset);
+            if (tp.partner) dates[tid + '_partner'] = tp.partner;
+          }
+        }
+      });
+    });
+  });
+
+  return { earned, dates };
+}
+
+async function computeBadges(matches) {
+  const alreadyEarned = getEarnedBadges();
+  const dates = getEarnedDates();
+
+  // Fresh setup with no earned badges — run full historical replay
+  if (alreadyEarned.length === 0 && matches.length > 0) {
+    const { earned: replayEarned, dates: replayDates } = replayBadgeHistory(matches);
+    if (replayEarned.length > 0) {
+      await persistEarnedBadges(replayEarned, replayDates);
+    }
+    // Don't show modals for replayed badges — just return empty
+    return [];
+  }
+
+  // Incremental check — only find newly earned since last check
+  const newlyEarned = [];
+  const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  BADGE_DEFS.forEach(def => {
+    if (alreadyEarned.includes(def.id)) return;
+    if (def.check(matches)) {
+      alreadyEarned.push(def.id);
+      dates[def.id] = now;
+      if (def.id === 'the_grinder') {
+        const mo = badgeGrinderMonth(matches);
+        if (mo) dates['the_grinder_month'] = mo;
+      }
+      newlyEarned.push(def.id);
+    }
+  });
+
+  BADGE_DEFS_TIERED.forEach(def => {
+    const val = def.getValue(matches);
+    def.tiers.forEach(tier => {
+      const tid = tieredId(def, tier.level);
+      if (alreadyEarned.includes(tid)) return;
+      if (val >= tier.threshold) {
+        alreadyEarned.push(tid);
+        dates[tid] = now;
+        if (def.id === 'dynamic_duo') {
+          const tp = badgeTopPartnerWins(matches);
+          if (tp.partner) dates[tid + '_partner'] = tp.partner;
+        }
+        newlyEarned.push(tid);
+      }
+    });
+  });
+
+  if (newlyEarned.length > 0) await persistEarnedBadges(alreadyEarned, dates);
+  return newlyEarned;
+}
+
+// Manual recalculate — wipes dates and reruns full replay
+async function recalcBadgeDates(matches) {
+  const { earned: replayEarned, dates: replayDates } = replayBadgeHistory(matches);
+  await persistEarnedBadges(replayEarned, replayDates);
+  showToast('✓ Badge dates recalculated from match history');
+}
+
+// Given a tiered badge def and earned list, return the highest earned tier def
+function getHighestEarnedTier(def, earned) {
+  let highest = null;
+  def.tiers.forEach(t => {
+    if (earned.includes(tieredId(def, t.level))) highest = t;
+  });
+  return highest;
+}
+
+// ── Modal queue ───────────────────────────────────────────────
+let _badgeQueue = [];
+let _badgeQueueActive = false;
+let _activeBadgeId = null;
+let _modalMode = 'achievement'; // 'achievement' | 'view'
+
+// If more than 3 badges earned at once, skip modals entirely and
+// just show the achievements page so they don't pop one by one.
+const BADGE_MODAL_MAX = 3;
+
+function queueBadgeModals(ids) {
+  if (ids.length > BADGE_MODAL_MAX) {
+    slideToAchievements();
+    showToast(`🏆 ${ids.length} new badges earned! Check your Achievements.`);
+    return;
+  }
+  _badgeQueue.push(...ids);
+  if (!_badgeQueueActive) drainBadgeQueue();
+}
+function drainBadgeQueue() {
+  if (_badgeQueue.length===0) { _badgeQueueActive=false; return; }
+  _badgeQueueActive = true;
+  showBadgeModal(_badgeQueue.shift());
+}
+function showBadgeModal(id) {
+  // Could be a tiered id like 'match_logger_t3' or a flat id like 'first_rally'
+  const resolved = resolveBadgeId(id);
+  if (!resolved) { drainBadgeQueue(); return; }
+  _activeBadgeId = id;
+  _modalMode = 'achievement';
+  document.getElementById('badge-modal-icon').textContent = resolved.emoji;
+  document.getElementById('badge-modal-name').textContent = resolved.name;
+  document.getElementById('badge-modal-desc').textContent = resolved.desc;
+  document.getElementById('badge-modal-share-options').style.display = 'none';
+  document.getElementById('badge-modal-eyebrow').style.display = '';
+  document.getElementById('badge-modal-btn-row').style.display = '';
+  document.getElementById('badge-modal-x').style.display = 'none';
+  document.getElementById('badge-modal-overlay').classList.add('visible');
+}
+// Resolve any badge id (tiered or flat) to {emoji, name, desc}
+function resolveBadgeId(id) {
+  // Check flat badges first
+  const flat = BADGE_DEFS.find(d => d.id===id);
+  if (flat) {
+    const name = flat.getDynamicName ? flat.getDynamicName(allMatches) : flat.name;
+    const desc = flat.getDynamicDesc ? flat.getDynamicDesc(allMatches, getEarnedDates()) : flat.desc;
+    return { emoji: flat.emoji, name, desc };
+  }
+  // Check tiered badges
+  for (const def of BADGE_DEFS_TIERED) {
+    for (const tier of def.tiers) {
+      if (tieredId(def, tier.level) === id) {
+        const name = def.getDynamicName ? def.getDynamicName(allMatches) : (def.baseName + ': ' + tier.label);
+        return { emoji: def.emoji, name, desc: tier.desc };
+      }
+    }
+  }
+  return null;
+}
+function closeBadgeModal() {
+  document.getElementById('badge-modal-overlay').classList.remove('visible');
+  _activeBadgeId = null;
+  if (_modalMode === 'achievement') setTimeout(drainBadgeQueue, 300);
+}
+function badgeModalOverlayClick(e) {
+  // Only close on overlay click-outside — not when clicking the modal box itself
+  if (e.target === document.getElementById('badge-modal-overlay')) closeBadgeModal();
+}
+function badgeModalViewAll() {
+  closeBadgeModal();
+  setTimeout(() => slideToAchievements(), 300);
+}
+
+// ── Slide navigation helpers ──────────────────────────────────
+function slideToAchievements() {
+  const contentEl = document.getElementById('content');
+  contentEl.classList.add('slide-in-right');
+  contentEl.addEventListener('animationend', () => contentEl.classList.remove('slide-in-right'), { once: true });
+  renderAchievements();
+}
+function slideToDashboard() {
+  // Apply the slide class to the content container itself before rendering,
+  // so the animation plays without disturbing the chart canvas reference.
+  const contentEl = document.getElementById('content');
+  contentEl.classList.add('slide-in-left');
+  contentEl.addEventListener('animationend', () => contentEl.classList.remove('slide-in-left'), { once: true });
+  showPage('dashboard');
+}
+
+// ── Share ─────────────────────────────────────────────────────
+async function badgeModalShare() {
+  const resolved = resolveBadgeId(_activeBadgeId);
+  if (resolved) await shareBadge(resolved);
+}
+async function shareBadge(def) {
+  document.getElementById('share-card-icon').textContent = def.emoji;
+  document.getElementById('share-card-name').textContent = def.name || def.baseName || '';
+  document.getElementById('share-card-desc').textContent = def.desc || '';
+  let imageBlob = null;
+  try {
+    if (typeof html2canvas !== 'undefined') {
+      const canvas = await html2canvas(document.getElementById('badge-share-card'),
+        { scale:2, backgroundColor:'#2f4157', useCORS:true, logging:false });
+      imageBlob = await new Promise(res => canvas.toBlob(res,'image/png'));
+    }
+  } catch(e) { /* fall through */ }
+  const shareText = `I just earned the "${def.name || def.baseName || ''}" badge on Match Tracker Pro — ${def.desc || ''} #MatchTrackerPro`;
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile && navigator.share) {
+    try {
+      const shareData = { title:'Match Tracker Pro', text:shareText };
+      if (imageBlob && navigator.canShare &&
+          navigator.canShare({ files:[new File([imageBlob],'badge.png',{type:'image/png'})] })) {
+        shareData.files = [new File([imageBlob],'badge.png',{type:'image/png'})];
+      }
+      await navigator.share(shareData);
+      return;
+    } catch(e) { /* user cancelled */ }
+  }
+  showDesktopShareOptions(def, shareText, imageBlob);
+}
+function showDesktopShareOptions(def, shareText, imageBlob) {
+  const panel = document.getElementById('badge-modal-share-options');
+  panel.innerHTML = `
+    <div class="share-options-panel">
+      <button class="share-opt-btn" id="share-copy-btn" onclick="copyShareText()">📋 Copy</button>
+    </div>`;
+  panel.style.display = 'block';
+  window._pendingShareText = shareText;
+}
+
+function copyShareText() {
+  const text = window._pendingShareText || '';
+  if (!text) return;
+  // Try modern clipboard API first, fall back to execCommand for http/file contexts
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => confirmCopied()).catch(() => execCommandCopy(text));
+  } else {
+    execCommandCopy(text);
+  }
+}
+
+function execCommandCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    confirmCopied();
+  } catch(e) {
+    showToast('Could not copy — please copy manually', true);
+  }
+  document.body.removeChild(ta);
+}
+
+function confirmCopied() {
+  const btn = document.getElementById('share-copy-btn');
+  if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
+}
+function downloadBadgeImage(blobUrl, badgeId) {
+  const a = document.createElement('a');
+  a.href = blobUrl; a.download = `mtp-badge-${badgeId}.png`; a.click();
+}
+
+// ── Achievements page ─────────────────────────────────────────
+function renderAchievements() {
+  currentPage = 'achievements';
+  window.scrollTo(0,0);
+  closeSidebar();
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('topbar-title').textContent = 'Achievements';
+  document.getElementById('topbar-right').innerHTML = '';
+  document.getElementById('mobile-filters').innerHTML = '';
+  const earned = getEarnedBadges();
+  const dates  = getEarnedDates();
+
+  // Count total earned — for tiered badges only count if at least tier 1 earned
+  let earnedCount = 0;
+  let totalCount = 0;
+
+  // Non-tiered cards
+  const flatCards = BADGE_DEFS.map(def => {
+    totalCount++;
+    const isEarned = earned.includes(def.id);
+    if (isEarned) earnedCount++;
+    const prog = def.progress(allMatches);
+    const pct  = Math.min(100, Math.round((prog.val/prog.max)*100));
+    const dateStr = dates[def.id] ? `<div class="badge-card-date">Earned ${dates[def.id]}</div>` : '';
+    const name = def.getDynamicName ? def.getDynamicName(allMatches) : def.name;
+    const desc = def.getDynamicDesc ? def.getDynamicDesc(allMatches, dates) : def.desc;
+    return `
+      <div class="badge-card ${isEarned?'earned':'locked'}"
+           ${isEarned?`onclick="openEarnedBadge('${def.id}')"`:''}>
+        <div class="badge-card-icon">${isEarned ? def.emoji : '🔒'}</div>
+        <div class="badge-card-name">${name}</div>
+        <div class="badge-card-desc">${desc}</div>
+        ${dateStr}
+        <div style="margin-top:auto;width:100%">
+          <div class="badge-card-status">${isEarned ? 'Earned' : prog.label}</div>
+          ${!isEarned ? `<div style="width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:2px">
+            <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
+          <div style="height:23px"></div>
+        </div>
+      </div>`;
+  });
+
+  // Tiered cards — show highest earned tier, or lowest locked tier if none earned
+  const tieredCards = BADGE_DEFS_TIERED.map(def => {
+    totalCount++;
+    const highestTier = getHighestEarnedTier(def, earned);
+    const isEarned = highestTier !== null;
+    if (isEarned) earnedCount++;
+    const displayTier = isEarned ? highestTier : def.tiers[0];
+    const displayId = tieredId(def, displayTier.level);
+    const val = def.getValue(allMatches);
+    const nextTier = getTieredNextTier(def, allMatches);
+    const pct = nextTier ? Math.min(100, Math.round((val / nextTier.threshold) * 100)) : 100;
+    const progressLabel = isEarned
+      ? (nextTier ? `${val} / ${nextTier.threshold} to Level ${nextTier.level}` : 'Max level!')
+      : (nextTier ? `${val} / ${nextTier.threshold}` : 'Done');
+    const dateStr = isEarned && dates[displayId] ? `<div class="badge-card-date">Earned ${dates[displayId]}</div>` : '';
+    const displayName = def.getDynamicName ? def.getDynamicName(allMatches) : (def.baseName + (isEarned ? ': ' + displayTier.label : ''));
+    const displayDesc = isEarned ? displayTier.desc : def.tiers[0].desc;
+    const levelPill = isEarned ? `<div class="badge-level-pill">${displayTier.label}</div>` : '';
+    const seeAllBtn = def.isSpecial ? '' : `<button class="badge-see-tiers" onclick="event.stopPropagation();openTiersModal('${def.id}')">See all tiers →</button>`;
+    return `
+      <div class="badge-card ${isEarned?'earned':'locked'}"
+           ${isEarned?`onclick="openEarnedBadge('${displayId}')"`:''}>
+        <div class="badge-card-icon">${isEarned ? def.emoji : '🔒'}</div>
+        <div class="badge-card-name">${displayName}</div>
+        ${levelPill}
+        <div class="badge-card-desc">${displayDesc}</div>
+        ${dateStr}
+        <div class="badge-card-status">${isEarned ? progressLabel : progressLabel}</div>
+        ${!isEarned || nextTier ? `<div style="width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:2px">
+          <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
+        ${seeAllBtn}
+      </div>`;
+  });
+
+  const allCards = [...flatCards, ...tieredCards].join('');
+  const contentEl = document.getElementById('content');
+  contentEl.innerHTML = `
+    <button class="achievements-back" onclick="slideToDashboard()">← Back to Dashboard</button>
+    <div class="achievements-header">
+      <div class="achievements-title">Achievements</div>
+      <div class="achievements-count">${earnedCount} of ${totalCount} earned</div>
+    </div>
+    <div class="achievements-grid">${allCards}</div>`;
+}
+
+// ── Tiers modal ───────────────────────────────────────────────
+function openTiersModal(defId) {
+  const def = BADGE_DEFS_TIERED.find(d => d.id === defId);
+  if (!def) return;
+  const earned = getEarnedBadges();
+  const dates  = getEarnedDates();
+  document.getElementById('tiers-modal-title').textContent = def.baseName + ' — All Levels';
+  const rowsHtml = def.tiers.map(tier => {
+    const tid = tieredId(def, tier.level);
+    const isEarned = earned.includes(tid);
+    const dateStr = isEarned && dates[tid] ? `<div class="tiers-modal-earned">Earned ${dates[tid]}</div>` : '';
+    return `<div class="tiers-modal-row">
+      <div class="tiers-modal-icon${isEarned?'':' locked'}">${isEarned ? def.emoji : '🔒'}</div>
+      <div class="tiers-modal-info">
+        <div class="tiers-modal-name${isEarned?'':' locked'}">${tier.label} <span style="font-size:10px;font-weight:400;color:var(--muted)">(${tier.threshold}${tier.threshold===1?'':'+'})</span></div>
+        <div class="tiers-modal-req">${tier.desc}</div>
+        ${dateStr}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('tiers-modal-rows').innerHTML = rowsHtml;
+  document.getElementById('tiers-modal-overlay').classList.add('visible');
+}
+function closeTiersModal() {
+  document.getElementById('tiers-modal-overlay').classList.remove('visible');
+}
+function openEarnedBadge(id) {
+  const resolved = resolveBadgeId(id);
+  if (!resolved) return;
+  _activeBadgeId = id;
+  _modalMode = 'view';
+  document.getElementById('badge-modal-icon').textContent = resolved.emoji;
+  document.getElementById('badge-modal-name').textContent = resolved.name;
+  document.getElementById('badge-modal-desc').textContent = resolved.desc;
+  document.getElementById('badge-modal-share-options').style.display = 'none';
+  document.getElementById('badge-modal-eyebrow').style.display = 'none';
+  document.getElementById('badge-modal-btn-row').style.display = 'none';
+  document.getElementById('badge-modal-x').style.display = '';
+  document.getElementById('badge-modal-overlay').classList.add('visible');
+}
+
+// ── Dashboard badge shelf ─────────────────────────────────────
+function buildBadgeShelf() {
+  const earned = getEarnedBadges();
+  const totalBadges = BADGE_DEFS.length + BADGE_DEFS_TIERED.length;
+  // Count earned for display — tiered badges count once (if any tier earned)
+  let earnedDisplayCount = 0;
+  BADGE_DEFS.forEach(def => { if (earned.includes(def.id)) earnedDisplayCount++; });
+  BADGE_DEFS_TIERED.forEach(def => { if (getHighestEarnedTier(def, earned)) earnedDisplayCount++; });
+
+  if (earned.length === 0) {
+    return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>
+      <div class="badge-shelf-footer"><span></span>
+        <button class="badge-shelf-link" onclick="slideToAchievements()">View all achievements →</button>
+      </div>`;
+  }
+  const recent = earned.slice(-3).reverse();
+  const shelfItems = recent.map(id => {
+    const resolved = resolveBadgeId(id);
+    if (!resolved) return '';
+    return `<div class="badge-shelf-item">
+      <div class="badge-shelf-icon">${resolved.emoji}</div>
+      <div class="badge-shelf-info">
+        <div class="badge-shelf-name">${resolved.name}</div>
+        <div class="badge-shelf-desc">${resolved.desc}</div>
+      </div></div>`;
+  }).join('');
+
+  // Next up — check both flat and tiered
+  let bestPct = -1, bestEmoji = '', bestName = '', bestLabel = '';
+  BADGE_DEFS.forEach(def => {
+    if (earned.includes(def.id)) return;
+    const prog = def.progress(allMatches);
+    const p = prog.val / prog.max;
+    if (p > bestPct) { bestPct=p; bestEmoji=def.emoji; bestName=def.name; bestLabel=prog.label; }
+  });
+  BADGE_DEFS_TIERED.forEach(def => {
+    const nextTier = getTieredNextTier(def, allMatches);
+    if (!nextTier) return;
+    const val = def.getValue(allMatches);
+    const p = val / nextTier.threshold;
+    if (p > bestPct) {
+      bestPct = p;
+      bestEmoji = def.emoji;
+      bestName = (def.baseName + ': ' + nextTier.label);
+      bestLabel = `${val} / ${nextTier.threshold}`;
+    }
+  });
+  let nextUpHtml = '';
+  if (bestName) {
+    const fillPct = Math.min(100, Math.round(bestPct*100));
+    nextUpHtml = `<div class="badge-next-up">
+      <div class="badge-next-up-info">
+        <div class="badge-next-up-label">Next up</div>
+        <div class="badge-next-up-name">${bestEmoji} ${bestName}</div>
+        <div class="badge-next-up-hint">${bestLabel}</div>
+      </div>
+      <div class="badge-next-up-bar-wrap">
+        <div class="badge-next-up-pct">${fillPct}%</div>
+        <div class="badge-next-up-bar"><div class="badge-next-up-fill" style="width:${fillPct}%"></div></div>
+      </div></div>`;
+  }
+  return `<div class="badge-shelf">${shelfItems}</div>${nextUpHtml}
+    <div class="badge-shelf-footer">
+      <span class="badge-shelf-progress">${earnedDisplayCount} of ${totalBadges} badges earned</span>
+      <button class="badge-shelf-link" onclick="slideToAchievements()">View all →</button>
+    </div>`;
 }
 </script>
 </body>
