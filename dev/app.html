@@ -5313,39 +5313,7 @@ const BADGE_DEFS_TIERED = [
     ],
     getValue: (m) => calcMaxStreak(m)
   },
-  {
-    id: 'nemesis',
-    emoji: '😈',
-    baseName: 'Nemesis',
-    isSpecial: true,
-    tiers: [
-      { level:1, threshold:5, label:'Nemesis', desc:'Lost 5+ times to the same opponent.' }
-    ],
-    getValue: (m) => badgeNemesisMax(m),
-    getDynamicName: (m) => {
-      const opp = badgeNemesisOpponent(m);
-      return opp ? 'Nemesis: ' + formatPartnerName(opp) : 'Nemesis';
-    },
-    getDynamicDesc: (m) => {
-      const opp = badgeNemesisOpponent(m);
-      if (!opp) return 'Lost 5+ times to the same opponent.';
-      const rec = badgeNemesisRecord(m, opp);
-      return `Your nemesis: ${formatPartnerName(opp)}. Record: ${rec.w}–${rec.l} (${rec.pct}% wins).`;
-    }
-  },
-  {
-    id: 'sweet_revenge',
-    emoji: '😤',
-    baseName: 'Sweet Revenge',
-    tiers: [
-      { level:1, threshold:1,  label:'Level 1', desc:'Got revenge on 1 opponent you had lost to 5+ times.' },
-      { level:2, threshold:3,  label:'Level 2', desc:'Got revenge on 3 opponents you had lost to 5+ times.' },
-      { level:3, threshold:5,  label:'Level 3', desc:'Got revenge on 5 opponents you had lost to 5+ times.' },
-      { level:4, threshold:10, label:'Level 4', desc:'Got revenge on 10 opponents you had lost to 5+ times.' }
-    ],
-    getValue: (m) => badgeSweetRevengeCount(m)
-  },
-];
+  ];
 
 // Non-tiered / special badges
 const BADGE_DEFS = [
@@ -5871,9 +5839,12 @@ function renderAchievements() {
         <div class="badge-card-name">${name}</div>
         <div class="badge-card-desc">${desc}</div>
         ${dateStr}
-        <div class="badge-card-status">${isEarned ? 'Earned' : prog.label}</div>
-        ${!isEarned ? `<div style="width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:2px">
-          <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
+        <div style="margin-top:auto;width:100%">
+          <div class="badge-card-status">${isEarned ? 'Earned' : prog.label}</div>
+          ${!isEarned ? `<div style="width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:2px">
+            <div style="width:${pct}%;height:100%;background:var(--accent2);border-radius:100px"></div></div>` : ''}
+          <div style="height:23px"></div>
+        </div>
       </div>`;
   });
 
