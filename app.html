@@ -4278,6 +4278,8 @@ async function settingsHandleOptIn() {
     localStorage.removeItem('settingsOptInEmail');
     status.textContent = 'Opted out';
     status.style.color = 'var(--muted)';
+    // Save opt-out to user's Settings tab for cross-device sync
+    fetch(webAppUrl, { method:'POST', body:JSON.stringify({ action:'saveSettings', settings:{ optInEmail: '', optInStatus:'false' } }) }).catch(()=>{});
     // Notify the sheet
     if (optedOutEmail) {
       fetch('https://script.google.com/macros/s/AKfycbzHCS6BP3zA1EcYt_gi6SeXW2nK905hN0TFFoRagicCCu7N5SQlJNJTaLfp_dvfWBLlng/exec', {
@@ -4310,6 +4312,8 @@ async function settingsHandleOptIn() {
     localStorage.setItem('settingsOptInEmail', email);
     status.textContent = '✓ Opted in';
     status.style.color = 'var(--win)';
+    // Save to user's Settings tab for cross-device sync
+    fetch(webAppUrl, { method:'POST', body:JSON.stringify({ action:'saveSettings', settings:{ optInEmail: email, optInStatus:'true' } }) }).catch(()=>{});
   } catch(e) {
     toggle.checked = false;
     msg.style.display = 'block';
