@@ -1946,7 +1946,7 @@ function buildSplitsTable(matches) {
         ${row('3-Set Matches', t3W, t3L)}
         ${divider}
         ${row('Tiebreaks', tbW, tbL)}
-        ${row('Close Matches', clW, clL)}
+        ${row('Close Matches <span class="tip" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="cursor:help;color:var(--muted);font-size:11px;margin-left:3px">ⓘ</span>', clW, clL)}
         ${row('Playoffs', plW, plL)}
       </tbody>
     </table>
@@ -2745,7 +2745,7 @@ function buildHistoryResults(filtered, sortOrder) {
   if (enabledCats.includes('twoset'))    card2Body += insightRow('2-Set Matches', filtered.filter(function(m){ return (!m.s3w||m.s3w==='')&&m.s2w!==''; }));
   if (enabledCats.includes('threeset'))  card2Body += insightRow('3-Set Matches', filtered.filter(function(m){ return m.s3w!==''&&m.s3w!=null; }));
   if (enabledCats.includes('tiebreaks')) card2Body += tbRow;
-  if (enabledCats.includes('close'))     card2Body += insightRow('Close Matches', filtered.filter(function(m){
+  if (enabledCats.includes('close'))     card2Body += insightRow('Close Matches <span class="tip" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="cursor:help;color:var(--muted);font-size:11px;margin-left:3px">ⓘ</span>', filtered.filter(function(m){
     var s=[m.s1w,m.s1l,m.s2w,m.s2l,m.s3w,m.s3l].map(Number);
     return s.some(function(v,i){ return i%2===0 && Math.abs(v-s[i+1])<=2; });
   }));
