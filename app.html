@@ -4492,7 +4492,7 @@ function renderEntry() {
         <div class="entry-pair">
           <div class="field">
             <div class="field-label">Date</div>
-            <input type="date" id="e-date" style="color-scheme:light" onchange="if(this.value)this.blur()">
+            <input type="date" id="e-date" style="color-scheme:light" onchange="if(this.value&&this.value.length===10)this.blur()">
             <div class="field-error" id="err-date">Required</div>
           </div>
           <div class="field">
