@@ -3474,6 +3474,19 @@ function buildItem(field, v, i, firstInExtra) {
         </div>
       </div>
     </div>
+    <div class="confirm-overlay" id="ve-confirm-merge">
+      <div class="confirm-box">
+        <div class="confirm-title">⚠️ Entry Already Exists</div>
+        <div class="confirm-body">
+          <strong id="ve-confirm-merge-old"></strong> will be merged into <strong id="ve-confirm-merge-new"></strong>.<br><br>
+          <span id="ve-confirm-merge-count"></span>
+        </div>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" onclick="veCancelMerge()">Cancel</button>
+          <button class="btn btn-primary" onclick="veProceedMerge()">Merge</button>
+        </div>
+      </div>
+    </div>
     <div class="confirm-overlay" id="ve-confirm-rename">
       <div class="confirm-box">
         <div class="confirm-title">Rename Entry</div>
@@ -3638,10 +3651,25 @@ async function veConfirmRename() {
   if (!vePendingRename) return;
   const newValue = document.getElementById('ve-rename-input').value.trim();
   if (!newValue || newValue === vePendingRename.oldValue) return;
-  if ((veEntries[vePendingRename.field]||[]).includes(newValue)) { showToast('That value already exists', true); return; }
+  const {field, oldValue} = vePendingRename;
+  // If target already exists, switch to merge confirmation instead of blocking
+  if ((veEntries[field]||[]).includes(newValue)) {
+    const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
+    const key = logColMap[field];
+    const affectedCount = key ? allMatches.filter(m => m[key] === oldValue).length : 0;
+    document.getElementById('ve-confirm-rename').classList.remove('visible');
+    document.getElementById('ve-confirm-merge-old').textContent = oldValue;
+    document.getElementById('ve-confirm-merge-new').textContent = newValue;
+    document.getElementById('ve-confirm-merge-count').textContent = affectedCount === 0
+      ? 'No existing matches use this entry.'
+      : `This will update ${affectedCount} match${affectedCount!==1?'es':''} from "${oldValue}" to "${newValue}". The "${oldValue}" entry will also be removed from Valid Entries.`;
+    // Keep vePendingRename set so we can use it in veProceedMerge
+    vePendingRename = {field, oldValue, newValue, inputEl: null};
+    document.getElementById('ve-confirm-merge').classList.add('visible');
+    return;
+  }
   showSaving('Renaming…');
   document.getElementById('ve-confirm-rename').classList.remove('visible');
-  const {field, oldValue} = vePendingRename;
   vePendingRename = null;
   try {
     const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
@@ -3664,6 +3692,36 @@ function veCancelRename() {
   document.getElementById('ve-confirm-rename').classList.remove('visible');
   if (vePendingRename) { if (vePendingRename.inputEl) vePendingRename.inputEl.value = vePendingRename.oldValue; vePendingRename = null; }
   renderVEContent();
+}
+
+async function veProceedMerge() {
+  if (!vePendingRename) return;
+  const {field, oldValue, newValue} = vePendingRename;
+  vePendingRename = null;
+  document.getElementById('ve-confirm-merge').classList.remove('visible');
+  showSaving('Merging…');
+  try {
+    // Rename oldValue → newValue in Valid Entries and Match Log
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    // Remove oldValue from local veEntries (newValue already exists)
+    const idx = (veEntries[field]||[]).indexOf(oldValue);
+    if (idx !== -1) veEntries[field].splice(idx, 1);
+    // Update local match data
+    const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
+    const key = logColMap[field];
+    if (key) allMatches.forEach(m => { if (m[key]===oldValue) m[key]=newValue; });
+    renderVEContent();
+    const updated = data.matchesUpdated > 0 ? ` (${data.matchesUpdated} match${data.matchesUpdated!==1?'es':''} updated)` : '';
+    showToast(`Merged "${oldValue}" into "${newValue}"${updated}`);
+  } catch(e) { showToast('Merge failed: '+e.message, true); }
+  finally { hideSaving(); }
+}
+
+function veCancelMerge() {
+  document.getElementById('ve-confirm-merge').classList.remove('visible');
+  vePendingRename = null;
 }
 
 function veTriggerDelete(field, value) {
@@ -3742,7 +3800,7 @@ function savePerfCats(keys) { localStorage.setItem('perfCats', JSON.stringify(ke
 
 function onPerfCatToggle(el) {
   const checked = Array.from(document.querySelectorAll('[data-cat]:checked'));
-  if (checked.length >= 6 && el.checked) {
+  if (checked.length > 6 && el.checked) {
     el.checked = false;
     showToast('Maximum 6 categories. Turn one off before adding another.', true);
     return;
@@ -3824,11 +3882,11 @@ function renderSettings() {
               </div>
             <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-width:420px;">
               <div style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600;flex-wrap:wrap">
-                <span style="color:var(--win)">🟩 Great ≥<span id="thresh-label-great">${great}</span>%</span>
+                <span style="color:var(--win)">🟩 Great ≥ <span id="thresh-label-great">${great}</span>%</span>
                 <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
                 <span style="color:#d4820a">🟨 Neutral <span id="thresh-label-range">${poor + 1}–${great - 1}%</span></span>
                 <span style="color:var(--muted);font-weight:400;margin:0 4px">|</span>
-                <span style="color:var(--danger)">🟥 Poor ≤<span id="thresh-label-poor">${poor}</span>%</span>
+                <span style="color:var(--danger)">🟥 Poor ≤ <span id="thresh-label-poor">${poor}</span>%</span>
               </div>
               <div id="thresh-bar" style="height:5px;border-radius:4px;overflow:hidden;display:flex;">
                 <div id="thresh-bar-green"  style="background:var(--win);transition:width 0.3s;width:${100-great}%"></div>
@@ -4434,7 +4492,7 @@ function renderEntry() {
         <div class="entry-pair">
           <div class="field">
             <div class="field-label">Date</div>
-            <input type="date" id="e-date" style="color-scheme:light" onchange="this.blur()">
+            <input type="date" id="e-date" style="color-scheme:light" onchange="if(this.value)this.blur()">
             <div class="field-error" id="err-date">Required</div>
           </div>
           <div class="field">
