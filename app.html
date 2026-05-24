@@ -2620,11 +2620,10 @@ function buildHistoryResults(filtered, sortOrder) {
     const p = pct(w, l);
     // Strip HTML tags to get plain text for the tip data attribute
     const plainLabel = label.replace(/<[^>]*>/g, '').trim();
-    const tipIcon = label !== plainLabel ? label.match(/<span[^>]*class="tip-icon"[^>]*>.*?<\/span>/)?.[0] || '' : '';
-    const cleanLabel = plainLabel;
+    const tipIcon = label.match(/<span[^>]*class="tip-icon"[^>]*>[\s\S]*?<\/span>/)?.[0] || '';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
       + '<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;max-width:55%;">'
-      + '<span class="tip" data-tip="' + cleanLabel + '" style="font-size:12px;color:var(--label);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">' + cleanLabel + '</span>'
+      + '<span class="tip" data-tip="' + plainLabel + '" style="font-size:12px;color:var(--label);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">' + plainLabel + '</span>'
       + tipIcon
       + '</div>'
       + '<span style="font-size:12px;font-weight:600;color:' + col + ';white-space:nowrap;flex-shrink:0">' + w + '–' + l
