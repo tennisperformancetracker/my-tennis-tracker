@@ -777,6 +777,62 @@ textarea:focus { border-color: var(--accent2) !important; }
 @media (max-width: 768px) {
   .tip-icon { display: none; }
 }
+/* ── Swipe to delete ── */
+.swipe-row-wrap {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+.swipe-row-actions {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  display: flex;
+  align-items: stretch;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+.swipe-action-edit {
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.swipe-action-delete {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.swipe-row-inner {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  transition: transform 0.2s ease;
+  will-change: transform;
+}
+.swipe-row-wrap.revealed .swipe-row-actions {
+  pointer-events: all;
+  opacity: 1;
+}
 .tip-icon::after {
   content: attr(data-tip);
   position: absolute;
@@ -2828,15 +2884,25 @@ function buildHistoryResults(filtered, sortOrder) {
     var playoffStar = m.playoff ? '<span title="Playoff' + (m.playoffround ? ', Round: ' + escHtml(m.playoffround) : '') + '" style="color:#f59e0b;font-size:13px;margin-left:5px;cursor:help">★</span>' : '';
     var isMob = window.innerWidth <= 768;
     if (isMob) {
-      return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
-        + '<td style="white-space:nowrap;font-size:12px;color:var(--text);vertical-align:top;padding-top:11px">' + (m.date || '') + '</td>'
-        + '<td style="vertical-align:top;padding-top:9px"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-        + '<td style="min-width:0;max-width:0;width:100%">'
-          + '<div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><span class="tip" data-tip="' + opponent + '" style="max-width:100%">' + opponent + '</span>' + playoffStar + '</div>'
-          + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="' + partnerFull + '" style="max-width:calc(100% - 24px)">' + partner + '</span></div>' : '')
-          + '<div class="hist-scores" style="margin-top:5px">' + scoresHtml + retired + noteInd + '</div>'
-        + '</td>'
-        + '</tr>';
+      return '<tr style="padding:0;border:none"><td colspan="3" style="padding:0;border:none">'
+        + '<div class="swipe-row-wrap" id="swipe-wrap-' + globalIdx + '">'
+        + '<div class="swipe-row-actions">'
+        + '<button class="swipe-action-edit" onclick="event.stopPropagation();closeSwipeRows();openMatchDetail(' + globalIdx + ');setTimeout(function(){document.getElementById(\'modal-edit-btn\')&&document.getElementById(\'modal-edit-btn\').click();},300)">'
+        + '<span style="font-size:16px">✏️</span>Edit</button>'
+        + '<button class="swipe-action-delete" onclick="event.stopPropagation();closeSwipeRows();openConfirmDelete(' + globalIdx + ')">'
+        + '<span style="font-size:16px">🗑️</span>Delete</button>'
+        + '</div>'
+        + '<div class="swipe-row-inner" onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer;display:flex;align-items:flex-start;padding:10px 14px;gap:10px">'
+        + '<div style="white-space:nowrap;font-size:12px;color:var(--text);padding-top:2px;flex-shrink:0">' + (m.date || '') + '</div>'
+        + '<div style="flex-shrink:0;padding-top:0"><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></div>'
+        + '<div style="min-width:0;flex:1">'
+        + '<div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><span class="tip" data-tip="' + opponent + '" style="max-width:100%">' + opponent + '</span>' + playoffStar + '</div>'
+        + (partner ? '<div style="font-size:12px;color:var(--muted);margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="' + partnerFull + '" style="max-width:calc(100% - 24px)">' + partner + '</span></div>' : '')
+        + '<div class="hist-scores" style="margin-top:5px">' + scoresHtml + retired + noteInd + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</td></tr>';
     }
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
@@ -4457,6 +4523,59 @@ async function submitContactForm() {
   }
 }
 
+// ── Swipe to reveal actions ───────────────────────────────────
+(function() {
+  var startX = 0, startY = 0, currentWrap = null, currentInner = null;
+  var THRESHOLD = 60, revealed = null;
+
+  function closeSwipeRows() {
+    if (revealed) {
+      revealed.classList.remove('revealed');
+      var inner = revealed.querySelector('.swipe-row-inner');
+      if (inner) inner.style.transform = '';
+      revealed = null;
+    }
+  }
+  window.closeSwipeRows = closeSwipeRows;
+
+  document.addEventListener('touchstart', function(e) {
+    var wrap = e.target.closest('.swipe-row-wrap');
+    if (!wrap) { closeSwipeRows(); return; }
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    currentWrap = wrap;
+    currentInner = wrap.querySelector('.swipe-row-inner');
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!currentWrap || !currentInner) return;
+    var dx = e.touches[0].clientX - startX;
+    var dy = e.touches[0].clientY - startY;
+    if (Math.abs(dy) > Math.abs(dx)) { currentWrap = null; return; }
+    if (dx > 0) return; // only left swipe
+    var actionW = currentWrap.querySelector('.swipe-row-actions').offsetWidth;
+    var clamped = Math.max(-actionW, dx);
+    currentInner.style.transform = 'translateX(' + clamped + 'px)';
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    if (!currentWrap || !currentInner) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    var actionW = currentWrap.querySelector('.swipe-row-actions').offsetWidth;
+    if (dx < -THRESHOLD) {
+      if (revealed && revealed !== currentWrap) closeSwipeRows();
+      currentInner.style.transform = 'translateX(-' + actionW + 'px)';
+      currentWrap.classList.add('revealed');
+      revealed = currentWrap;
+    } else {
+      currentInner.style.transform = '';
+      currentWrap.classList.remove('revealed');
+      if (revealed === currentWrap) revealed = null;
+    }
+    currentWrap = null; currentInner = null;
+  }, { passive: true });
+})();
+
 function openConfirmDelete(idx) {
   pendingDeleteIdx = idx;
   const m = allMatches[idx];
@@ -4986,6 +5105,9 @@ async function submitEntry() {
     if (isNaN(nw) || isNaN(nl)) return false;
     if (isThird && ((nw===1&&nl===0)||(nw===0&&nl===1))) return true;
     if ((nw===7&&nl===6)||(nw===6&&nl===7)) return true;
+    if ((nw===7&&nl===5)||(nw===5&&nl===7)) return true;
+    // If either score is 7, no other combination is valid
+    if (nw===7 || nl===7) return false;
     const hi=Math.max(nw,nl), lo=Math.min(nw,nl);
     return hi>=6 && hi-lo>=2;
   }
