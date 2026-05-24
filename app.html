@@ -774,6 +774,9 @@ textarea:focus { border-color: var(--accent2) !important; }
   margin-left: 3px;
   vertical-align: middle;
 }
+@media (max-width: 768px) {
+  .tip-icon { display: none; }
+}
 .tip-icon::after {
   content: attr(data-tip);
   position: absolute;
