@@ -2896,9 +2896,9 @@ function buildHistoryResults(filtered, sortOrder) {
       return '<tr style="padding:0;border:none"><td colspan="3" style="padding:0;border:none">'
         + '<div class="swipe-row-wrap" id="swipe-wrap-' + globalIdx + '">'
         + '<div class="swipe-row-actions">'
-        + '<button class="swipe-action-edit" onclick="event.stopPropagation();closeSwipeRows();openMatchDetail(' + globalIdx + ');setTimeout(function(){document.getElementById(\'modal-edit-btn\')&&document.getElementById(\'modal-edit-btn\').click();},300)">'
+        + '<button class="swipe-action-edit" ontouchend="event.stopPropagation();event.preventDefault();closeSwipeRows();openMatchDetail(' + globalIdx + ');setTimeout(function(){var b=document.getElementById(\'modal-edit-btn\');if(b)b.click();},400)">'
         + '<span style="font-size:16px">✏️</span>Edit</button>'
-        + '<button class="swipe-action-delete" onclick="event.stopPropagation();closeSwipeRows();openConfirmDelete(' + globalIdx + ')">'
+        + '<button class="swipe-action-delete" ontouchend="event.stopPropagation();event.preventDefault();closeSwipeRows();openConfirmDelete(' + globalIdx + ')">'
         + '<span style="font-size:16px">🗑️</span>Delete</button>'
         + '</div>'
         + '<div class="swipe-row-inner" onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer;display:flex;align-items:flex-start;padding:10px 14px;gap:10px">'
@@ -4569,6 +4569,11 @@ async function submitContactForm() {
 
   document.addEventListener('touchend', function(e) {
     if (!currentWrap || !currentInner) return;
+    // If the touch ended on an action button, let the button handle it
+    if (e.target.closest('.swipe-row-actions')) {
+      currentWrap = null; currentInner = null;
+      return;
+    }
     var dx = e.changedTouches[0].clientX - startX;
     var actionW = currentWrap.querySelector('.swipe-row-actions').offsetWidth;
     if (dx < -THRESHOLD) {
