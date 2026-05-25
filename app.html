@@ -681,8 +681,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   .splits-table { font-size: 12px; }
 
   /* Modal: bottom sheet on mobile */
-  .modal-overlay { align-items: flex-end; padding: 0; overflow: hidden; }
-  .modal-box { border-radius: 12px 12px 0 0; max-height: 92vh; height: 92vh; border-bottom: none; max-width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .modal-overlay { align-items: flex-end; padding: 0; overflow: hidden; touch-action: none; }
+  .modal-box { border-radius: 16px 16px 0 0; max-height: 85vh; height: auto; border-bottom: none; max-width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
   .modal-detail-grid { grid-template-columns: 1fr 1fr; }
   .edit-grid { grid-template-columns: 1fr 1fr; }
   /* Edit modal panels stack on mobile */
@@ -794,6 +794,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   z-index: 1;
   pointer-events: none;
   opacity: 0;
+  width: 160px;
 }
 .swipe-action-edit {
   background: #dce8f4;
@@ -811,7 +812,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   gap: 2px;
   text-align: center;
   line-height: 1;
-  min-width: 64px;
+  min-width: 0;
+  flex: 1;
 }
 .swipe-action-delete {
   background: #f4e0e0;
@@ -829,7 +831,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   gap: 2px;
   text-align: center;
   line-height: 1;
-  min-width: 64px;
+  min-width: 0;
+  flex: 1;
 }
 .swipe-row-inner {
   position: relative;
@@ -3135,7 +3138,7 @@ function openMatchDetail(idx) {
   // Header row: "Match Details for DATE" + Win/Loss flush right
   document.getElementById('modal-header').innerHTML = `
     <div style="flex:1;min-width:0;overflow:hidden">
-      <div class="detail-date-header">Match Details for ${m.date || '—'}</div>
+      <div class="detail-date-header">Match Details</div>
       ${hasPartner ? `<div class="detail-partner-line" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="${escHtml(m.partner)}" style="max-width:calc(100% - 24px)">${escHtml(m.partner)}</span></div>` : ''}
     </div>
     <div class="detail-result-word ${m.result||'unknown'}">${resultWord}</div>
@@ -3203,11 +3206,13 @@ function openMatchDetail(idx) {
   `;
 
   document.getElementById('modal-overlay').classList.add('visible');
+  if (window.innerWidth <= 768) document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('visible');
   document.getElementById('modal-box').classList.remove('edit-mode');
+  document.body.style.overflow = '';
 }
 function closeModalOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
 
@@ -4548,6 +4553,10 @@ async function submitContactForm() {
   window.closeSwipeRows = closeSwipeRows;
 
   document.addEventListener('touchstart', function(e) {
+    // Don't process swipe gestures when any overlay is open
+    if (document.querySelector('.confirm-overlay.visible, .modal-overlay.visible')) {
+      currentWrap = null; currentInner = null; return;
+    }
     var wrap = e.target.closest('.swipe-row-wrap');
     if (!wrap) { closeSwipeRows(); return; }
     startX = e.touches[0].clientX;
@@ -4591,6 +4600,7 @@ async function submitContactForm() {
 })();
 
 function openConfirmDelete(idx) {
+  closeSwipeRows();
   pendingDeleteIdx = idx;
   const m = allMatches[idx];
   const opp = m.opp2 ? `${m.opp1} / ${m.opp2}` : m.opp1;
