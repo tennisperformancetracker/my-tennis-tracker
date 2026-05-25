@@ -675,7 +675,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   /* History */
   .history-controls { gap: 8px; flex-wrap: wrap; }
   .search-input { min-width: 120px; font-size: 13px; }
-  .history-table { font-size: 12px; }
+  .history-table { font-size: 12px; table-layout: fixed; width: 100%; }
   .history-table th { font-size: 11px; padding: 10px 8px; }
   .history-table td { padding: 9px 8px; }
   .splits-table { font-size: 12px; }
@@ -782,6 +782,9 @@ textarea:focus { border-color: var(--accent2) !important; }
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--border);
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 .swipe-row-actions {
   position: absolute;
@@ -2939,7 +2942,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
   return (isMob ? '<div style="margin-bottom:12px">' + cardsHtml + '</div>'
                 : '<div style="margin-bottom:6px">' + cardsHtml + desktopToggle + '</div>')
-    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);max-width:100%;overflow-x:auto;">'
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);max-width:100%;overflow:hidden;">'
     + '<table class="history-table" style="width:100%">'
     + (isMob
       ? '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent / Score</th></tr></thead>'
