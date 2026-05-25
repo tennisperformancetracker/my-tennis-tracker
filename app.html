@@ -681,8 +681,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   .splits-table { font-size: 12px; }
 
   /* Modal: bottom sheet on mobile */
-  .modal-overlay { align-items: flex-end; padding: 0; }
-  .modal-box { border-radius: 12px 12px 0 0; max-height: 92vh; border-bottom: none; max-width: 100%; }
+  .modal-overlay { align-items: flex-end; padding: 0; overflow: hidden; }
+  .modal-box { border-radius: 12px 12px 0 0; max-height: 92vh; height: 92vh; border-bottom: none; max-width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .modal-detail-grid { grid-template-columns: 1fr 1fr; }
   .edit-grid { grid-template-columns: 1fr 1fr; }
   /* Edit modal panels stack on mobile */
@@ -2896,9 +2896,9 @@ function buildHistoryResults(filtered, sortOrder) {
       return '<tr style="padding:0;border:none"><td colspan="3" style="padding:0;border:none">'
         + '<div class="swipe-row-wrap" id="swipe-wrap-' + globalIdx + '">'
         + '<div class="swipe-row-actions">'
-        + '<button class="swipe-action-edit" ontouchend="event.stopPropagation();event.preventDefault();closeSwipeRows();openMatchDetail(' + globalIdx + ');setTimeout(function(){var b=document.getElementById(\'modal-edit-btn\');if(b)b.click();},400)">'
+        + '<button class="swipe-action-edit" ontouchend="event.stopPropagation();event.preventDefault();closeSwipeRows();openEditMode(' + globalIdx + ')">'
         + '<span style="font-size:16px">✏️</span>Edit</button>'
-        + '<button class="swipe-action-delete" ontouchend="event.stopPropagation();event.preventDefault();closeSwipeRows();openConfirmDelete(' + globalIdx + ')">'
+        + '<button class="swipe-action-delete" ontouchend="event.stopPropagation();event.preventDefault();openConfirmDelete(' + globalIdx + ')">'
         + '<span style="font-size:16px">🗑️</span>Delete</button>'
         + '</div>'
         + '<div class="swipe-row-inner" onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer;display:flex;align-items:flex-start;padding:10px 14px;gap:10px">'
@@ -3222,7 +3222,7 @@ function openEditMode(idx) {
   document.getElementById('modal-header').innerHTML = `
     <div class="modal-result-badge ${m.result||''}">${m.result||'—'}</div>
     <div class="modal-header-info">
-      <div class="modal-opponent" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Editing: <span class="tip" data-tip="${escHtml(opponent)}" style="max-width:calc(100% - 60px)">${escHtml(opponent)}</span></div>
+      <div class="modal-opponent" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Edit Match</div>
       <div class="modal-date">${m.date||''}</div>
     </div>
     <button class="btn btn-ghost" style="padding:4px 8px;font-size:16px;line-height:1;margin-left:auto" onclick="closeModal()">✕</button>
