@@ -429,7 +429,8 @@ textarea:focus { border-color: var(--accent2) !important; }
 /* ── Detail / Edit Modal ────────────────────────────────── */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 500;
-  display: flex; align-items: center; justify-content: center; padding: 20px;
+  display: flex; align-items: flex-start; justify-content: center; padding: env(safe-area-inset-top, 20px) 20px 20px;
+  overflow-y: auto;
   opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 .modal-overlay.visible { opacity: 1; pointer-events: all; }
@@ -2900,7 +2901,7 @@ function buildHistoryResults(filtered, sortOrder) {
       return '<tr style="padding:0;border:none"><td colspan="3" style="padding:0;border:none">'
         + '<div class="swipe-row-wrap" id="swipe-wrap-' + globalIdx + '">'
         + '<div class="swipe-row-actions">'
-        + '<button class="swipe-action-edit" onclick="closeSwipeRows();openEditMode(' + globalIdx + ')">'
+        + '<button class="swipe-action-edit" ontouchend="event.stopPropagation();event.preventDefault();closeSwipeRows();setTimeout(function(){openEditMode(' + globalIdx + ')},80)"\">'\
         + '<span style="font-size:16px">✏️</span>Edit</button>'
         + '<button class="swipe-action-delete" ontouchend="event.stopPropagation();event.preventDefault();openConfirmDelete(' + globalIdx + ')">'
         + '<span style="font-size:16px">🗑️</span>Delete</button>'
