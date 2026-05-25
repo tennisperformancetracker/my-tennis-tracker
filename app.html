@@ -2900,7 +2900,7 @@ function buildHistoryResults(filtered, sortOrder) {
       return '<tr style="padding:0;border:none"><td colspan="3" style="padding:0;border:none">'
         + '<div class="swipe-row-wrap" id="swipe-wrap-' + globalIdx + '">'
         + '<div class="swipe-row-actions">'
-        + '<button class="swipe-action-edit" onclick="closeSwipeRows();openEditMode(' + globalIdx + ')">'
+        + '<button class="swipe-action-edit" ontouchend="event.stopPropagation();event.preventDefault();closeSwipeRows();setTimeout(function(){openEditMode(' + globalIdx + ')},80)">'
         + '<span style="font-size:16px">✏️</span>Edit</button>'
         + '<button class="swipe-action-delete" ontouchend="event.stopPropagation();event.preventDefault();openConfirmDelete(' + globalIdx + ')">'
         + '<span style="font-size:16px">🗑️</span>Delete</button>'
