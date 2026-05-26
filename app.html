@@ -1200,7 +1200,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   </div>
   <nav class="sidebar-nav">
     
-    <div class="nav-item active" onclick="showPage('dashboard')">
+    <div class="nav-item active" onclick="navigateTo('dashboard')">
       <span class="nav-icon">📊</span> Dashboard
     </div>
     <div class="nav-item" onclick="navigateTo('history')">
@@ -1212,7 +1212,7 @@ textarea:focus { border-color: var(--accent2) !important; }
    
   </nav>
   <div style="padding:0 12px 8px">
-    <div onclick="showPage('settings')" id="nav-settings" class="nav-item"
+    <div onclick="navigateTo('settings')" id="nav-settings" class="nav-item"
       style="margin:0 0 2px;border-radius:0">
       <span class="nav-icon" style="font-size:16px">⚙️</span> Settings
     </div>
@@ -6314,7 +6314,7 @@ function buildBadgeShelf() {
     </div>`;
 }
 </script>
-<div id="settings-unsaved-overlay" class="confirm-overlay" style="opacity:0;pointer-events:none;transition:opacity 0.2s">
+<div id="settings-unsaved-overlay" class="confirm-overlay">
   <div class="confirm-box">
     <div class="confirm-title">Unsaved Changes</div>
     <div class="confirm-body">You have unsaved changes on this page. If you leave now, your changes will be lost.</div>
