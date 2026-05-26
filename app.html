@@ -5505,10 +5505,10 @@ const BADGE_DEFS_TIERED = [
     emoji: '👥',
     baseName: 'Dynamic Duo',
     tiers: [
-      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches with your top partner.' },
-      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches with your top partner.' },
-      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches with your top partner.' },
-      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches with your top partner.' }
+      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches with the same partner.' },
+      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches with the same partner.' },
+      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches with the same partner.' },
+      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches with the same partner.' }
     ],
     getValue: (m) => badgeTopPartnerWins(m).wins,
     getDynamicName: (m) => {
@@ -5551,9 +5551,9 @@ const BADGE_DEFS_TIERED = [
     baseName: 'Double Bagel',
     tiers: [
       { level:1, threshold:1,  label:'Level 1', desc:'Won a match 6–0, 6–0.' },
-      { level:2, threshold:10, label:'Level 2', desc:'Won 10 matches 6–0, 6–0.' },
-      { level:3, threshold:25, label:'Level 3', desc:'Won 25 matches 6–0, 6–0.' },
-      { level:4, threshold:50, label:'Level 4', desc:'Won 50 matches 6–0, 6–0.' }
+      { level:2, threshold:3, label:'Level 2', desc:'Won 3 matches 6–0, 6–0.' },
+      { level:3, threshold:5, label:'Level 3', desc:'Won 5 matches 6–0, 6–0.' },
+      { level:4, threshold:10, label:'Level 4', desc:'Won 10 matches 6–0, 6–0.' }
     ],
     getValue: (m) => m.filter(x => {
       if (x.oppRet || x.weRet || x.result !== 'W') return false;
@@ -5578,10 +5578,10 @@ const BADGE_DEFS_TIERED = [
     emoji: '🚨',
     baseName: 'Clutch Performer',
     tiers: [
-      { level:1, threshold:10,  label:'Level 1', desc:'Won 10 matches decided by a tiebreak in the third set.' },
-      { level:2, threshold:25,  label:'Level 2', desc:'Won 25 matches decided by a tiebreak in the third set.' },
-      { level:3, threshold:50,  label:'Level 3', desc:'Won 50 matches decided by a tiebreak in the third set.' },
-      { level:4, threshold:100, label:'Level 4', desc:'Won 100 matches decided by a tiebreak in the third set.' }
+      { level:1, threshold:5,  label:'Level 1', desc:'Won 5 matches decided by a tiebreak in the third set.' },
+      { level:2, threshold:10,  label:'Level 2', desc:'Won 10 matches decided by a tiebreak in the third set.' },
+      { level:3, threshold:25,  label:'Level 3', desc:'Won 25 matches decided by a tiebreak in the third set.' },
+      { level:4, threshold:50, label:'Level 4', desc:'Won 50 matches decided by a tiebreak in the third set.' }
     ],
     getValue: (m) => m.filter(x => {
       if (x.result !== 'W' || x.oppRet || x.weRet) return false;
