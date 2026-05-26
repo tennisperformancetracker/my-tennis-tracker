@@ -3841,8 +3841,9 @@ async function veProceedMerge() {
     const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
-    // Remove oldValue from local veEntries (newValue already exists — dedupe to prevent duplicate)
+    // Remove oldValue from local veEntries and validEntries (newValue already exists)
     veEntries[field] = [...new Set((veEntries[field]||[]).filter(v => v !== oldValue))];
+    if (validEntries[field]) validEntries[field] = [...new Set(validEntries[field].filter(v => v !== oldValue))];
     // Update local match data
     const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
     const key = logColMap[field];
