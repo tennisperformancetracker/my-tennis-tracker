@@ -4513,6 +4513,8 @@ document.addEventListener('change', function(e) {
 document.addEventListener('input', function(e) {
   if (currentPage === 'settings') markSettingsDirty();
 });
+
+async function saveUrlSettings() {
   const btn = document.getElementById('save-url-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const urlVal = document.getElementById('settings-url')?.value.trim();
