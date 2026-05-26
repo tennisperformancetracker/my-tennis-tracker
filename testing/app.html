@@ -1200,7 +1200,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   </div>
   <nav class="sidebar-nav">
     
-    <div class="nav-item active" onclick="showPage('dashboard')">
+    <div class="nav-item active" onclick="navigateTo('dashboard')">
       <span class="nav-icon">📊</span> Dashboard
     </div>
     <div class="nav-item" onclick="navigateTo('history')">
@@ -1212,7 +1212,7 @@ textarea:focus { border-color: var(--accent2) !important; }
    
   </nav>
   <div style="padding:0 12px 8px">
-    <div onclick="showPage('settings')" id="nav-settings" class="nav-item"
+    <div onclick="navigateTo('settings')" id="nav-settings" class="nav-item"
       style="margin:0 0 2px;border-radius:0">
       <span class="nav-icon" style="font-size:16px">⚙️</span> Settings
     </div>
@@ -1515,8 +1515,27 @@ async function loadAll() {
 // navigating to history/entry sends them back to the mobile pages.
 // If they loaded desktop.html directly, they stay in desktop mode.
 // ── Navigation always stays in app.html ─────────────────────
+let settingsDirty = false;
+let settingsPendingPage = null;
+
 function navigateTo(page) {
+  if (currentPage === 'settings' && settingsDirty && page !== 'settings') {
+    settingsPendingPage = page;
+    document.getElementById('settings-unsaved-overlay').classList.add('visible');
+    return;
+  }
   showPage(page);
+}
+
+function settingsUnsavedLeave() {
+  settingsDirty = false;
+  document.getElementById('settings-unsaved-overlay').classList.remove('visible');
+  if (settingsPendingPage) { showPage(settingsPendingPage); settingsPendingPage = null; }
+}
+
+function settingsUnsavedStay() {
+  settingsPendingPage = null;
+  document.getElementById('settings-unsaved-overlay').classList.remove('visible');
 }
 
 // ── Sidebar open/close (hamburger on small screens) ─────────
@@ -2786,15 +2805,13 @@ function buildHistoryResults(filtered, sortOrder) {
   var partnerListHtml = '';
   if (pQual.length >= 1) {
     var sorted = pQual.slice().sort((a,b) => b.pv - a.pv).slice(0,5);
-    partnerListHtml = '<div style="border-top:1px solid var(--border);padding-top:4px">'
-      + sorted.map(function(p) {
-          return '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:12px;min-width:0;">'
-            + '<span class="tip" data-tip="' + p.n + '" style="color:var(--label);min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(formatPartnerName(p.n)) + '</span>'
-            + '<span style="font-weight:600;color:' + wlColor(p.w,p.l) + ';white-space:nowrap">' + p.w + '–' + p.l
-            + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(p.w,p.l) + '</span></span>'
-            + '</div>';
-        }).join('')
-      + '</div>';
+    partnerListHtml = sorted.map(function(p) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
+          + '<span class="tip" data-tip="' + p.n + '" style="font-size:12px;color:var(--label);min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(formatPartnerName(p.n)) + '</span>'
+          + '<span style="font-size:12px;font-weight:600;color:' + wlColor(p.w,p.l) + ';white-space:nowrap">' + p.w + '–' + p.l
+          + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(p.w,p.l) + '</span></span>'
+          + '</div>';
+      }).join('');
   }
 
   var tbColor = wlColor(tbW, tbL);
@@ -2847,7 +2864,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + minOpts + '</select></div>';
 
   var card3Body =
-      '<div style="font-size:12px;color:var(--label);line-height:1.7;margin-top:0;margin-bottom:8px;word-break:break-word;border-top:1px solid var(--border);padding-top:8px;">' + partnerText + '</div>'
+      '<div style="display:flex;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;font-size:12px;color:var(--label);word-break:break-word;">' + partnerText + '</div>'
     + partnerListHtml;
 
   var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
@@ -3481,7 +3498,7 @@ function renderVEContent() {
   document.getElementById('topbar-right').innerHTML = backBtn;
   const mf = document.getElementById('mobile-filters');
   mf.innerHTML = '<div style="width:100%;display:flex;justify-content:flex-end;padding:4px 0">' + backBtn + '</div>';
-  mf.style.display = 'flex';
+  mf.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
   const great = veThresholds.great;
   const poor  = veThresholds.poor;
   const SHOW  = 3;
@@ -3576,7 +3593,7 @@ function buildItem(field, v, i, firstInExtra) {
       .ve-chip-red{background:var(--loss-bg);color:var(--loss)}
       .ve-save-threshold{background:var(--accent2);border:2px solid var(--accent);border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;white-space:nowrap}
       .ve-save-threshold:hover{background:var(--accent)}
-      .ve-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:100%;box-sizing:border-box;grid-auto-rows:1fr;align-items:stretch}
+      .ve-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:100%;box-sizing:border-box;align-items:start}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);min-width:0;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column}
       .ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
       .ve-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
@@ -3698,13 +3715,15 @@ function showDoublesPrompt(value) {
         <div class="confirm-title" style="color:var(--text);font-size:16px">Doubles match type?</div>
         <div class="confirm-body">Is <strong>"${escHtml(value)}"</strong> a doubles match type?</div>
         <div class="confirm-actions">
+          <button class="btn btn-ghost" id="doubles-cancel">Cancel</button>
           <button class="btn btn-ghost" id="doubles-no">No</button>
           <button class="btn btn-primary" id="doubles-yes">Yes</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
-    overlay.querySelector('#doubles-yes').onclick = () => { document.body.removeChild(overlay); resolve(true); };
-    overlay.querySelector('#doubles-no').onclick  = () => { document.body.removeChild(overlay); resolve(false); };
+    overlay.querySelector('#doubles-yes').onclick    = () => { document.body.removeChild(overlay); resolve(true); };
+    overlay.querySelector('#doubles-no').onclick     = () => { document.body.removeChild(overlay); resolve(false); };
+    overlay.querySelector('#doubles-cancel').onclick = () => { document.body.removeChild(overlay); resolve(null); };
   });
 }
 
@@ -3714,6 +3733,7 @@ async function veAddEntry(field) {
   if (!value) { showToast('Please enter a value first', true); return; }
   if (field === 'type' && !value.toLowerCase().includes('doubles')) {
     const isDoubles = await showDoublesPrompt(value);
+    if (isDoubles === null) return;
     if (isDoubles) value = value + ' Doubles';
   }
   if ((veEntries[field]||[]).includes(value)) { showToast('That value already exists', true); return; }
@@ -3837,13 +3857,17 @@ async function veProceedMerge() {
   document.getElementById('ve-confirm-merge').classList.remove('visible');
   showSaving('Merging…');
   try {
-    // Rename oldValue → newValue in Valid Entries and Match Log
-    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
+    // For a merge: update matches via rename, then immediately delete oldValue so no duplicate is added
+    const renameRes = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
+    const renameData = await renameRes.json();
+    if (!renameData.success) throw new Error(renameData.error);
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'deleteValidEntry',field,value:newValue})});
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
-    // Remove oldValue from local veEntries (newValue already exists)
-    const idx = (veEntries[field]||[]).indexOf(oldValue);
-    if (idx !== -1) veEntries[field].splice(idx, 1);
+    data.matchesUpdated = renameData.matchesUpdated;
+    // Remove oldValue from local veEntries and validEntries (newValue already exists)
+    veEntries[field] = [...new Set((veEntries[field]||[]).filter(v => v !== oldValue))];
+    if (validEntries[field]) validEntries[field] = [...new Set(validEntries[field].filter(v => v !== oldValue))];
     // Update local match data
     const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
     const key = logColMap[field];
@@ -3944,6 +3968,8 @@ function onPerfCatToggle(el) {
 }
 
 let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true';
+
+function markSettingsDirty() { settingsDirty = true; }
 
 function renderSettings() {
   const content = document.getElementById('content');
@@ -4359,6 +4385,7 @@ async function settingsHandleOptIn() {
     localStorage.removeItem('settingsOptInEmail');
     status.textContent = 'Opted out';
     status.style.color = 'var(--muted)';
+    settingsDirty = false;
     // Save opt-out to user's Settings tab for cross-device sync
     fetch(webAppUrl, { method:'POST', body:JSON.stringify({ action:'saveSettings', settings:{ optInEmail: '', optInStatus:'false' } }) }).catch(()=>{});
     // Notify the sheet
@@ -4393,6 +4420,7 @@ async function settingsHandleOptIn() {
     localStorage.setItem('settingsOptInEmail', email);
     status.textContent = '✓ Opted in';
     status.style.color = 'var(--win)';
+    settingsDirty = false;
     // Save to user's Settings tab for cross-device sync
     fetch(webAppUrl, { method:'POST', body:JSON.stringify({ action:'saveSettings', settings:{ optInEmail: email, optInStatus:'true' } }) }).catch(()=>{});
   } catch(e) {
@@ -4436,7 +4464,7 @@ async function saveDisplaySettings() {
     await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})});
   } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Display settings saved!');
+  settingsDirty = false; showToast('✓ Display settings saved!');
 }
 
 async function saveHistorySettings() {
@@ -4450,7 +4478,7 @@ async function saveHistorySettings() {
   const settingsToSave = { perfCats: checked.join(','), histPageSize: pageSize };
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Match History settings saved!');
+  settingsDirty = false; showToast('✓ Match History settings saved!');
 }
 
 async function saveDefaultSettings() {
@@ -4476,8 +4504,15 @@ async function saveDefaultSettings() {
   });
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Defaults saved!');
+  settingsDirty = false; showToast('✓ Defaults saved!');
 }
+
+document.addEventListener('change', function(e) {
+  if (currentPage === 'settings') markSettingsDirty();
+});
+document.addEventListener('input', function(e) {
+  if (currentPage === 'settings') markSettingsDirty();
+});
 
 async function saveUrlSettings() {
   const btn = document.getElementById('save-url-btn');
@@ -4490,7 +4525,7 @@ async function saveUrlSettings() {
     updateUrlDisplay();
   }
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Connection saved!');
+  settingsDirty = false; showToast('✓ Connection saved!');
   if (urlVal && urlVal.startsWith('https://')) setTimeout(() => loadAll(), 600);
 }
 
@@ -6279,5 +6314,15 @@ function buildBadgeShelf() {
     </div>`;
 }
 </script>
+<div id="settings-unsaved-overlay" class="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Unsaved Changes</div>
+    <div class="confirm-body">You have unsaved changes on this page. If you leave now, your changes will be lost.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="settingsUnsavedLeave()">Leave anyway</button>
+      <button class="btn btn-primary" onclick="settingsUnsavedStay()">Stay & save</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
