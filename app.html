@@ -2493,12 +2493,13 @@ function drillPartner(name) {
   // Update header — just show "Splits with [name]", no "Partner:" prefix
   const titleEl = document.getElementById('partners-card-title');
   const isMob = window.innerWidth <= 768;
+  const displayName = formatPartnerName(name);
   if (isMob) {
     titleEl.style.cssText = 'max-width:100%';
-    titleEl.innerHTML = `Performance With<br><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:calc(100% - 140px)">${escHtml(name)}</span>`;
+    titleEl.innerHTML = `Performance with<br><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%">${escHtml(displayName)}</span>`;
   } else {
     titleEl.style.cssText = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%';
-    titleEl.textContent = `Performance with ${name}`;
+    titleEl.textContent = `Performance with ${displayName}`;
   }
   document.getElementById('partner-header-controls').innerHTML = `
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">History</button>
