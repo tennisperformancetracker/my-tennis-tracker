@@ -3481,7 +3481,7 @@ function renderVEContent() {
   document.getElementById('topbar-right').innerHTML = backBtn;
   const mf = document.getElementById('mobile-filters');
   mf.innerHTML = '<div style="width:100%;display:flex;justify-content:flex-end;padding:4px 0">' + backBtn + '</div>';
-  mf.style.display = 'flex';
+  mf.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
   const great = veThresholds.great;
   const poor  = veThresholds.poor;
   const SHOW  = 3;
@@ -3841,9 +3841,8 @@ async function veProceedMerge() {
     const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
-    // Remove oldValue from local veEntries (newValue already exists)
-    const idx = (veEntries[field]||[]).indexOf(oldValue);
-    if (idx !== -1) veEntries[field].splice(idx, 1);
+    // Remove oldValue from local veEntries (newValue already exists — dedupe to prevent duplicate)
+    veEntries[field] = [...new Set((veEntries[field]||[]).filter(v => v !== oldValue))];
     // Update local match data
     const logColMap = {season:'season',league:'league',level:'level',type:'type',line:'line',homeaway:'homeaway',surface:'surface',playoffround:'playoffround',partner:'partner'};
     const key = logColMap[field];
