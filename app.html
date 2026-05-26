@@ -3698,13 +3698,15 @@ function showDoublesPrompt(value) {
         <div class="confirm-title" style="color:var(--text);font-size:16px">Doubles match type?</div>
         <div class="confirm-body">Is <strong>"${escHtml(value)}"</strong> a doubles match type?</div>
         <div class="confirm-actions">
+          <button class="btn btn-ghost" id="doubles-cancel">Cancel</button>
           <button class="btn btn-ghost" id="doubles-no">No</button>
           <button class="btn btn-primary" id="doubles-yes">Yes</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
-    overlay.querySelector('#doubles-yes').onclick = () => { document.body.removeChild(overlay); resolve(true); };
-    overlay.querySelector('#doubles-no').onclick  = () => { document.body.removeChild(overlay); resolve(false); };
+    overlay.querySelector('#doubles-yes').onclick    = () => { document.body.removeChild(overlay); resolve(true); };
+    overlay.querySelector('#doubles-no').onclick     = () => { document.body.removeChild(overlay); resolve(false); };
+    overlay.querySelector('#doubles-cancel').onclick = () => { document.body.removeChild(overlay); resolve(null); };
   });
 }
 
@@ -3714,6 +3716,7 @@ async function veAddEntry(field) {
   if (!value) { showToast('Please enter a value first', true); return; }
   if (field === 'type' && !value.toLowerCase().includes('doubles')) {
     const isDoubles = await showDoublesPrompt(value);
+    if (isDoubles === null) return;
     if (isDoubles) value = value + ' Doubles';
   }
   if ((veEntries[field]||[]).includes(value)) { showToast('That value already exists', true); return; }
