@@ -1515,8 +1515,27 @@ async function loadAll() {
 // navigating to history/entry sends them back to the mobile pages.
 // If they loaded desktop.html directly, they stay in desktop mode.
 // ── Navigation always stays in app.html ─────────────────────
+let settingsDirty = false;
+let settingsPendingPage = null;
+
 function navigateTo(page) {
+  if (currentPage === 'settings' && settingsDirty && page !== 'settings') {
+    settingsPendingPage = page;
+    document.getElementById('settings-unsaved-overlay').classList.add('visible');
+    return;
+  }
   showPage(page);
+}
+
+function settingsUnsavedLeave() {
+  settingsDirty = false;
+  document.getElementById('settings-unsaved-overlay').classList.remove('visible');
+  if (settingsPendingPage) { showPage(settingsPendingPage); settingsPendingPage = null; }
+}
+
+function settingsUnsavedStay() {
+  settingsPendingPage = null;
+  document.getElementById('settings-unsaved-overlay').classList.remove('visible');
 }
 
 // ── Sidebar open/close (hamburger on small screens) ─────────
@@ -3950,6 +3969,8 @@ function onPerfCatToggle(el) {
 
 let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true';
 
+function markSettingsDirty() { settingsDirty = true; }
+
 function renderSettings() {
   const content = document.getElementById('content');
   const enabledCats = getPerfCats();
@@ -4364,6 +4385,7 @@ async function settingsHandleOptIn() {
     localStorage.removeItem('settingsOptInEmail');
     status.textContent = 'Opted out';
     status.style.color = 'var(--muted)';
+    settingsDirty = false;
     // Save opt-out to user's Settings tab for cross-device sync
     fetch(webAppUrl, { method:'POST', body:JSON.stringify({ action:'saveSettings', settings:{ optInEmail: '', optInStatus:'false' } }) }).catch(()=>{});
     // Notify the sheet
@@ -4398,6 +4420,7 @@ async function settingsHandleOptIn() {
     localStorage.setItem('settingsOptInEmail', email);
     status.textContent = '✓ Opted in';
     status.style.color = 'var(--win)';
+    settingsDirty = false;
     // Save to user's Settings tab for cross-device sync
     fetch(webAppUrl, { method:'POST', body:JSON.stringify({ action:'saveSettings', settings:{ optInEmail: email, optInStatus:'true' } }) }).catch(()=>{});
   } catch(e) {
@@ -4441,7 +4464,7 @@ async function saveDisplaySettings() {
     await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})});
   } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Display settings saved!');
+  settingsDirty = false; showToast('✓ Display settings saved!');
 }
 
 async function saveHistorySettings() {
@@ -4455,7 +4478,7 @@ async function saveHistorySettings() {
   const settingsToSave = { perfCats: checked.join(','), histPageSize: pageSize };
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Match History settings saved!');
+  settingsDirty = false; showToast('✓ Match History settings saved!');
 }
 
 async function saveDefaultSettings() {
@@ -4481,10 +4504,15 @@ async function saveDefaultSettings() {
   });
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Defaults saved!');
+  settingsDirty = false; showToast('✓ Defaults saved!');
 }
 
-async function saveUrlSettings() {
+async document.addEventListener('change', function(e) {
+  if (currentPage === 'settings') markSettingsDirty();
+});
+document.addEventListener('input', function(e) {
+  if (currentPage === 'settings') markSettingsDirty();
+});
   const btn = document.getElementById('save-url-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const urlVal = document.getElementById('settings-url')?.value.trim();
@@ -4495,7 +4523,7 @@ async function saveUrlSettings() {
     updateUrlDisplay();
   }
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  showToast('✓ Connection saved!');
+  settingsDirty = false; showToast('✓ Connection saved!');
   if (urlVal && urlVal.startsWith('https://')) setTimeout(() => loadAll(), 600);
 }
 
@@ -6284,5 +6312,15 @@ function buildBadgeShelf() {
     </div>`;
 }
 </script>
+<div id="settings-unsaved-overlay" class="confirm-overlay" style="opacity:0;pointer-events:none;transition:opacity 0.2s">
+  <div class="confirm-box">
+    <div class="confirm-title">Unsaved Changes</div>
+    <div class="confirm-body">You have unsaved changes on this page. If you leave now, your changes will be lost.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="settingsUnsavedLeave()">Leave anyway</button>
+      <button class="btn btn-primary" onclick="settingsUnsavedStay()">Stay & save</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
