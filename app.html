@@ -3837,10 +3837,14 @@ async function veProceedMerge() {
   document.getElementById('ve-confirm-merge').classList.remove('visible');
   showSaving('Merging…');
   try {
-    // Rename oldValue → newValue in Valid Entries and Match Log
-    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
+    // For a merge: update matches via rename, then immediately delete oldValue so no duplicate is added
+    const renameRes = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
+    const renameData = await renameRes.json();
+    if (!renameData.success) throw new Error(renameData.error);
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'deleteValidEntry',field,value:newValue})});
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
+    data.matchesUpdated = renameData.matchesUpdated;
     // Remove oldValue from local veEntries and validEntries (newValue already exists)
     veEntries[field] = [...new Set((veEntries[field]||[]).filter(v => v !== oldValue))];
     if (validEntries[field]) validEntries[field] = [...new Set(validEntries[field].filter(v => v !== oldValue))];
