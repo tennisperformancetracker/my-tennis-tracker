@@ -1836,7 +1836,7 @@ function renderDashboard() {
       </div>
       <div class="card">
         <div class="card-header po-card-header" style="min-height:40px;">
-          <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
+          <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners'}</div>
           <div id="po-pill-wrap">${buildPOPill()}</div>
           <div class="partners-controls" id="partner-header-controls">
             ${buildPartnerOpponentControls()}
@@ -2418,7 +2418,7 @@ function setPartnerOpponentMode(mode) {
   const titleEl = document.getElementById('partners-card-title');
   if (titleEl) {
     titleEl.style.cssText = '';
-    titleEl.textContent = mode === 'opponents' ? 'Top Opponents' : 'Top Partners';
+    titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners';
   }
 
   const pillWrap = document.getElementById('po-pill-wrap');
@@ -2594,7 +2594,7 @@ function resetPartners() {
   const mode = filterState.partners.mode || 'partners';
   const titleEl = document.getElementById('partners-card-title');
   titleEl.style.cssText = '';
-  titleEl.textContent = mode === 'opponents' ? 'Top Opponents' : 'Top Partners';
+  titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners';
   const pillWrap = document.getElementById('po-pill-wrap');
   if (pillWrap) pillWrap.innerHTML = buildPOPill();
   document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
