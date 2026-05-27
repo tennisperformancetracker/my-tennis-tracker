@@ -348,7 +348,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
   display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;
 }
 .search-input {
-  flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border);
+  flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
   font-size: 13px; padding: 8px 12px; outline: none;
 }
@@ -674,7 +674,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 
   /* History */
   .history-controls { gap: 8px; flex-wrap: wrap; }
-  .search-input { min-width: 0 !important; font-size: 13px; }
+  .search-input { min-width: 120px; font-size: 13px; }
   .history-table { font-size: 12px; table-layout: fixed; width: 100%; }
   .history-table th { font-size: 11px; padding: 10px 8px; }
   .history-table td { padding: 9px 8px; }
@@ -696,8 +696,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   /* History insight cards — stack on mobile */
   .hist-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; box-sizing: border-box !important; }
   .hist-insight-card { width: 100% !important; min-width: 0 !important; overflow: visible; box-sizing: border-box !important; }
-  .search-input { min-width: 0 !important; width: auto !important; }
-  .hist-search-row input { flex: 1 1 100px !important; min-width: 0 !important; }
+  .hist-search-row input { flex: 1 1 120px !important; min-width: 0 !important; }
 
   /* Valid entries grid */
   .ve-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; }
@@ -2635,59 +2634,59 @@ function renderHistory(page, preFilterPartner) {
 
   const content = document.getElementById('content');
   content.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;box-shadow:var(--shadow);max-width:100%;width:100%;box-sizing:border-box;overflow:hidden">
-      <!-- Always-visible top row: Partner, Opponent, Notes — horizontally scrollable on mobile -->
-      <div class="hist-search-row" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-sizing:border-box;width:100%">
-        <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
-          oninput="onHistPartnerInput(this.value)"
-          style="flex:1 1 0;width:0;min-width:0">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow);max-width:100%">
+      <!-- Always-visible search row -->
+      <div class="hist-search-row" style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
           oninput="onHistOpponentInput(this.value)"
-          style="flex:1 1 0;width:0;min-width:0">
-        <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(notesFilter)}"
+          style="flex:1 1 100px;min-width:0">
+        <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
+          oninput="onHistPartnerInput(this.value)"
+          style="flex:1 1 80px;min-width:0">
+        <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
           oninput="onHistNotesInput(this.value)"
-          style="flex:1 1 0;width:0;min-width:0">
-        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap;flex-shrink:0">Clear</button>
+          style="flex:1 1 80px;min-width:0">
+        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap">Clear</button>
       </div>
-      <!-- Collapsible dropdown row — horizontally scrollable -->
-      <div id="hist-filter-body" style="display:none;border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;overflow-x:scroll;-webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;max-width:100%;box-sizing:border-box">
-          <select class="filter-select" id="hist-type" onchange="renderHistory()" style="flex-shrink:0">
-            ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-level" onchange="renderHistory()" style="flex-shrink:0">
-            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-year" onchange="renderHistory()" style="flex-shrink:0">
+      <!-- Collapsible dropdowns -->
+      <div id="hist-filter-body" style="display:none;padding:10px 14px 0;border-bottom:1px solid var(--border)">
+        <div class="history-controls" style="margin-bottom:10px;flex-wrap:wrap">
+          <select class="filter-select" id="hist-year" onchange="renderHistory()">
             ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-league" onchange="renderHistory()" style="flex-shrink:0">
-            ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-season" onchange="renderHistory()" style="flex-shrink:0">
+          <select class="filter-select" id="hist-season" onchange="renderHistory()">
             ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-line" onchange="renderHistory()" style="flex-shrink:0">
+          <select class="filter-select" id="hist-level" onchange="renderHistory()">
+            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-type" onchange="renderHistory()">
+            ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-league" onchange="renderHistory()">
+            ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-line" onchange="renderHistory()">
             ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-surface" onchange="renderHistory()" style="flex-shrink:0">
+          <select class="filter-select" id="hist-surface" onchange="renderHistory()">
             ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-time" onchange="renderHistory()" style="flex-shrink:0">
+          <select class="filter-select" id="hist-time" onchange="renderHistory()">
             ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
           </select>
-          <div style="display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:2px 0">
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
             <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
             <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
           </div>
         </div>
       </div>
-      <!-- Toggle pill -->
-      <div style="display:flex;justify-content:center;padding:8px 14px;background:var(--surface2);border-top:1px solid var(--border)">
+      <!-- Toggle pill — centered, matches insights pill -->
+      <div style="display:flex;justify-content:center;padding:10px 14px;background:var(--surface2);border-top:1px solid var(--border)">
         <button id="hist-filter-pill" onclick="toggleHistFilters()"
           style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:4px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">
           <svg id="hist-filter-chevron" width="9" height="5" viewBox="0 0 9 5" fill="none" style="transition:transform 0.2s"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          <span id="hist-filter-label">More Filters</span>
+          <span id="hist-filter-label">More</span>
           ${activeFilterCount > 0 ? `<span style="background:var(--accent2);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:2px">${activeFilterCount}</span>` : ''}
         </button>
       </div>
@@ -2961,48 +2960,13 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var isMob = window.innerWidth <= 768;
 
-  // Desktop: three separate cards in a grid with a collapse-all toggle
-  // Mobile: single "Insights" card that wraps all three sections
-  var cardsHtml;
-  if (isMob) {
-    var insightsBody =
-        '<div style="padding:10px 14px 14px;display:flex;flex-direction:column;gap:10px">'
-      + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">'
-      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:4px">Record Breakdown</div>'
-      + card1Body
-      + '</div>'
-      + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Performance Breakdown</div>'
-      + '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1">✏️</button>'
-      + '</div>'
-      + card2Body
-      + '</div>'
-      + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Partner Performance</div>'
-      + card3Header
-      + '</div>'
-      + card3Body
-      + '</div>'
-      + '</div>';
-
-    cardsHtml = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);width:100%;box-sizing:border-box;overflow:hidden;margin-bottom:12px">'
-      + '<div onclick="toggleHistCard(\'hc-insights\')" style="display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;background:var(--surface2);cursor:pointer;user-select:none">'
-      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Insights</div>'
-      + '<span id="hc-insights-chev" style="font-size:11px;color:var(--muted)">▼</span>'
-      + '</div>'
-      + '<div id="hc-insights" style="display:none">'
-      + insightsBody
-      + '</div>'
-      + '</div>';
-  } else {
-    cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
-      + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
-      + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
-      + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header)
-      + '</div>';
-  }
+  // Desktop: cards grid wrapped in a relative container so the pill can sit on the bottom edge
+  // Mobile: no pill — cards toggle individually via cardHtml headers
+  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
+    + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
+    + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
+    + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header)
+    + '</div>';
 
   var desktopToggle = isMob ? '' :
     '<div style="display:flex;justify-content:center;margin:6px 0 14px;">'
@@ -3110,16 +3074,6 @@ function applyHistoryFilter() {
 }
 
 function toggleHistCard(id) {
-  // Handle the unified mobile insights card
-  if (id === 'hc-insights') {
-    var body = document.getElementById('hc-insights');
-    var chev = document.getElementById('hc-insights-chev');
-    if (!body) return;
-    var isOpen = body.style.display !== 'none';
-    body.style.display = isOpen ? 'none' : 'block';
-    if (chev) chev.textContent = isOpen ? '▼' : '▲';
-    return;
-  }
   var body = document.getElementById(id);
   var chev = document.getElementById(id + '-chev');
   var ctrl = document.getElementById(id + '-ctrl');
