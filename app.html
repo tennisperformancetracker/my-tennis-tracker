@@ -617,6 +617,9 @@ textarea:focus { border-color: var(--accent2) !important; }
   display: none; background: var(--surface); border-bottom: 1px solid var(--border);
   padding: 8px 14px; gap: 8px; flex-wrap: wrap; overflow-x: auto;
 }
+
+.po-card-header { display: flex; align-items: center; gap: 10px; }
+.po-card-header #po-pill-wrap { margin-right: auto; }
 .mobile-filters select {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
@@ -625,11 +628,11 @@ textarea:focus { border-color: var(--accent2) !important; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 7px center;
 }
-
 @media (max-width: 768px) {
   /* Sidebar: slide-in drawer */
-.po-min-desktop { display: none !important; }
-  .po-min-mobile  { display: flex !important; align-items: center; gap: 8px; }
+  .po-card-header { flex-wrap: wrap; }
+  .po-card-header #po-pill-wrap { order: 3; flex-basis: 100%; margin-right: 0; margin-top: 2px; }
+  .po-card-header #partner-header-controls { margin-left: auto; }
   .sidebar { left: -260px; width: 260px; transition: left 0.25s ease; z-index: 200; }
   .sidebar.mobile-open { left: 0; }
 
@@ -1832,14 +1835,12 @@ function renderDashboard() {
         <div class="insight-blurb" id="splits-insight" style="margin-top:16px">${buildSplitsInsight(getSplitsMatches(matches))}</div>
       </div>
       <div class="card">
-        <div class="card-header" style="min-height:40px;display:flex;flex-direction:column;gap:6px;align-items:stretch">
-          <div style="display:flex;align-items:center;justify-content:space-between;min-width:0">
-            <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
-            <div class="partners-controls" id="partner-header-controls">
-              ${buildPartnerOpponentControls()}
-            </div>
+        <div class="card-header po-card-header" style="min-height:40px;">
+          <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
+          <div id="po-pill-wrap">${buildPOPill()}</div>
+          <div class="partners-controls" id="partner-header-controls">
+            ${buildPartnerOpponentControls()}
           </div>
-          <div id="po-pill-wrap" style="align-self:flex-start">${buildPOPill()}</div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
@@ -2398,8 +2399,8 @@ function buildPartnerOpponentControls() {
   ).join('');
 
   const selectHtml = isPartners
-    ? `<select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
-    : `<select class="partners-threshold" id="partners-threshold" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
+    ? `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
+    : `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
 
   return `<div style="display:flex;align-items:center;gap:8px">
       <span class="partners-threshold-label">Min:</span>
