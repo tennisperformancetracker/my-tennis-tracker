@@ -626,8 +626,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   background-repeat: no-repeat; background-position: right 7px center;
 }
 
-@media (max-width: 768px) {
-  /* Sidebar: slide-in drawer */
+.po-min-desktop { display: none !important; }
+  .po-min-mobile  { display: flex !important; align-items: center; gap: 8px; margin-top: 6px; }
   .sidebar { left: -260px; width: 260px; transition: left 0.25s ease; z-index: 200; }
   .sidebar.mobile-open { left: 0; }
 
@@ -1838,6 +1838,7 @@ function renderDashboard() {
               ${buildPartnerOpponentControls()}
             </div>
           </div>
+          <div id="po-min-mobile-wrap" style="display:none;margin-top:6px"></div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
@@ -2388,20 +2389,25 @@ function buildPartnerOpponentControls() {
   const mode = filterState.partners.mode || 'partners';
   const isPartners = mode === 'partners';
 
-  const partnerOptions = [2,4,6,8,10].map(v =>
+  const partnerOptions = [1,5,10,15,25].map(v =>
     `<option value="${v}" ${filterState.partners.threshold===v?'selected':''}>${v}</option>`
   ).join('');
   const opponentOptions = [2,4,6,8,10].map(v =>
     `<option value="${v}" ${filterState.opponents.threshold===v?'selected':''}>${v}</option>`
   ).join('');
 
+  const selectHtml = isPartners
+    ? `<select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
+    : `<select class="partners-threshold" id="partners-threshold" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
+
   return `
-    <div style="display:flex;align-items:center;gap:8px">
+    <div class="po-min-desktop" style="display:flex;align-items:center;gap:8px">
       <span class="partners-threshold-label">Min:</span>
-      ${isPartners
-        ? `<select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
-        : `<select class="partners-threshold" id="partners-threshold" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`
-      }
+      ${selectHtml}
+    </div>
+    <div class="po-min-mobile" style="display:none">
+      <span class="partners-threshold-label">Min:</span>
+      ${selectHtml}
     </div>`;
 }
 
