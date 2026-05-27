@@ -1841,6 +1841,7 @@ function renderDashboard() {
           <div class="partners-controls" id="partner-header-controls">
             ${buildPartnerOpponentControls()}
           </div>
+          <div id="po-pill-wrap">${buildPOPill()}</div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
@@ -2403,7 +2404,6 @@ function buildPartnerOpponentControls() {
     : `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
 
   return `<div style="display:flex;align-items:center;gap:8px">
-      <div id="po-pill-wrap">${buildPOPill()}</div>
       <span class="partners-threshold-label">Min:</span>
       ${selectHtml}
     </div>`;
