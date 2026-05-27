@@ -628,6 +628,8 @@ textarea:focus { border-color: var(--accent2) !important; }
 
 @media (max-width: 768px) {
   /* Sidebar: slide-in drawer */
+.po-min-desktop { display: none !important; }
+  .po-min-mobile  { display: flex !important; align-items: center; gap: 8px; margin-top: 6px; }
   .sidebar { left: -260px; width: 260px; transition: left 0.25s ease; z-index: 200; }
   .sidebar.mobile-open { left: 0; }
 
