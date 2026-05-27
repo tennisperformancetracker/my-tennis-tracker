@@ -3000,16 +3000,25 @@ function buildHistoryResults(filtered, sortOrder) {
   const mostWins = pQual.length ? pQual.reduce((a,b) => a.w > b.w ? a : b) : null;
   const bestPct  = pQual.length ? pQual.reduce((a,b) => a.pv > b.pv ? a : b) : null;
 
+  var isMobView = window.innerWidth <= 768;
   function tipName(n) {
+    if (isMobView) return '<strong>' + escHtml(n) + '</strong>';
     var esc = escHtml(n);
     var display = escHtml(formatPartnerName(n));
     return '<strong class="tip" data-tip="' + esc + '" style="max-width:120px;display:inline-block;vertical-align:bottom">' + display + '</strong>';
   }
   var partnerText = '';
   if (mostWins) {
-    partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
-    if (bestPct && bestPct.n !== mostWins.n) {
-      partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+    if (isMobView) {
+      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + ').';
+      if (bestPct && bestPct.n !== mostWins.n) {
+        partnerText += ' Highest % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%).';
+      }
+    } else {
+      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
+      if (bestPct && bestPct.n !== mostWins.n) {
+        partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+      }
     }
   } else {
     partnerText = 'No partners with ' + pMin + '+ matches.';
@@ -3188,13 +3197,27 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var isMob = window.innerWidth <= 768;
 
-  // Desktop: cards grid wrapped in a relative container so the pill can sit on the bottom edge
-  // Mobile: no pill — cards toggle individually via cardHtml headers
-  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
-    + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
+  var threeCards =
+      cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
     + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
-    + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header)
-    + '</div>';
+    + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header);
+
+  var cardsHtml;
+  if (isMob) {
+    cardsHtml = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px">'
+      + '<div onclick="toggleHistCard(\'hc-insights\')" style="display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;background:var(--surface2);cursor:pointer;user-select:none">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Insights</div>'
+      + '<span id="hc-insights-chev" style="font-size:11px;color:var(--muted)">▼</span>'
+      + '</div>'
+      + '<div id="hc-insights" style="display:none">'
+      + threeCards
+      + '</div>'
+      + '</div>';
+  } else {
+    cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
+      + threeCards
+      + '</div>';
+  }
 
   var desktopToggle = isMob ? '' :
     '<div style="display:flex;justify-content:center;margin:6px 0 14px;">'
@@ -3302,6 +3325,18 @@ function applyHistoryFilter() {
 }
 
 function toggleHistCard(id) {
+  if (id === 'hc-insights') {
+    var body = document.getElementById('hc-insights');
+    var chev = document.getElementById('hc-insights-chev');
+    if (!body) return;
+    var isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'flex';
+    body.style.flexDirection = 'column';
+    body.style.gap = '10px';
+    body.style.padding = isOpen ? '' : '10px 14px 14px';
+    if (chev) chev.textContent = isOpen ? '▼' : '▲';
+    return;
+  }
   var body = document.getElementById(id);
   var chev = document.getElementById(id + '-chev');
   var ctrl = document.getElementById(id + '-ctrl');
