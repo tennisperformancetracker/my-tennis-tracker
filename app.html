@@ -703,6 +703,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   .hist-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; box-sizing: border-box !important; }
   .hist-insight-card { width: 100% !important; min-width: 0 !important; overflow: visible; box-sizing: border-box !important; }
   .hist-search-row input { flex: 1 1 120px !important; min-width: 0 !important; }
+  .hist-filter-sel { flex: 1 1 calc(50% - 4px); min-width: 0; box-sizing: border-box; }
 
   /* Valid entries grid */
   .ve-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; }
@@ -1409,7 +1410,7 @@ const filterState = {
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5, mode: 'partners' },
   opponents: { sortCol: 'pctVal', sortDir: 'desc', threshold: 2 },
-  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
+  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', notes: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
   histPartnerMin: 5
 };
 
@@ -1841,6 +1842,7 @@ function renderDashboard() {
           <div class="partners-controls" id="partner-header-controls">
             ${buildPartnerOpponentControls()}
           </div>
+          <div id="po-pill-wrap">${buildPOPill()}</div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
@@ -2403,7 +2405,6 @@ function buildPartnerOpponentControls() {
     : `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
 
   return `<div style="display:flex;align-items:center;gap:8px">
-      <div id="po-pill-wrap">${buildPOPill()}</div>
       <span class="partners-threshold-label">Min:</span>
       ${selectHtml}
     </div>`;
@@ -2815,6 +2816,7 @@ function renderHistory(page, preFilterPartner) {
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
   const opponentFilter = filterState.history.opponent;
+  const notesFilter    = filterState.history.notes || '';
   const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
 
@@ -2848,6 +2850,7 @@ function renderHistory(page, preFilterPartner) {
     if (typeFilter     && m.type   !== typeFilter)   return false;
     if (partnerFilter  && !m.partner?.toLowerCase().includes(partnerFilter.toLowerCase())) return false;
     if (opponentFilter && !(m.opp1+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
+    if (notesFilter    && !(m.notes||'').toLowerCase().includes(notesFilter.toLowerCase())) return false;
     if (playoffFilter  && !m.playoff) return false;
     if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
     if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
@@ -2858,7 +2861,7 @@ function renderHistory(page, preFilterPartner) {
 
   const total = filtered.length;
 
-  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter,
+  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter,notesFilter,
     filterState.history.league,filterState.history.line,filterState.history.surface,filterState.history.time].filter(Boolean).length + (playoffFilter?1:0);
 
   const leagues  = ['', ...sortedLeagues(validEntries.league||[])];
@@ -2871,42 +2874,45 @@ function renderHistory(page, preFilterPartner) {
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow);max-width:100%">
       <!-- Always-visible search row -->
       <div class="hist-search-row" style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+        <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
+          oninput="onHistPartnerInput(this.value)"
+          style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
           oninput="onHistOpponentInput(this.value)"
           style="flex:1 1 100px;min-width:0">
-        <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
-          oninput="onHistPartnerInput(this.value)"
-          style="flex:1 1 80px;min-width:0">
-        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap">Clear</button>
+        <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
+          oninput="onHistNotesInput(this.value)"
+          style="flex:1 1 100px;min-width:0">
+        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap;flex-shrink:0">Clear</button>
       </div>
       <!-- Collapsible dropdowns -->
-      <div id="hist-filter-body" style="display:none;padding:10px 14px 0;border-bottom:1px solid var(--border)">
-        <div class="history-controls" style="margin-bottom:10px;flex-wrap:wrap">
-          <select class="filter-select" id="hist-year" onchange="renderHistory()">
-            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-season" onchange="renderHistory()">
-            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-level" onchange="renderHistory()">
-            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-type" onchange="renderHistory()">
+      <div id="hist-filter-body" style="display:none;padding:10px 14px 10px;border-bottom:1px solid var(--border)">
+        <div class="history-controls" style="margin-bottom:0;flex-wrap:wrap;gap:8px">
+          <select class="filter-select hist-filter-sel" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-league" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-level" onchange="renderHistory()">
+            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
+          </select>
+          <select class="filter-select hist-filter-sel" id="hist-league" onchange="renderHistory()">
             ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-line" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-year" onchange="renderHistory()">
+            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
+          </select>
+          <select class="filter-select hist-filter-sel" id="hist-season" onchange="renderHistory()">
+            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
+          </select>
+          <select class="filter-select hist-filter-sel" id="hist-line" onchange="renderHistory()">
             ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-surface" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-surface" onchange="renderHistory()">
             ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-time" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-time" onchange="renderHistory()">
             ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
           </select>
-          <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;width:100%">
             <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
             <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
           </div>
@@ -2994,16 +3000,25 @@ function buildHistoryResults(filtered, sortOrder) {
   const mostWins = pQual.length ? pQual.reduce((a,b) => a.w > b.w ? a : b) : null;
   const bestPct  = pQual.length ? pQual.reduce((a,b) => a.pv > b.pv ? a : b) : null;
 
+  var isMobView = window.innerWidth <= 768;
   function tipName(n) {
+    if (isMobView) return '<strong>' + escHtml(n) + '</strong>';
     var esc = escHtml(n);
     var display = escHtml(formatPartnerName(n));
     return '<strong class="tip" data-tip="' + esc + '" style="max-width:120px;display:inline-block;vertical-align:bottom">' + display + '</strong>';
   }
   var partnerText = '';
   if (mostWins) {
-    partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
-    if (bestPct && bestPct.n !== mostWins.n) {
-      partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+    if (isMobView) {
+      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + ').';
+      if (bestPct && bestPct.n !== mostWins.n) {
+        partnerText += ' Highest % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%).';
+      }
+    } else {
+      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
+      if (bestPct && bestPct.n !== mostWins.n) {
+        partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+      }
     }
   } else {
     partnerText = 'No partners with ' + pMin + '+ matches.';
@@ -3056,27 +3071,37 @@ function buildHistoryResults(filtered, sortOrder) {
   // Card toggling on mobile — each card collapses
   function cardHtml(id, title, headerExtra, body, rightExtra) {
     var isMob = window.innerWidth <= 768;
-    // Mobile: closed by default. Desktop: open by default.
-    var bodyStyle = isMob
-      ? 'display:none;padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;'
-      : 'display:block;padding:0 14px 0;';
-    var chevron = isMob ? '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted);margin-left:6px">▼</span>' : '';
-    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;'
-      + (isMob ? 'background:var(--surface2);cursor:pointer;user-select:none;' : '');
-    var hdrOnclick = isMob ? ' onclick="toggleHistCard(\'' + id + '\')"' : '';
-    // On mobile, hide rightExtra when card is collapsed; wrap it in a hideable span
-    var ctrlDisplay = isMob ? 'none' : 'inline-flex';
+    if (isMob) {
+      // On mobile: always open, no toggle, no background on header, clean rounded card
+      var rightExtraHtml = rightExtra
+        ? '<span onclick="event.stopPropagation()">' + rightExtra + '</span>'
+        : '';
+      return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px;">'
+        + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">'
+        + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
+        + (headerExtra || '')
+        + '</div>'
+        + rightExtraHtml
+        + '</div>'
+        + '<div style="padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;">'
+        + body
+        + '</div>'
+        + '</div>';
+    }
+    // Desktop: collapsible
+    var bodyStyle = 'display:block;padding:0 14px 0;';
+    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;';
     var rightExtraHtml = rightExtra
-      ? '<span id="' + id + '-ctrl" style="display:' + ctrlDisplay + '" onclick="event.stopPropagation()">' + rightExtra + '</span>'
+      ? '<span id="' + id + '-ctrl" style="display:inline-flex" onclick="event.stopPropagation()">' + rightExtra + '</span>'
       : '';
     return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);width:100%;min-width:0;box-sizing:border-box;overflow:visible;">'
-      + '<div' + hdrOnclick + ' style="' + hdrStyle + '">'
+      + '<div style="' + hdrStyle + '">'
       + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">'
       + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
       + (headerExtra || '')
       + '</div>'
       + rightExtraHtml
-      + chevron
       + '</div>'
       + '<div id="' + id + '" style="' + bodyStyle + '">'
       + body
@@ -3101,7 +3126,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + minOpts + '</select></div>';
 
   var card3Body =
-      '<div style="display:flex;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;font-size:12px;color:var(--label);word-break:break-word;">' + partnerText + '</div>'
+      '<div style="padding:5px 0;border-top:1px solid var(--border);font-size:12px;color:var(--label);line-height:1.6;">' + partnerText + '</div>'
     + partnerListHtml;
 
   var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
@@ -3182,13 +3207,27 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var isMob = window.innerWidth <= 768;
 
-  // Desktop: cards grid wrapped in a relative container so the pill can sit on the bottom edge
-  // Mobile: no pill — cards toggle individually via cardHtml headers
-  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
-    + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
+  var threeCards =
+      cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
     + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
-    + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header)
-    + '</div>';
+    + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header);
+
+  var cardsHtml;
+  if (isMob) {
+    cardsHtml = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px">'
+      + '<div onclick="toggleHistCard(\'hc-insights\')" style="display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;background:var(--surface2);cursor:pointer;user-select:none;border-radius:8px 8px 0 0">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Insights</div>'
+      + '<span id="hc-insights-chev" style="font-size:11px;color:var(--muted)">▼</span>'
+      + '</div>'
+      + '<div id="hc-insights" style="display:none">'
+      + threeCards
+      + '</div>'
+      + '</div>';
+  } else {
+    cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
+      + threeCards
+      + '</div>';
+  }
 
   var desktopToggle = isMob ? '' :
     '<div style="display:flex;justify-content:center;margin:6px 0 14px;">'
@@ -3230,6 +3269,12 @@ function onHistPartnerInput(val) {
   _histTimer = setTimeout(applyHistoryFilter, 400);
 }
 
+function onHistNotesInput(val) {
+  filterState.history.notes = val.trim();
+  clearTimeout(_histTimer);
+  _histTimer = setTimeout(applyHistoryFilter, 400);
+}
+
 function renderHistoryFiltered() {
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
@@ -3255,6 +3300,7 @@ function applyHistoryFilter() {
     if (typ  && m.type   !== typ)  return false;
     if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
     if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
+    if (filterState.history.notes && !(m.notes||'').toLowerCase().includes(filterState.history.notes.toLowerCase())) return false;
     if (po   && !m.playoff) return false;
       if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
       if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
@@ -3289,6 +3335,18 @@ function applyHistoryFilter() {
 }
 
 function toggleHistCard(id) {
+  if (id === 'hc-insights') {
+    var body = document.getElementById('hc-insights');
+    var chev = document.getElementById('hc-insights-chev');
+    if (!body) return;
+    var isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'flex';
+    body.style.flexDirection = 'column';
+    body.style.gap = '10px';
+    body.style.padding = isOpen ? '' : '10px 14px 14px';
+    if (chev) chev.textContent = isOpen ? '▼' : '▲';
+    return;
+  }
   var body = document.getElementById(id);
   var chev = document.getElementById(id + '-chev');
   var ctrl = document.getElementById(id + '-ctrl');
@@ -3349,15 +3407,17 @@ function autoOpenHistFilters() {
 }
 
 function clearHistoryFilters() {
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'' };
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'' };
   ['hist-year','hist-season','hist-level','hist-type','hist-sort','hist-league','hist-line','hist-surface','hist-time'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = id === 'hist-sort' ? 'newest' : '';
   });
   const oppEl = document.getElementById('hist-opponent');
   const parEl = document.getElementById('hist-partner');
+  const notEl = document.getElementById('hist-notes');
   if (oppEl) oppEl.value = '';
   if (parEl) parEl.value = '';
+  if (notEl) notEl.value = '';
   const poEl = document.getElementById('hist-playoff');
   if (poEl) poEl.checked = false;
   renderHistory(1);
