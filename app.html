@@ -1830,7 +1830,7 @@ function renderDashboard() {
         <div class="insight-blurb" id="splits-insight" style="margin-top:16px">${buildSplitsInsight(getSplitsMatches(matches))}</div>
       </div>
       <div class="card">
-        <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
+        <div class="card-header" style="min-height:40px;">
           <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%">
             <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
             <div id="po-pill-wrap" style="justify-self:start">${buildPOPill()}</div>
