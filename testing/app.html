@@ -696,7 +696,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   /* History insight cards — stack on mobile */
   .hist-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; box-sizing: border-box !important; }
   .hist-insight-card { width: 100% !important; min-width: 0 !important; overflow: visible; box-sizing: border-box !important; }
-  .search-input { min-width: 0 !important; }
+  .search-input { min-width: 0 !important; width: auto !important; }
   .hist-search-row input { flex: 1 1 100px !important; min-width: 0 !important; }
 
   /* Valid entries grid */
@@ -2637,16 +2637,16 @@ function renderHistory(page, preFilterPartner) {
   content.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;box-shadow:var(--shadow);max-width:100%;width:100%;box-sizing:border-box;overflow:hidden">
       <!-- Always-visible top row: Partner, Opponent, Notes — horizontally scrollable on mobile -->
-      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);overflow-x:scroll;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-sizing:border-box;max-width:100%">
+      <div class="hist-search-row" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-sizing:border-box;max-width:100%">
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
-          style="flex:1 1 120px;min-width:110px;max-width:100%">
+          style="flex:1 1 100px">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
           oninput="onHistOpponentInput(this.value)"
-          style="flex:1 1 120px;min-width:120px;max-width:100%">
+          style="flex:1 1 100px">
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(notesFilter)}"
           oninput="onHistNotesInput(this.value)"
-          style="flex:1 1 100px;min-width:100px;max-width:100%">
+          style="flex:1 1 100px">
         <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap;flex-shrink:0">Clear</button>
       </div>
       <!-- Collapsible dropdown row — horizontally scrollable -->
