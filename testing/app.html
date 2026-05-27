@@ -703,6 +703,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   .hist-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; box-sizing: border-box !important; }
   .hist-insight-card { width: 100% !important; min-width: 0 !important; overflow: visible; box-sizing: border-box !important; }
   .hist-search-row input { flex: 1 1 120px !important; min-width: 0 !important; }
+  .hist-filter-sel { flex: 1 1 calc(50% - 4px); min-width: 0; box-sizing: border-box; }
 
   /* Valid entries grid */
   .ve-cards-grid { grid-template-columns: 1fr !important; width: 100% !important; }
@@ -2873,45 +2874,45 @@ function renderHistory(page, preFilterPartner) {
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow);max-width:100%">
       <!-- Always-visible search row -->
       <div class="hist-search-row" style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+        <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
+          oninput="onHistPartnerInput(this.value)"
+          style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
           oninput="onHistOpponentInput(this.value)"
           style="flex:1 1 100px;min-width:0">
-        <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
-          oninput="onHistPartnerInput(this.value)"
-          style="flex:1 1 80px;min-width:0">
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
           oninput="onHistNotesInput(this.value)"
-          style="flex:1 1 80px;min-width:0">
-        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap">Clear</button>
+          style="flex:1 1 100%;min-width:0">
+        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap;margin-left:auto">Clear</button>
       </div>
       <!-- Collapsible dropdowns -->
-      <div id="hist-filter-body" style="display:none;padding:10px 14px 0;border-bottom:1px solid var(--border)">
-        <div class="history-controls" style="margin-bottom:10px;flex-wrap:wrap">
-          <select class="filter-select" id="hist-year" onchange="renderHistory()">
-            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-season" onchange="renderHistory()">
-            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-level" onchange="renderHistory()">
-            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-type" onchange="renderHistory()">
+      <div id="hist-filter-body" style="display:none;padding:10px 14px 10px;border-bottom:1px solid var(--border)">
+        <div class="history-controls" style="margin-bottom:0;flex-wrap:wrap;gap:8px">
+          <select class="filter-select hist-filter-sel" id="hist-type" onchange="renderHistory()">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-league" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-level" onchange="renderHistory()">
+            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
+          </select>
+          <select class="filter-select hist-filter-sel" id="hist-league" onchange="renderHistory()">
             ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-line" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-year" onchange="renderHistory()">
+            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
+          </select>
+          <select class="filter-select hist-filter-sel" id="hist-season" onchange="renderHistory()">
+            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
+          </select>
+          <select class="filter-select hist-filter-sel" id="hist-line" onchange="renderHistory()">
             ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-surface" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-surface" onchange="renderHistory()">
             ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-time" onchange="renderHistory()">
+          <select class="filter-select hist-filter-sel" id="hist-time" onchange="renderHistory()">
             ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
           </select>
-          <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;width:100%">
             <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
             <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
           </div>
