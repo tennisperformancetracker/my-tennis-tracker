@@ -1831,7 +1831,7 @@ function renderDashboard() {
       </div>
       <div class="card">
         <div class="card-header" style="min-height:40px;">
-          <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%">
+          <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;flex:1;min-width:0">
             <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
             <div id="po-pill-wrap" style="justify-self:start">${buildPOPill()}</div>
             <div class="partners-controls" id="partner-header-controls">
