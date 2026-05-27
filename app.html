@@ -618,10 +618,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   padding: 8px 14px; gap: 8px; flex-wrap: wrap; overflow-x: auto;
 }
 
-.po-card-header { display: flex; align-items: center; gap: 10px; }
-.po-card-header .card-title { flex-shrink: 0; min-width: 155px; }
-.po-card-header #po-pill-wrap { flex-shrink: 0; }
-.po-card-header #partner-header-controls { margin-left: auto; }
+.po-card-header { display: flex; align-items: center; justify-content: space-between; }
+.po-card-header #po-pill-wrap button { padding-top: 5px; padding-bottom: 5px; }
 .mobile-filters select {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
@@ -633,8 +631,9 @@ textarea:focus { border-color: var(--accent2) !important; }
 @media (max-width: 768px) {
   /* Sidebar: slide-in drawer */
   .po-card-header { flex-wrap: wrap; }
-  .po-card-header #po-pill-wrap { order: 3; flex-basis: 100%; margin-right: 0; margin-top: 2px; }
-  .po-card-header #partner-header-controls { margin-left: auto; }
+  .po-card-header #partner-header-controls { order: 2; margin-left: auto; }
+  .po-card-header .card-title { order: 1; }
+  .po-card-header #po-pill-wrap { order: 3; flex-basis: 100%; margin-top: 6px; }
   .sidebar { left: -260px; width: 260px; transition: left 0.25s ease; z-index: 200; }
   .sidebar.mobile-open { left: 0; }
 
@@ -1838,8 +1837,7 @@ function renderDashboard() {
       </div>
       <div class="card">
         <div class="card-header po-card-header" style="min-height:40px;">
-          <div class="card-title" id="partners-card-title" style="white-space:nowrap">${filterState.partners.mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners'}</div>
-          <div id="po-pill-wrap">${buildPOPill()}</div>
+          <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners'}</div>
           <div class="partners-controls" id="partner-header-controls">
             ${buildPartnerOpponentControls()}
           </div>
@@ -2405,6 +2403,7 @@ function buildPartnerOpponentControls() {
     : `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
 
   return `<div style="display:flex;align-items:center;gap:8px">
+      <div id="po-pill-wrap">${buildPOPill()}</div>
       <span class="partners-threshold-label">Min:</span>
       ${selectHtml}
     </div>`;
