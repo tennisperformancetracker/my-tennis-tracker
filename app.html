@@ -619,7 +619,8 @@ textarea:focus { border-color: var(--accent2) !important; }
 }
 
 .po-card-header { display: flex; align-items: center; gap: 10px; }
-.po-card-header #po-pill-wrap { margin-right: auto; }
+.po-card-header .card-title { width: 155px; flex-shrink: 0; }
+.po-card-header #po-pill-wrap { flex-shrink: 0; }
 .mobile-filters select {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
