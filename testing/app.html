@@ -3071,27 +3071,37 @@ function buildHistoryResults(filtered, sortOrder) {
   // Card toggling on mobile — each card collapses
   function cardHtml(id, title, headerExtra, body, rightExtra) {
     var isMob = window.innerWidth <= 768;
-    // Mobile: closed by default. Desktop: open by default.
-    var bodyStyle = isMob
-      ? 'display:none;padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;'
-      : 'display:block;padding:0 14px 0;';
-    var chevron = isMob ? '<span id="' + id + '-chev" style="font-size:11px;color:var(--muted);margin-left:6px">▼</span>' : '';
-    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;'
-      + (isMob ? 'background:var(--surface2);cursor:pointer;user-select:none;' : '');
-    var hdrOnclick = isMob ? ' onclick="toggleHistCard(\'' + id + '\')"' : '';
-    // On mobile, hide rightExtra when card is collapsed; wrap it in a hideable span
-    var ctrlDisplay = isMob ? 'none' : 'inline-flex';
+    if (isMob) {
+      // On mobile: always open, no toggle, no background on header, clean rounded card
+      var rightExtraHtml = rightExtra
+        ? '<span onclick="event.stopPropagation()">' + rightExtra + '</span>'
+        : '';
+      return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px;">'
+        + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">'
+        + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
+        + (headerExtra || '')
+        + '</div>'
+        + rightExtraHtml
+        + '</div>'
+        + '<div style="padding:0 14px 12px;overflow:hidden;max-width:100%;word-break:break-word;">'
+        + body
+        + '</div>'
+        + '</div>';
+    }
+    // Desktop: collapsible
+    var bodyStyle = 'display:block;padding:0 14px 0;';
+    var hdrStyle = 'display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;';
     var rightExtraHtml = rightExtra
-      ? '<span id="' + id + '-ctrl" style="display:' + ctrlDisplay + '" onclick="event.stopPropagation()">' + rightExtra + '</span>'
+      ? '<span id="' + id + '-ctrl" style="display:inline-flex" onclick="event.stopPropagation()">' + rightExtra + '</span>'
       : '';
     return '<div class="hist-insight-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);width:100%;min-width:0;box-sizing:border-box;overflow:visible;">'
-      + '<div' + hdrOnclick + ' style="' + hdrStyle + '">'
+      + '<div style="' + hdrStyle + '">'
       + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">'
       + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">' + title + '</div>'
       + (headerExtra || '')
       + '</div>'
       + rightExtraHtml
-      + chevron
       + '</div>'
       + '<div id="' + id + '" style="' + bodyStyle + '">'
       + body
@@ -3116,7 +3126,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + minOpts + '</select></div>';
 
   var card3Body =
-      '<div style="display:flex;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;font-size:12px;color:var(--label);word-break:break-word;">' + partnerText + '</div>'
+      '<div style="padding:5px 0;border-top:1px solid var(--border);font-size:12px;color:var(--label);line-height:1.6;">' + partnerText + '</div>'
     + partnerListHtml;
 
   var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
@@ -3205,7 +3215,7 @@ function buildHistoryResults(filtered, sortOrder) {
   var cardsHtml;
   if (isMob) {
     cardsHtml = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px">'
-      + '<div onclick="toggleHistCard(\'hc-insights\')" style="display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;background:var(--surface2);cursor:pointer;user-select:none">'
+      + '<div onclick="toggleHistCard(\'hc-insights\')" style="display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;background:var(--surface2);cursor:pointer;user-select:none;border-radius:8px 8px 0 0">'
       + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Insights</div>'
       + '<span id="hc-insights-chev" style="font-size:11px;color:var(--muted)">▼</span>'
       + '</div>'
