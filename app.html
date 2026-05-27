@@ -1401,7 +1401,8 @@ const filterState = {
   dash: { type: '', year: '' },
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
-  partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5 },
+  partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5, mode: 'partners' },
+  opponents: { sortCol: 'pctVal', sortDir: 'desc', threshold: 2 },
   history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
   histPartnerMin: 5
 };
@@ -1829,22 +1830,18 @@ function renderDashboard() {
         <div class="insight-blurb" id="splits-insight" style="margin-top:16px">${buildSplitsInsight(getSplitsMatches(matches))}</div>
       </div>
       <div class="card">
-        <div class="card-header" style="min-height:40px">
-          <div class="card-title" id="partners-card-title">Top Partners</div>
+        <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+            <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
+            <div id="po-pill-wrap">${buildPOPill()}</div>
+          </div>
           <div class="partners-controls" id="partner-header-controls">
-            <span class="partners-threshold-label">Min:</span>
-            <select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">
-              <option value="1"  ${filterState.partners.threshold===1?'selected':''}>1</option>
-              <option value="5"  ${filterState.partners.threshold===5?'selected':''}>5</option>
-              <option value="10" ${filterState.partners.threshold===10?'selected':''}>10</option>
-              <option value="15" ${filterState.partners.threshold===15?'selected':''}>15</option>
-              <option value="25" ${filterState.partners.threshold===25?'selected':''}>25</option>
-            </select>
+            ${buildPartnerOpponentControls()}
           </div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
-            <div class="partners-panel" id="partners-main-panel">${buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold)}</div>
+            <div class="partners-panel" id="partners-main-panel">${filterState.partners.mode === 'opponents' ? buildOpponentsTable(matches, filterState.opponents.sortCol, filterState.opponents.threshold) : buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold)}</div>
             <div class="partners-panel drill-panel" id="partners-drill-panel"></div>
           </div>
         </div>
@@ -2374,14 +2371,86 @@ function renderChart(keys, labels, pcts, dataMap, mode, chartYear) {
   });
 }
 
-// ── Partners ────────────────────────────────────────────────
+// ── Partners / Opponents ─────────────────────────────────────
+
+// Build the pill toggle + Min threshold controls for the card header
+function buildPOPill() {
+  const mode = filterState.partners.mode || 'partners';
+  const isPartners = mode === 'partners';
+  return `<div style="display:inline-flex;align-items:stretch;border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0">
+    <button onclick="setPartnerOpponentMode('partners')" style="padding:3px 9px;font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;line-height:1.4;transition:all 0.15s;${isPartners ? 'background:var(--accent);color:#fff;' : 'background:var(--surface2);color:var(--muted);'}">Partners</button>
+    <div style="width:1px;background:var(--border);flex-shrink:0"></div>
+    <button onclick="setPartnerOpponentMode('opponents')" style="padding:3px 9px;font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;line-height:1.4;transition:all 0.15s;${!isPartners ? 'background:var(--accent);color:#fff;' : 'background:var(--surface2);color:var(--muted);'}">Opponents</button>
+  </div>`;
+}
+
+function buildPartnerOpponentControls() {
+  const mode = filterState.partners.mode || 'partners';
+  const isPartners = mode === 'partners';
+
+  const partnerOptions = [2,4,6,8,10].map(v =>
+    `<option value="${v}" ${filterState.partners.threshold===v?'selected':''}>${v}</option>`
+  ).join('');
+  const opponentOptions = [2,4,6,8,10].map(v =>
+    `<option value="${v}" ${filterState.opponents.threshold===v?'selected':''}>${v}</option>`
+  ).join('');
+
+  return `
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="partners-threshold-label">Min:</span>
+      ${isPartners
+        ? `<select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
+        : `<select class="partners-threshold" id="partners-threshold" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`
+      }
+    </div>`;
+}
+
+// Switch between Partners and Opponents mode — always resets drill state
+function setPartnerOpponentMode(mode) {
+  filterState.partners.mode = mode;
+  // Reset drill state
+  const inner = document.getElementById('partners-slide-inner');
+  if (inner) inner.classList.remove('drilled');
+
+  const titleEl = document.getElementById('partners-card-title');
+  if (titleEl) {
+    titleEl.style.cssText = '';
+    titleEl.textContent = mode === 'opponents' ? 'Top Opponents' : 'Top Partners';
+  }
+
+  const pillWrap = document.getElementById('po-pill-wrap');
+  if (pillWrap) pillWrap.innerHTML = buildPOPill();
+
+  document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
+
+  const typeFilter = filterState.dash.type;
+  const matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+  const mainPanel = document.getElementById('partners-main-panel');
+  if (mainPanel) {
+    const threshold = mode === 'opponents' ? filterState.opponents.threshold : filterState.partners.threshold;
+    const sortCol   = mode === 'opponents' ? filterState.opponents.sortCol   : filterState.partners.sortCol;
+    mainPanel.innerHTML = mode === 'opponents'
+      ? buildOpponentsTable(matches, sortCol, threshold)
+      : buildPartnersTable(matches, sortCol, threshold);
+  }
+}
 
 function refreshPartnersTable() {
-  filterState.partners.threshold = parseInt(document.getElementById('partners-threshold')?.value || '5');
+  const mode = filterState.partners.mode || 'partners';
   const typeFilter = filterState.dash.type;
-  let matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
-  document.getElementById('partners-main-panel').innerHTML = buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold);
+  const matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+  const mainPanel = document.getElementById('partners-main-panel');
+  if (!mainPanel) return;
+  if (mode === 'opponents') {
+    filterState.opponents.threshold = parseInt(document.getElementById('partners-threshold')?.value || '2');
+    mainPanel.innerHTML = buildOpponentsTable(matches, filterState.opponents.sortCol, filterState.opponents.threshold);
+  } else {
+    filterState.partners.threshold = parseInt(document.getElementById('partners-threshold')?.value || '5');
+    mainPanel.innerHTML = buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold);
+  }
 }
+
+// ── Partners table ───────────────────────────────────────────
 
 function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
   const sortDir = filterState.partners.sortDir || 'desc';
@@ -2396,18 +2465,16 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     .map(([name,{w,l}]) => ({ name, w, l, total:w+l, pctVal: l+w>0 ? w/(w+l) : 0 }))
     .filter(p => p.total >= threshold);
 
-  // Sort
   const dir = sortDir === 'desc' ? -1 : 1;
   partners.sort((a,b) => dir * (a[sortCol] > b[sortCol] ? 1 : a[sortCol] < b[sortCol] ? -1 : 0));
-  // Don't slice — show all in allPartners, display first 5 by default
-  const allPartners = partners;
+
   const SHOW_P = 10;
-  const visiblePartners = allPartners.slice(0, SHOW_P);
-  const extraCount = allPartners.length - SHOW_P;
+  const visiblePartners = partners.slice(0, SHOW_P);
+  const extraCount = partners.length - SHOW_P;
 
   if (!partners.length) {
     const isSingles = filterState.dash.type && filterState.dash.type.toLowerCase().includes('singles');
-    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">${isSingles ? 'No partner data when viewing the Dashboard for Singles.' : `No partners with ${threshold}+ matches found.`}</div>`;
+    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">${isSingles ? 'No partner data when viewing Singles.' : `No partners with ${threshold}+ matches found.`}</div>`;
   }
 
   function thSort(col, label) {
@@ -2433,9 +2500,9 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
       + '</tr>';
   }
 
-  var visibleRows = visiblePartners.map(function(p,i){ return buildRow(p,i); }).join('');
-  var hiddenRows  = allPartners.slice(SHOW_P).map(function(p,i){ return buildRow(p, i+SHOW_P); }).join('');
-  var showMorePill = extraCount > 0
+  const visibleRows = visiblePartners.map((p,i) => buildRow(p,i)).join('');
+  const hiddenRows  = partners.slice(SHOW_P).map((p,i) => buildRow(p, i+SHOW_P)).join('');
+  const showMorePill = extraCount > 0
     ? '<div style="display:flex;justify-content:center;margin-top:8px">'
       + '<button id="partners-show-more-btn" onclick="togglePartnersExpand()"'
       + ' style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
@@ -2456,7 +2523,6 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     + showMorePill;
 }
 
-
 function togglePartnersExpand() {
   const hidden = document.getElementById('partners-hidden-body');
   const btn    = document.getElementById('partners-show-more-btn');
@@ -2464,8 +2530,8 @@ function togglePartnersExpand() {
   const isOpen = hidden.style.display !== 'none';
   hidden.style.display = isOpen ? 'none' : '';
   if (btn) {
-    var arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
-    var arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    const arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    const arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
     btn.innerHTML = isOpen ? arrowDown + 'More' : arrowUp + 'Less';
   }
 }
@@ -2481,16 +2547,14 @@ function sortPartners(col) {
 }
 
 function drillPartner(name) {
-  // Collapse any show-more expansion before sliding
   const hidden = document.getElementById('partners-hidden-body');
   if (hidden) hidden.style.display = 'none';
   const typeFilter = filterState.dash.type;
-  let matches = allMatches.filter(m => {
+  const matches = allMatches.filter(m => {
     if (typeFilter && m.type !== typeFilter) return false;
     return m.partner === name;
   });
 
-  // Update header — just show "Splits with [name]", no "Partner:" prefix
   const titleEl = document.getElementById('partners-card-title');
   const isMob = window.innerWidth <= 768;
   const displayName = formatPartnerName(name);
@@ -2501,44 +2565,212 @@ function drillPartner(name) {
     titleEl.style.cssText = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%';
     titleEl.textContent = `Performance with ${displayName}`;
   }
+  const pW = matches.filter(m => m.result==='W').length;
+  const pL = matches.filter(m => m.result==='L').length;
+  const pGreat = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+  const pPoor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+  const pRate  = pW + pL > 0 ? pW / (pW + pL) : 0;
+  const pCol   = pRate > pGreat ? 'var(--win)' : pRate < pPoor ? 'var(--loss)' : 'var(--warn)';
+  const pPillWrap = document.getElementById('po-pill-wrap');
+  if (pPillWrap) pPillWrap.innerHTML = `<span style="font-size:13px;font-weight:700;color:${pCol}">${pW}–${pL}</span><span style="font-size:11px;color:var(--muted);margin-left:5px">${pct(pW,pL)}</span>`;
+
   document.getElementById('partner-header-controls').innerHTML = `
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">History</button>
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="resetPartners()">Back</button>
   `;
 
-  // Drill panel — match splits card exactly: no extra title div, just table + insight
   document.getElementById('partners-drill-panel').innerHTML = `
     ${buildSplitsTable(matches)}
     <div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>
   `;
-
-  // Slide left
   document.getElementById('partners-slide-inner').classList.add('drilled');
 }
 
 function resetPartners() {
-  // Slide back
   document.getElementById('partners-slide-inner').classList.remove('drilled');
-  document.getElementById('partners-card-title').textContent = 'Top Partners';
-  document.getElementById('partner-header-controls').innerHTML = `
-    <span class="partners-threshold-label">Min:</span>
-    <select class="partners-threshold" id="partners-threshold" onchange="refreshPartnersTable()">
-      <option value="1">1</option>
-      <option value="5" selected>5</option>
-      <option value="10">10</option>
-      <option value="15">15</option>
-      <option value="25">25</option>
-    </select>
-  `;
+  const mode = filterState.partners.mode || 'partners';
+  const titleEl = document.getElementById('partners-card-title');
+  titleEl.style.cssText = '';
+  titleEl.textContent = mode === 'opponents' ? 'Top Opponents' : 'Top Partners';
+  const pillWrap = document.getElementById('po-pill-wrap');
+  if (pillWrap) pillWrap.innerHTML = buildPOPill();
+  document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
 }
 
 function viewPartnerHistory(name) {
-  // Navigate to history page with partner pre-filtered
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
   document.getElementById('topbar-title').textContent = 'Match History';
   renderHistory(1, name);
+}
+
+// ── Opponents table ──────────────────────────────────────────
+
+function buildOpponentsTable(matches, sortCol='pctVal', threshold=2) {
+  const sortDir = filterState.opponents.sortDir || 'desc';
+
+  // Aggregate — each opponent (opp1 and opp2 in doubles) counted individually
+  const oppMap = {};
+  matches.forEach(m => {
+    [m.opp1, m.opp2].forEach(name => {
+      if (!name || name === '') return;
+      if (!oppMap[name]) oppMap[name] = { w:0, l:0 };
+      if (m.result==='W') oppMap[name].w++;
+      else oppMap[name].l++;
+    });
+  });
+
+  let opponents = Object.entries(oppMap)
+    .map(([name,{w,l}]) => ({ name, w, l, total:w+l, pctVal: w+l>0 ? w/(w+l) : 0 }))
+    .filter(o => o.total >= threshold);
+
+  const dir = sortDir === 'desc' ? -1 : 1;
+  opponents.sort((a,b) => dir * (a[sortCol] > b[sortCol] ? 1 : a[sortCol] < b[sortCol] ? -1 : 0));
+
+  const SHOW_O = 10;
+  const visibleOpponents = opponents.slice(0, SHOW_O);
+  const extraCount = opponents.length - SHOW_O;
+
+  if (!opponents.length) {
+    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">No opponents with ${threshold}+ matches found.</div>`;
+  }
+
+  function thSort(col, label) {
+    const isActive = sortCol === col;
+    const arrow = isActive ? (sortDir==='desc' ? '↓' : '↑') : '↕';
+    return `<th class="sortable-th" onclick="sortOpponents('${col}')" style="text-align:right;cursor:pointer">
+      ${label}<span class="sort-arrow ${isActive?'active':''}">${arrow}</span></th>`;
+  }
+
+  function buildRow(o, i) {
+    const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+    const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+    const rate  = o.total > 0 ? o.w / o.total : 0;
+    const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
+    return '<tr>'
+      + '<td style="display:flex;align-items:center;min-width:0">'
+      + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
+      + '<span onclick="drillOpponent(\'' + escHtml(o.name) + '\')" class="tip" data-tip="' + escHtml(o.name) + '" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px;max-width:140px">' + escHtml(o.name) + '</span>'
+      + '</td>'
+      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + o.w + '</td>'
+      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + o.l + '</td>'
+      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + pct(o.w,o.l) + '</td>'
+      + '</tr>';
+  }
+
+  const visibleRows = visibleOpponents.map((o,i) => buildRow(o,i)).join('');
+  const hiddenRows  = opponents.slice(SHOW_O).map((o,i) => buildRow(o, i+SHOW_O)).join('');
+  const showMorePill = extraCount > 0
+    ? '<div style="display:flex;justify-content:center;margin-top:8px">'
+      + '<button id="partners-show-more-btn" onclick="toggleOpponentsExpand()"'
+      + ' style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
+      + '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
+      + 'More</button></div>'
+    : '';
+
+  return '<table class="partners-table">'
+    + '<thead><tr>'
+    + '<th class="sortable-th" onclick="sortOpponents(\'name\')" style="text-align:left;cursor:pointer">'
+    + 'Opponent<span class="sort-arrow ' + (sortCol==='name'?'active':'') + '"> '
+    + (sortCol==='name'?(sortDir==='desc'?'↓':'↑'):'↕') + '</span></th>'
+    + thSort('w','W') + thSort('l','L') + thSort('pctVal','W%')
+    + '</tr></thead>'
+    + '<tbody id="opponents-visible-body">' + visibleRows + '</tbody>'
+    + (extraCount > 0 ? '<tbody id="opponents-hidden-body" style="display:none">' + hiddenRows + '</tbody>' : '')
+    + '</table>'
+    + showMorePill;
+}
+
+function toggleOpponentsExpand() {
+  const hidden = document.getElementById('opponents-hidden-body');
+  const btn    = document.getElementById('partners-show-more-btn');
+  if (!hidden) return;
+  const isOpen = hidden.style.display !== 'none';
+  hidden.style.display = isOpen ? 'none' : '';
+  if (btn) {
+    const arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    const arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    btn.innerHTML = isOpen ? arrowDown + 'More' : arrowUp + 'Less';
+  }
+}
+
+function sortOpponents(col) {
+  if (filterState.opponents.sortCol === col) {
+    filterState.opponents.sortDir = filterState.opponents.sortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    filterState.opponents.sortCol = col;
+    filterState.opponents.sortDir = col === 'l' ? 'asc' : 'desc';
+  }
+  refreshPartnersTable();
+}
+
+function drillOpponent(name) {
+  const hidden = document.getElementById('opponents-hidden-body');
+  if (hidden) hidden.style.display = 'none';
+  const typeFilter = filterState.dash.type;
+
+  // Collect all matches involving this opponent (opp1 or opp2)
+  const matches = allMatches.filter(m => {
+    if (typeFilter && m.type !== typeFilter) return false;
+    return m.opp1 === name || m.opp2 === name;
+  });
+
+  const W = matches.filter(m => m.result === 'W').length;
+  const L = matches.filter(m => m.result === 'L').length;
+  const singlesCount = matches.filter(m => !isDoubles(m)).length;
+  const doublesCount = matches.filter(m =>  isDoubles(m)).length;
+
+  const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+  const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+  const rate  = W + L > 0 ? W / (W + L) : 0;
+  const recCol = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
+
+  // Context line: breakdown if they have both singles and doubles matches
+  const contextParts = [];
+  if (singlesCount > 0) contextParts.push(`${singlesCount} singles`);
+  if (doublesCount > 0) contextParts.push(`${doublesCount} doubles`);
+  const contextLine = contextParts.length > 1 ? contextParts.join(', ') : '';
+
+  const titleEl = document.getElementById('partners-card-title');
+  const isMob = window.innerWidth <= 768;
+  if (isMob) {
+    titleEl.style.cssText = 'max-width:100%';
+    titleEl.innerHTML = `vs<br><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%">${escHtml(name)}</span>`;
+  } else {
+    titleEl.style.cssText = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%';
+    titleEl.textContent = `vs ${name}`;
+  }
+
+  const oPillWrap = document.getElementById('po-pill-wrap');
+  if (oPillWrap) {
+    let pillContent = `<span style="font-size:13px;font-weight:700;color:${recCol}">${W}–${L}</span><span style="font-size:11px;color:var(--muted);margin-left:5px">${pct(W,L)}</span>`;
+    if (singlesCount > 0 && doublesCount > 0) {
+      pillContent += `<span style="font-size:11px;color:var(--muted);margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">${singlesCount}S · ${doublesCount}D</span>`;
+    }
+    oPillWrap.innerHTML = pillContent;
+  }
+
+  document.getElementById('partner-header-controls').innerHTML = `
+    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewOpponentHistory('${escHtml(name)}')">History</button>
+    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="resetPartners()">Back</button>
+  `;
+
+  document.getElementById('partners-drill-panel').innerHTML =
+    (contextLine ? `<div style="font-size:11px;color:var(--muted);margin-bottom:10px">${contextLine}</div>` : '')
+    + buildSplitsTable(matches)
+    + `<div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>`;
+
+  document.getElementById('partners-slide-inner').classList.add('drilled');
+}
+
+function viewOpponentHistory(name) {
+  filterState.history.opponent = name.toLowerCase();
+  currentPage = 'history';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[1].classList.add('active');
+  document.getElementById('topbar-title').textContent = 'Match History';
+  renderHistory(1);
 }
 
 // 
