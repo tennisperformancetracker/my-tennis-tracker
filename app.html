@@ -626,8 +626,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   background-repeat: no-repeat; background-position: right 7px center;
 }
 
-.po-min-desktop { display: none !important; }
-  .po-min-mobile  { display: flex !important; align-items: center; gap: 8px; margin-top: 6px; }
+@media (max-width: 768px) {
+  /* Sidebar: slide-in drawer */
   .sidebar { left: -260px; width: 260px; transition: left 0.25s ease; z-index: 200; }
   .sidebar.mobile-open { left: 0; }
 
@@ -1830,15 +1830,15 @@ function renderDashboard() {
         <div class="insight-blurb" id="splits-insight" style="margin-top:16px">${buildSplitsInsight(getSplitsMatches(matches))}</div>
       </div>
       <div class="card">
-        <div class="card-header" style="min-height:40px;">
-          <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;flex:1;min-width:0">
+        <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
+          <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%">
             <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
             <div id="po-pill-wrap" style="justify-self:start">${buildPOPill()}</div>
             <div class="partners-controls" id="partner-header-controls">
               ${buildPartnerOpponentControls()}
             </div>
           </div>
-          </div>
+        </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
             <div class="partners-panel" id="partners-main-panel">${filterState.partners.mode === 'opponents' ? buildOpponentsTable(matches, filterState.opponents.sortCol, filterState.opponents.threshold) : buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold)}</div>
@@ -2395,18 +2395,13 @@ function buildPartnerOpponentControls() {
     `<option value="${v}" ${filterState.opponents.threshold===v?'selected':''}>${v}</option>`
   ).join('');
 
-  const selectHtml = isPartners
-    ? `<select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
-    : `<select class="partners-threshold" id="partners-threshold" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
-
   return `
-    <div class="po-min-desktop" style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px">
       <span class="partners-threshold-label">Min:</span>
-      ${selectHtml}
-    </div>
-    <div class="po-min-mobile" style="display:none">
-      <span class="partners-threshold-label">Min:</span>
-      ${selectHtml}
+      ${isPartners
+        ? `<select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
+        : `<select class="partners-threshold" id="partners-threshold" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`
+      }
     </div>`;
 }
 
