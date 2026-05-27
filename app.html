@@ -1838,8 +1838,7 @@ function renderDashboard() {
               ${buildPartnerOpponentControls()}
             </div>
           </div>
-          <div id="po-min-mobile-wrap" style="display:none;margin-top:6px"></div>
-        </div>
+          </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
             <div class="partners-panel" id="partners-main-panel">${filterState.partners.mode === 'opponents' ? buildOpponentsTable(matches, filterState.opponents.sortCol, filterState.opponents.threshold) : buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold)}</div>
