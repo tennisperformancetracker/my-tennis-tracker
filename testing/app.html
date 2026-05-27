@@ -1401,9 +1401,8 @@ const filterState = {
   dash: { type: '', year: '' },
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
-  partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5, mode: 'partners' },
-  opponents: { sortCol: 'pctVal', sortDir: 'desc', threshold: 2 },
-  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
+  partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5 },
+  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', notes: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
   histPartnerMin: 5
 };
 
@@ -1830,15 +1829,22 @@ function renderDashboard() {
         <div class="insight-blurb" id="splits-insight" style="margin-top:16px">${buildSplitsInsight(getSplitsMatches(matches))}</div>
       </div>
       <div class="card">
-        <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
-          <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top Opponents' : 'Top Partners'}</div>
+        <div class="card-header" style="min-height:40px">
+          <div class="card-title" id="partners-card-title">Top Partners</div>
           <div class="partners-controls" id="partner-header-controls">
-            ${buildPartnerOpponentControls()}
+            <span class="partners-threshold-label">Min:</span>
+            <select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">
+              <option value="1"  ${filterState.partners.threshold===1?'selected':''}>1</option>
+              <option value="5"  ${filterState.partners.threshold===5?'selected':''}>5</option>
+              <option value="10" ${filterState.partners.threshold===10?'selected':''}>10</option>
+              <option value="15" ${filterState.partners.threshold===15?'selected':''}>15</option>
+              <option value="25" ${filterState.partners.threshold===25?'selected':''}>25</option>
+            </select>
           </div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
-            <div class="partners-panel" id="partners-main-panel">${filterState.partners.mode === 'opponents' ? buildOpponentsTable(matches, filterState.opponents.sortCol, filterState.opponents.threshold) : buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold)}</div>
+            <div class="partners-panel" id="partners-main-panel">${buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold)}</div>
             <div class="partners-panel drill-panel" id="partners-drill-panel"></div>
           </div>
         </div>
@@ -2368,83 +2374,14 @@ function renderChart(keys, labels, pcts, dataMap, mode, chartYear) {
   });
 }
 
-// ── Partners / Opponents ─────────────────────────────────────
-
-// Build the pill toggle + Min threshold controls for the card header
-function buildPartnerOpponentControls() {
-  const mode = filterState.partners.mode || 'partners';
-  const isPartners = mode === 'partners';
-  const threshold = isPartners ? filterState.partners.threshold : filterState.opponents.threshold;
-
-  const pillStyle = (active) =>
-    active
-      ? 'background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);line-height:1.4;transition:all 0.15s'
-      : 'background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);line-height:1.4;transition:all 0.15s';
-
-  const partnerOptions = [1,5,10,15,25].map(v =>
-    `<option value="${v}" ${filterState.partners.threshold===v?'selected':''}>${v}</option>`
-  ).join('');
-  const opponentOptions = [2,5,10,15,25].map(v =>
-    `<option value="${v}" ${filterState.opponents.threshold===v?'selected':''}>${v}</option>`
-  ).join('');
-
-  return `
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <div style="display:flex;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px">
-        <button style="${pillStyle(isPartners)}" onclick="setPartnerOpponentMode('partners')">Partners</button>
-        <button style="${pillStyle(!isPartners)}" onclick="setPartnerOpponentMode('opponents')">Opponents</button>
-      </div>
-      <span class="partners-threshold-label">Min:</span>
-      ${isPartners
-        ? `<select class="partners-threshold" id="partners-threshold" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
-        : `<select class="partners-threshold" id="partners-threshold" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`
-      }
-    </div>`;
-}
-
-// Switch between Partners and Opponents mode — always resets drill state
-function setPartnerOpponentMode(mode) {
-  filterState.partners.mode = mode;
-  // Reset drill state
-  const inner = document.getElementById('partners-slide-inner');
-  if (inner) inner.classList.remove('drilled');
-
-  const titleEl = document.getElementById('partners-card-title');
-  if (titleEl) {
-    titleEl.style.cssText = '';
-    titleEl.textContent = mode === 'opponents' ? 'Top Opponents' : 'Top Partners';
-  }
-
-  document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
-
-  const typeFilter = filterState.dash.type;
-  const matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
-  const mainPanel = document.getElementById('partners-main-panel');
-  if (mainPanel) {
-    const threshold = mode === 'opponents' ? filterState.opponents.threshold : filterState.partners.threshold;
-    const sortCol   = mode === 'opponents' ? filterState.opponents.sortCol   : filterState.partners.sortCol;
-    mainPanel.innerHTML = mode === 'opponents'
-      ? buildOpponentsTable(matches, sortCol, threshold)
-      : buildPartnersTable(matches, sortCol, threshold);
-  }
-}
+// ── Partners ────────────────────────────────────────────────
 
 function refreshPartnersTable() {
-  const mode = filterState.partners.mode || 'partners';
+  filterState.partners.threshold = parseInt(document.getElementById('partners-threshold')?.value || '5');
   const typeFilter = filterState.dash.type;
-  const matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
-  const mainPanel = document.getElementById('partners-main-panel');
-  if (!mainPanel) return;
-  if (mode === 'opponents') {
-    filterState.opponents.threshold = parseInt(document.getElementById('partners-threshold')?.value || '2');
-    mainPanel.innerHTML = buildOpponentsTable(matches, filterState.opponents.sortCol, filterState.opponents.threshold);
-  } else {
-    filterState.partners.threshold = parseInt(document.getElementById('partners-threshold')?.value || '5');
-    mainPanel.innerHTML = buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold);
-  }
+  let matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+  document.getElementById('partners-main-panel').innerHTML = buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold);
 }
-
-// ── Partners table ───────────────────────────────────────────
 
 function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
   const sortDir = filterState.partners.sortDir || 'desc';
@@ -2459,16 +2396,18 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     .map(([name,{w,l}]) => ({ name, w, l, total:w+l, pctVal: l+w>0 ? w/(w+l) : 0 }))
     .filter(p => p.total >= threshold);
 
+  // Sort
   const dir = sortDir === 'desc' ? -1 : 1;
   partners.sort((a,b) => dir * (a[sortCol] > b[sortCol] ? 1 : a[sortCol] < b[sortCol] ? -1 : 0));
-
+  // Don't slice — show all in allPartners, display first 5 by default
+  const allPartners = partners;
   const SHOW_P = 10;
-  const visiblePartners = partners.slice(0, SHOW_P);
-  const extraCount = partners.length - SHOW_P;
+  const visiblePartners = allPartners.slice(0, SHOW_P);
+  const extraCount = allPartners.length - SHOW_P;
 
   if (!partners.length) {
     const isSingles = filterState.dash.type && filterState.dash.type.toLowerCase().includes('singles');
-    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">${isSingles ? 'No partner data when viewing Singles.' : `No partners with ${threshold}+ matches found.`}</div>`;
+    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">${isSingles ? 'No partner data when viewing the Dashboard for Singles.' : `No partners with ${threshold}+ matches found.`}</div>`;
   }
 
   function thSort(col, label) {
@@ -2494,9 +2433,9 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
       + '</tr>';
   }
 
-  const visibleRows = visiblePartners.map((p,i) => buildRow(p,i)).join('');
-  const hiddenRows  = partners.slice(SHOW_P).map((p,i) => buildRow(p, i+SHOW_P)).join('');
-  const showMorePill = extraCount > 0
+  var visibleRows = visiblePartners.map(function(p,i){ return buildRow(p,i); }).join('');
+  var hiddenRows  = allPartners.slice(SHOW_P).map(function(p,i){ return buildRow(p, i+SHOW_P); }).join('');
+  var showMorePill = extraCount > 0
     ? '<div style="display:flex;justify-content:center;margin-top:8px">'
       + '<button id="partners-show-more-btn" onclick="togglePartnersExpand()"'
       + ' style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
@@ -2517,6 +2456,7 @@ function buildPartnersTable(matches, sortCol='pctVal', threshold=5) {
     + showMorePill;
 }
 
+
 function togglePartnersExpand() {
   const hidden = document.getElementById('partners-hidden-body');
   const btn    = document.getElementById('partners-show-more-btn');
@@ -2524,8 +2464,8 @@ function togglePartnersExpand() {
   const isOpen = hidden.style.display !== 'none';
   hidden.style.display = isOpen ? 'none' : '';
   if (btn) {
-    const arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
-    const arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    var arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    var arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
     btn.innerHTML = isOpen ? arrowDown + 'More' : arrowUp + 'Less';
   }
 }
@@ -2541,14 +2481,16 @@ function sortPartners(col) {
 }
 
 function drillPartner(name) {
+  // Collapse any show-more expansion before sliding
   const hidden = document.getElementById('partners-hidden-body');
   if (hidden) hidden.style.display = 'none';
   const typeFilter = filterState.dash.type;
-  const matches = allMatches.filter(m => {
+  let matches = allMatches.filter(m => {
     if (typeFilter && m.type !== typeFilter) return false;
     return m.partner === name;
   });
 
+  // Update header — just show "Splits with [name]", no "Partner:" prefix
   const titleEl = document.getElementById('partners-card-title');
   const isMob = window.innerWidth <= 768;
   const displayName = formatPartnerName(name);
@@ -2564,197 +2506,39 @@ function drillPartner(name) {
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="resetPartners()">Back</button>
   `;
 
+  // Drill panel — match splits card exactly: no extra title div, just table + insight
   document.getElementById('partners-drill-panel').innerHTML = `
     ${buildSplitsTable(matches)}
     <div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>
   `;
+
+  // Slide left
   document.getElementById('partners-slide-inner').classList.add('drilled');
 }
 
 function resetPartners() {
+  // Slide back
   document.getElementById('partners-slide-inner').classList.remove('drilled');
-  const mode = filterState.partners.mode || 'partners';
-  const titleEl = document.getElementById('partners-card-title');
-  titleEl.style.cssText = '';
-  titleEl.textContent = mode === 'opponents' ? 'Top Opponents' : 'Top Partners';
-  document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
+  document.getElementById('partners-card-title').textContent = 'Top Partners';
+  document.getElementById('partner-header-controls').innerHTML = `
+    <span class="partners-threshold-label">Min:</span>
+    <select class="partners-threshold" id="partners-threshold" onchange="refreshPartnersTable()">
+      <option value="1">1</option>
+      <option value="5" selected>5</option>
+      <option value="10">10</option>
+      <option value="15">15</option>
+      <option value="25">25</option>
+    </select>
+  `;
 }
 
 function viewPartnerHistory(name) {
+  // Navigate to history page with partner pre-filtered
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
   document.getElementById('topbar-title').textContent = 'Match History';
   renderHistory(1, name);
-}
-
-// ── Opponents table ──────────────────────────────────────────
-
-function buildOpponentsTable(matches, sortCol='pctVal', threshold=2) {
-  const sortDir = filterState.opponents.sortDir || 'desc';
-
-  // Aggregate — each opponent (opp1 and opp2 in doubles) counted individually
-  const oppMap = {};
-  matches.forEach(m => {
-    [m.opp1, m.opp2].forEach(name => {
-      if (!name || name === '') return;
-      if (!oppMap[name]) oppMap[name] = { w:0, l:0 };
-      if (m.result==='W') oppMap[name].w++;
-      else oppMap[name].l++;
-    });
-  });
-
-  let opponents = Object.entries(oppMap)
-    .map(([name,{w,l}]) => ({ name, w, l, total:w+l, pctVal: w+l>0 ? w/(w+l) : 0 }))
-    .filter(o => o.total >= threshold);
-
-  const dir = sortDir === 'desc' ? -1 : 1;
-  opponents.sort((a,b) => dir * (a[sortCol] > b[sortCol] ? 1 : a[sortCol] < b[sortCol] ? -1 : 0));
-
-  const SHOW_O = 10;
-  const visibleOpponents = opponents.slice(0, SHOW_O);
-  const extraCount = opponents.length - SHOW_O;
-
-  if (!opponents.length) {
-    return `<div style="color:var(--muted);font-size:13px;padding:12px 0">No opponents with ${threshold}+ matches found.</div>`;
-  }
-
-  function thSort(col, label) {
-    const isActive = sortCol === col;
-    const arrow = isActive ? (sortDir==='desc' ? '↓' : '↑') : '↕';
-    return `<th class="sortable-th" onclick="sortOpponents('${col}')" style="text-align:right;cursor:pointer">
-      ${label}<span class="sort-arrow ${isActive?'active':''}">${arrow}</span></th>`;
-  }
-
-  function buildRow(o, i) {
-    const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
-    const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
-    const rate  = o.total > 0 ? o.w / o.total : 0;
-    const col   = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
-    return '<tr>'
-      + '<td style="display:flex;align-items:center;min-width:0">'
-      + '<span class="rank-num" style="width:24px;flex-shrink:0;text-align:right">' + (i+1) + '.</span>'
-      + '<span onclick="drillOpponent(\'' + escHtml(o.name) + '\')" class="tip" data-tip="' + escHtml(o.name) + '" style="cursor:pointer;color:var(--accent2);font-weight:600;text-decoration:underline;text-underline-offset:2px;margin-left:6px;max-width:140px">' + escHtml(o.name) + '</span>'
-      + '</td>'
-      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + o.w + '</td>'
-      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + o.l + '</td>'
-      + '<td style="text-align:right;color:' + col + ';font-weight:600">' + pct(o.w,o.l) + '</td>'
-      + '</tr>';
-  }
-
-  const visibleRows = visibleOpponents.map((o,i) => buildRow(o,i)).join('');
-  const hiddenRows  = opponents.slice(SHOW_O).map((o,i) => buildRow(o, i+SHOW_O)).join('');
-  const showMorePill = extraCount > 0
-    ? '<div style="display:flex;justify-content:center;margin-top:8px">'
-      + '<button id="partners-show-more-btn" onclick="toggleOpponentsExpand()"'
-      + ' style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
-      + '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
-      + 'More</button></div>'
-    : '';
-
-  return '<table class="partners-table">'
-    + '<thead><tr>'
-    + '<th class="sortable-th" onclick="sortOpponents(\'name\')" style="text-align:left;cursor:pointer">'
-    + 'Opponent<span class="sort-arrow ' + (sortCol==='name'?'active':'') + '"> '
-    + (sortCol==='name'?(sortDir==='desc'?'↓':'↑'):'↕') + '</span></th>'
-    + thSort('w','W') + thSort('l','L') + thSort('pctVal','W%')
-    + '</tr></thead>'
-    + '<tbody id="opponents-visible-body">' + visibleRows + '</tbody>'
-    + (extraCount > 0 ? '<tbody id="opponents-hidden-body" style="display:none">' + hiddenRows + '</tbody>' : '')
-    + '</table>'
-    + showMorePill;
-}
-
-function toggleOpponentsExpand() {
-  const hidden = document.getElementById('opponents-hidden-body');
-  const btn    = document.getElementById('partners-show-more-btn');
-  if (!hidden) return;
-  const isOpen = hidden.style.display !== 'none';
-  hidden.style.display = isOpen ? 'none' : '';
-  if (btn) {
-    const arrowDown = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
-    const arrowUp   = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
-    btn.innerHTML = isOpen ? arrowDown + 'More' : arrowUp + 'Less';
-  }
-}
-
-function sortOpponents(col) {
-  if (filterState.opponents.sortCol === col) {
-    filterState.opponents.sortDir = filterState.opponents.sortDir === 'desc' ? 'asc' : 'desc';
-  } else {
-    filterState.opponents.sortCol = col;
-    filterState.opponents.sortDir = col === 'l' ? 'asc' : 'desc';
-  }
-  refreshPartnersTable();
-}
-
-function drillOpponent(name) {
-  const hidden = document.getElementById('opponents-hidden-body');
-  if (hidden) hidden.style.display = 'none';
-  const typeFilter = filterState.dash.type;
-
-  // Collect all matches involving this opponent (opp1 or opp2)
-  const matches = allMatches.filter(m => {
-    if (typeFilter && m.type !== typeFilter) return false;
-    return m.opp1 === name || m.opp2 === name;
-  });
-
-  const W = matches.filter(m => m.result === 'W').length;
-  const L = matches.filter(m => m.result === 'L').length;
-  const singlesCount = matches.filter(m => !isDoubles(m)).length;
-  const doublesCount = matches.filter(m =>  isDoubles(m)).length;
-
-  const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
-  const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
-  const rate  = W + L > 0 ? W / (W + L) : 0;
-  const recCol = rate > great ? 'var(--win)' : rate < poor ? 'var(--loss)' : 'var(--warn)';
-
-  // Context line: breakdown if they have both singles and doubles matches
-  const contextParts = [];
-  if (singlesCount > 0) contextParts.push(`${singlesCount} singles`);
-  if (doublesCount > 0) contextParts.push(`${doublesCount} doubles`);
-  const contextLine = contextParts.length > 1
-    ? `<div style="font-size:11px;color:var(--muted);margin-bottom:12px">${contextParts.join(', ')}</div>`
-    : '';
-
-  const titleEl = document.getElementById('partners-card-title');
-  const isMob = window.innerWidth <= 768;
-  if (isMob) {
-    titleEl.style.cssText = 'max-width:100%';
-    titleEl.innerHTML = `vs<br><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%">${escHtml(name)}</span>`;
-  } else {
-    titleEl.style.cssText = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%';
-    titleEl.textContent = `vs ${name}`;
-  }
-
-  document.getElementById('partner-header-controls').innerHTML = `
-    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewOpponentHistory('${escHtml(name)}')">History</button>
-    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="resetPartners()">Back</button>
-  `;
-
-  // Head-to-head record summary above splits
-  const h2hHtml = `
-    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
-      <span style="font-size:22px;font-weight:700;color:${recCol};line-height:1">${W}–${L}</span>
-      <span style="font-size:13px;color:var(--muted)">${pct(W,L)}</span>
-    </div>
-    ${contextLine}`;
-
-  document.getElementById('partners-drill-panel').innerHTML =
-    h2hHtml
-    + buildSplitsTable(matches)
-    + `<div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>`;
-
-  document.getElementById('partners-slide-inner').classList.add('drilled');
-}
-
-function viewOpponentHistory(name) {
-  filterState.history.opponent = name.toLowerCase();
-  currentPage = 'history';
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item')[1].classList.add('active');
-  document.getElementById('topbar-title').textContent = 'Match History';
-  renderHistory(1);
 }
 
 // 
@@ -2795,6 +2579,7 @@ function renderHistory(page, preFilterPartner) {
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
   const opponentFilter = filterState.history.opponent;
+  const notesFilter    = filterState.history.notes || '';
   const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
 
@@ -2828,6 +2613,7 @@ function renderHistory(page, preFilterPartner) {
     if (typeFilter     && m.type   !== typeFilter)   return false;
     if (partnerFilter  && !m.partner?.toLowerCase().includes(partnerFilter.toLowerCase())) return false;
     if (opponentFilter && !(m.opp1+' '+(m.opp2||'')).toLowerCase().includes(opponentFilter)) return false;
+    if (notesFilter    && !(m.notes||'').toLowerCase().includes(notesFilter.toLowerCase())) return false;
     if (playoffFilter  && !m.playoff) return false;
     if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
     if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
@@ -2838,7 +2624,7 @@ function renderHistory(page, preFilterPartner) {
 
   const total = filtered.length;
 
-  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter,
+  const activeFilterCount = [yearFilter,seasonFilter,levelFilter,typeFilter,partnerFilter,opponentFilter,notesFilter,
     filterState.history.league,filterState.history.line,filterState.history.surface,filterState.history.time].filter(Boolean).length + (playoffFilter?1:0);
 
   const leagues  = ['', ...sortedLeagues(validEntries.league||[])];
@@ -2849,55 +2635,58 @@ function renderHistory(page, preFilterPartner) {
   const content = document.getElementById('content');
   content.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow);max-width:100%">
-      <!-- Always-visible search row -->
-      <div class="hist-search-row" style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
-        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
-          oninput="onHistOpponentInput(this.value)"
-          style="flex:1 1 100px;min-width:0">
+      <!-- Always-visible top row: Partner, Opponent, Notes — horizontally scrollable on mobile -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
-          style="flex:1 1 80px;min-width:0">
-        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap">Clear</button>
+          style="flex:0 0 130px;min-width:0">
+        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
+          oninput="onHistOpponentInput(this.value)"
+          style="flex:0 0 140px;min-width:0">
+        <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(notesFilter)}"
+          oninput="onHistNotesInput(this.value)"
+          style="flex:0 0 120px;min-width:0">
+        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap;flex-shrink:0">Clear</button>
       </div>
-      <!-- Collapsible dropdowns -->
-      <div id="hist-filter-body" style="display:none;padding:10px 14px 0;border-bottom:1px solid var(--border)">
-        <div class="history-controls" style="margin-bottom:10px;flex-wrap:wrap">
-          <select class="filter-select" id="hist-year" onchange="renderHistory()">
-            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-season" onchange="renderHistory()">
-            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-level" onchange="renderHistory()">
-            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
-          </select>
-          <select class="filter-select" id="hist-type" onchange="renderHistory()">
+      <!-- Collapsible dropdown row — horizontally scrollable -->
+      <div id="hist-filter-body" style="display:none;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap">
+          <select class="filter-select" id="hist-type" onchange="renderHistory()" style="flex-shrink:0">
             ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-league" onchange="renderHistory()">
+          <select class="filter-select" id="hist-level" onchange="renderHistory()" style="flex-shrink:0">
+            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-year" onchange="renderHistory()" style="flex-shrink:0">
+            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-league" onchange="renderHistory()" style="flex-shrink:0">
             ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-line" onchange="renderHistory()">
+          <select class="filter-select" id="hist-season" onchange="renderHistory()" style="flex-shrink:0">
+            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="hist-line" onchange="renderHistory()" style="flex-shrink:0">
             ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-surface" onchange="renderHistory()">
+          <select class="filter-select" id="hist-surface" onchange="renderHistory()" style="flex-shrink:0">
             ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
           </select>
-          <select class="filter-select" id="hist-time" onchange="renderHistory()">
+          <select class="filter-select" id="hist-time" onchange="renderHistory()" style="flex-shrink:0">
             ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
           </select>
-          <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+          <div style="display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:2px 0">
             <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
             <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
           </div>
         </div>
       </div>
-      <!-- Toggle pill — centered, matches insights pill -->
-      <div style="display:flex;justify-content:center;padding:10px 14px;background:var(--surface2);border-top:1px solid var(--border)">
+      <!-- Toggle pill -->
+      <div style="display:flex;justify-content:center;padding:8px 14px;background:var(--surface2);border-top:1px solid var(--border)">
         <button id="hist-filter-pill" onclick="toggleHistFilters()"
           style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:4px 20px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">
           <svg id="hist-filter-chevron" width="9" height="5" viewBox="0 0 9 5" fill="none" style="transition:transform 0.2s"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          <span id="hist-filter-label">More</span>
+          <span id="hist-filter-label">More Filters</span>
           ${activeFilterCount > 0 ? `<span style="background:var(--accent2);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:2px">${activeFilterCount}</span>` : ''}
         </button>
       </div>
@@ -2974,16 +2763,25 @@ function buildHistoryResults(filtered, sortOrder) {
   const mostWins = pQual.length ? pQual.reduce((a,b) => a.w > b.w ? a : b) : null;
   const bestPct  = pQual.length ? pQual.reduce((a,b) => a.pv > b.pv ? a : b) : null;
 
+  var isMobView = window.innerWidth <= 768;
   function tipName(n) {
+    if (isMobView) return '<strong>' + escHtml(n) + '</strong>';
     var esc = escHtml(n);
     var display = escHtml(formatPartnerName(n));
     return '<strong class="tip" data-tip="' + esc + '" style="max-width:120px;display:inline-block;vertical-align:bottom">' + display + '</strong>';
   }
   var partnerText = '';
   if (mostWins) {
-    partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
-    if (bestPct && bestPct.n !== mostWins.n) {
-      partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+    if (isMobView) {
+      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + ').';
+      if (bestPct && bestPct.n !== mostWins.n) {
+        partnerText += ' Highest % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%).';
+      }
+    } else {
+      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
+      if (bestPct && bestPct.n !== mostWins.n) {
+        partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
+      }
     }
   } else {
     partnerText = 'No partners with ' + pMin + '+ matches.';
@@ -3162,13 +2960,48 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var isMob = window.innerWidth <= 768;
 
-  // Desktop: cards grid wrapped in a relative container so the pill can sit on the bottom edge
-  // Mobile: no pill — cards toggle individually via cardHtml headers
-  var cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
-    + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
-    + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
-    + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header)
-    + '</div>';
+  // Desktop: three separate cards in a grid with a collapse-all toggle
+  // Mobile: single "Insights" card that wraps all three sections
+  var cardsHtml;
+  if (isMob) {
+    var insightsBody =
+        '<div style="padding:0 14px 4px">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);padding:10px 0 6px">Record Breakdown</div>'
+      + card1Body
+      + '</div>'
+      + '<div style="height:1px;background:var(--border);margin:4px 0"></div>'
+      + '<div style="padding:0 14px 4px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Performance Breakdown</div>'
+      + '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1">✏️</button>'
+      + '</div>'
+      + card2Body
+      + '</div>'
+      + '<div style="height:1px;background:var(--border);margin:4px 0"></div>'
+      + '<div style="padding:0 14px 12px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Partner Performance</div>'
+      + card3Header
+      + '</div>'
+      + card3Body
+      + '</div>';
+
+    cardsHtml = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);width:100%;box-sizing:border-box;overflow:hidden;margin-bottom:12px">'
+      + '<div onclick="toggleHistCard(\'hc-insights\')" style="display:flex;align-items:center;justify-content:space-between;padding:0 14px;min-height:44px;background:var(--surface2);cursor:pointer;user-select:none">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)">Insights</div>'
+      + '<span id="hc-insights-chev" style="font-size:11px;color:var(--muted)">▼</span>'
+      + '</div>'
+      + '<div id="hc-insights" style="display:none">'
+      + insightsBody
+      + '</div>'
+      + '</div>';
+  } else {
+    cardsHtml = '<div class="hist-cards-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;min-width:0;box-sizing:border-box;overflow:hidden;">'
+      + cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
+      + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
+      + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header)
+      + '</div>';
+  }
 
   var desktopToggle = isMob ? '' :
     '<div style="display:flex;justify-content:center;margin:6px 0 14px;">'
@@ -3210,6 +3043,12 @@ function onHistPartnerInput(val) {
   _histTimer = setTimeout(applyHistoryFilter, 400);
 }
 
+function onHistNotesInput(val) {
+  filterState.history.notes = val.trim();
+  clearTimeout(_histTimer);
+  _histTimer = setTimeout(applyHistoryFilter, 400);
+}
+
 function renderHistoryFiltered() {
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
@@ -3235,6 +3074,7 @@ function applyHistoryFilter() {
     if (typ  && m.type   !== typ)  return false;
     if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
     if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
+    if (filterState.history.notes && !(m.notes||'').toLowerCase().includes(filterState.history.notes.toLowerCase())) return false;
     if (po   && !m.playoff) return false;
       if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
       if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
@@ -3269,6 +3109,16 @@ function applyHistoryFilter() {
 }
 
 function toggleHistCard(id) {
+  // Handle the unified mobile insights card
+  if (id === 'hc-insights') {
+    var body = document.getElementById('hc-insights');
+    var chev = document.getElementById('hc-insights-chev');
+    if (!body) return;
+    var isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    if (chev) chev.textContent = isOpen ? '▼' : '▲';
+    return;
+  }
   var body = document.getElementById(id);
   var chev = document.getElementById(id + '-chev');
   var ctrl = document.getElementById(id + '-ctrl');
@@ -3329,15 +3179,17 @@ function autoOpenHistFilters() {
 }
 
 function clearHistoryFilters() {
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'' };
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'' };
   ['hist-year','hist-season','hist-level','hist-type','hist-sort','hist-league','hist-line','hist-surface','hist-time'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = id === 'hist-sort' ? 'newest' : '';
   });
   const oppEl = document.getElementById('hist-opponent');
   const parEl = document.getElementById('hist-partner');
+  const notEl = document.getElementById('hist-notes');
   if (oppEl) oppEl.value = '';
   if (parEl) parEl.value = '';
+  if (notEl) notEl.value = '';
   const poEl = document.getElementById('hist-playoff');
   if (poEl) poEl.checked = false;
   renderHistory(1);
