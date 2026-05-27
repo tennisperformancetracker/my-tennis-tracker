@@ -2883,7 +2883,7 @@ function renderHistory(page, preFilterPartner) {
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
           oninput="onHistNotesInput(this.value)"
           style="flex:1 1 100%;min-width:0">
-        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap;margin-left:auto">Clear</button>
+        <button class="btn btn-ghost" onclick="clearHistoryFilters()" style="font-size:12px;padding:5px 10px;white-space:nowrap;flex-shrink:0">Clear</button>
       </div>
       <!-- Collapsible dropdowns -->
       <div id="hist-filter-body" style="display:none;padding:10px 14px 10px;border-bottom:1px solid var(--border)">
