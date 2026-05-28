@@ -1410,7 +1410,7 @@ const filterState = {
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5, mode: 'partners' },
   opponents: { sortCol: 'pctVal', sortDir: 'desc', threshold: 2 },
-  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', notes: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '' },
+  history: { year: '', season: '', level: '', type: '', partner: '', opponent: '', notes: '', sort: 'newest', playoff: false, league: '', line: '', surface: '', time: '', splitFilter: null },
   histPartnerMin: 5
 };
 
@@ -1832,17 +1832,19 @@ function renderDashboard() {
           </div>
         </div>
         <div id="splits-content">
-          ${buildSplitsTable(getSplitsMatches(matches))}
+          ${buildSplitsTable(getSplitsMatches(matches), true)}
         </div>
         <div class="insight-blurb" id="splits-insight" style="margin-top:16px">${buildSplitsInsight(getSplitsMatches(matches))}</div>
       </div>
       <div class="card">
         <div class="card-header po-card-header" style="min-height:40px;">
           <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners'}</div>
-          <div class="partners-controls" id="partner-header-controls">
-            ${buildPartnerOpponentControls()}
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="po-pill-wrap">${buildPOPill()}</div>
+            <div class="partners-controls" id="partner-header-controls">
+              ${buildPartnerOpponentControls()}
+            </div>
           </div>
-          <div id="po-pill-wrap">${buildPOPill()}</div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
@@ -1883,7 +1885,7 @@ function updateSplits() {
   const filtered = getSplitsMatches(base);
   const el = document.getElementById('splits-content');
   const ins = document.getElementById('splits-insight');
-  if (el)  el.innerHTML  = buildSplitsTable(filtered);
+  if (el)  el.innerHTML  = buildSplitsTable(filtered, true);
   if (ins) ins.innerHTML = buildSplitsInsight(filtered);
 }
 
@@ -1989,14 +1991,13 @@ function calcStreak(sortedDesc) {
   return { current, longest };
 }
 
-function buildSplitsTable(matches) {
+function buildSplitsTable(matches, isDashboard) {
   const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
   const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
 
-  function row(label, w, l) {
+  function row(label, w, l, wKey, lKey) {
     const total = w + l;
     const p = pct(w, l);
-    // Only color if there are actual matches — avoid coloring 0-0 rows
     let cls = '';
     if (total > 0) {
       const rate = w / total;
@@ -2005,10 +2006,17 @@ function buildSplitsTable(matches) {
       else                  cls = 'row-mid';
     }
     const pClass = total === 0 ? 'pct-text' : (p === '0.0%' ? 'zero-pct' : cls || 'pct-text');
+    const linkStyle = 'cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-style:dotted;';
+    const wCell = (isDashboard && wKey && w > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${wKey}')" style="${linkStyle}">${w}</td>`
+      : `<td class="${cls||''}">${w}</td>`;
+    const lCell = (isDashboard && lKey && l > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${lKey}')" style="${linkStyle}">${l}</td>`
+      : `<td class="${cls||''}">${l}</td>`;
     return `<tr>
       <td>${label}</td>
-      <td class="${cls || ''}">${w}</td>
-      <td class="${cls || ''}">${l}</td>
+      ${wCell}
+      ${lCell}
       <td class="${pClass}">${p}</td>
     </tr>`;
   }
@@ -2074,19 +2082,19 @@ function buildSplitsTable(matches) {
         ${row('Sets', sW, sL)}
         ${row('Games', gW, gL)}
         ${divider}
-        ${row('Home', hW, hL)}
-        ${row('Away', aW, aL)}
+        ${row('Home', hW, hL, 'home_w', 'home_l')}
+        ${row('Away', aW, aL, 'away_w', 'away_l')}
         ${divider}
-        ${row('Morning', morW+dW, morL+dL)}
-        ${row('Afternoon', aftW, aftL)}
-        ${row('Night', nW, nL)}
+        ${row('Morning', morW+dW, morL+dL, 'morning_w', 'morning_l')}
+        ${row('Afternoon', aftW, aftL, 'afternoon_w', 'afternoon_l')}
+        ${row('Night', nW, nL, 'night_w', 'night_l')}
         ${divider}
-        ${row('2-Set Matches', t2W, t2L)}
-        ${row('3-Set Matches', t3W, t3L)}
+        ${row('2-Set Matches', t2W, t2L, 'two_w', 'two_l')}
+        ${row('3-Set Matches', t3W, t3L, 'three_w', 'three_l')}
         ${divider}
-        ${row('Tiebreaks', tbW, tbL)}
-        ${row('Close Matches <span class="tip-icon" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span>', clW, clL)}
-        ${row('Playoffs', plW, plL)}
+        ${row('Tiebreaks', tbW, tbL, 'tb_w', 'tb_l')}
+        ${row('Close Matches <span class="tip-icon" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span>', clW, clL, 'close_w', 'close_l')}
+        ${row('Playoffs', plW, plL, 'playoff_w', 'playoff_l')}
       </tbody>
     </table>
   `;
@@ -2602,6 +2610,15 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
   document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
 }
 
+function drillSplit(key) {
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
+  currentPage = 'history';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[1].classList.add('active');
+  document.getElementById('topbar-title').textContent = 'Match History';
+  renderHistory(1);
+}
+
 function viewPartnerHistory(name) {
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -2827,7 +2844,20 @@ function renderHistory(page, preFilterPartner) {
 
   // Dynamic topbar title
   let histTitle = 'Match History';
-  if (partnerFilter && opponentFilter) histTitle = `Match History with ${partnerFilter} against ${opponentFilter}`;
+  if (filterState.history.splitFilter) {
+    const sfLabels = {
+      home_w:'Home Wins', home_l:'Home Losses', away_w:'Away Wins', away_l:'Away Losses',
+      morning_w:'Morning Wins', morning_l:'Morning Losses',
+      afternoon_w:'Afternoon Wins', afternoon_l:'Afternoon Losses',
+      night_w:'Night Wins', night_l:'Night Losses',
+      two_w:'2-Set Wins', two_l:'2-Set Losses',
+      three_w:'3-Set Wins', three_l:'3-Set Losses',
+      tb_w:'Tiebreak Wins', tb_l:'Tiebreak Losses',
+      close_w:'Close Match Wins', close_l:'Close Match Losses',
+      playoff_w:'Playoff Wins', playoff_l:'Playoff Losses'
+    };
+    histTitle = sfLabels[filterState.history.splitFilter] || 'Match History';
+  } else if (partnerFilter && opponentFilter) histTitle = `Match History with ${partnerFilter} against ${opponentFilter}`;
   else if (partnerFilter)  histTitle = `Match History with ${partnerFilter}`;
   else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
   document.getElementById('topbar-title').textContent = histTitle;
@@ -2856,6 +2886,29 @@ function renderHistory(page, preFilterPartner) {
     if (filterState.history.line    && m.line    !== filterState.history.line)    return false;
     if (filterState.history.surface && m.surface !== filterState.history.surface) return false;
     if (filterState.history.time    && m.time    !== filterState.history.time)    return false;
+    if (filterState.history.splitFilter) {
+      const sf = filterState.history.splitFilter;
+      if (sf === 'home_w')      return m.homeaway === 'Home' && m.result === 'W';
+      if (sf === 'home_l')      return m.homeaway === 'Home' && m.result === 'L';
+      if (sf === 'away_w')      return m.homeaway === 'Away' && m.result === 'W';
+      if (sf === 'away_l')      return m.homeaway === 'Away' && m.result === 'L';
+      if (sf === 'morning_w')   return (m.time === 'Morning' || m.time === 'Day') && m.result === 'W';
+      if (sf === 'morning_l')   return (m.time === 'Morning' || m.time === 'Day') && m.result === 'L';
+      if (sf === 'afternoon_w') return m.time === 'Afternoon' && m.result === 'W';
+      if (sf === 'afternoon_l') return m.time === 'Afternoon' && m.result === 'L';
+      if (sf === 'night_w')     return m.time === 'Night' && m.result === 'W';
+      if (sf === 'night_l')     return m.time === 'Night' && m.result === 'L';
+      if (sf === 'two_w')       return countSets(m) === 2 && !m.oppRet && !m.weRet && m.result === 'W';
+      if (sf === 'two_l')       return countSets(m) === 2 && !m.oppRet && !m.weRet && m.result === 'L';
+      if (sf === 'three_w')     return countSets(m) === 3 && m.result === 'W';
+      if (sf === 'three_l')     return countSets(m) === 3 && m.result === 'L';
+      if (sf === 'tb_w')        return [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].some(([w,l])=>(num(w)===7&&num(l)===6)||(!m.oppRet&&!m.weRet&&num(w)===1&&num(l)===0)) && m.result === 'W';
+      if (sf === 'tb_l')        return [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].some(([w,l])=>(num(w)===6&&num(l)===7)||(!m.oppRet&&!m.weRet&&num(w)===0&&num(l)===1)) && m.result === 'L';
+      if (sf === 'close_w')     return isClose(m) && m.result === 'W';
+      if (sf === 'close_l')     return isClose(m) && m.result === 'L';
+      if (sf === 'playoff_w')   return m.playoff && m.result === 'W';
+      if (sf === 'playoff_l')   return m.playoff && m.result === 'L';
+    }
     return true;
   }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
 
@@ -3407,7 +3460,7 @@ function autoOpenHistFilters() {
 }
 
 function clearHistoryFilters() {
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'' };
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
   ['hist-year','hist-season','hist-level','hist-type','hist-sort','hist-league','hist-line','hist-surface','hist-time'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = id === 'hist-sort' ? 'newest' : '';
