@@ -2619,7 +2619,7 @@ function drillSplit(key, partner, opponent) {
     drillPartner: partner || null,
     drillOpponent: opponent || null
   };
-  filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent: opponent||'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
+  filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent: (opponent||'').toLowerCase(), notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -2859,7 +2859,7 @@ function renderHistory(page, preFilterPartner) {
   const levelFilter    = filterState.history.level;
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
-  const opponentFilter = filterState.history.opponent;
+  const opponentFilter = (filterState.history.opponent || '').toLowerCase();
   const notesFilter    = filterState.history.notes || '';
   const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
