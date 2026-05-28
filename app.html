@@ -1839,10 +1839,12 @@ function renderDashboard() {
       <div class="card">
         <div class="card-header po-card-header" style="min-height:40px;">
           <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners'}</div>
-          <div class="partners-controls" id="partner-header-controls">
-            ${buildPartnerOpponentControls()}
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="po-pill-wrap">${buildPOPill()}</div>
+            <div class="partners-controls" id="partner-header-controls">
+              ${buildPartnerOpponentControls()}
+            </div>
           </div>
-          <div id="po-pill-wrap">${buildPOPill()}</div>
         </div>
         <div class="partners-slide-wrap">
           <div class="partners-slide-inner" id="partners-slide-inner">
