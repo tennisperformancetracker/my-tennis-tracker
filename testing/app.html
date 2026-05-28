@@ -2617,6 +2617,7 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
 function drillSplit(key, partner) {
   filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
   histFiltersOpen = false;
+  histInsightsCollapsed = true;
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
@@ -2628,6 +2629,7 @@ function drillSplit(key, partner) {
 function viewPartnerHistory(name) {
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
   histFiltersOpen = false;
+  histInsightsCollapsed = true;
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
@@ -2799,6 +2801,7 @@ function viewOpponentHistory(name) {
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
   filterState.history.opponent = name.toLowerCase();
   histFiltersOpen = false;
+  histInsightsCollapsed = true;
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
@@ -3309,13 +3312,23 @@ function buildHistoryResults(filtered, sortOrder) {
       + '</div>';
   }
 
+  // On desktop, collapse cards when navigating from a dashboard link
+  if (!isMob && histInsightsCollapsed) {
+    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+      cardsHtml = cardsHtml.replace('id="' + id + '" style="display:block', 'id="' + id + '" style="display:none');
+    });
+  }
+  histInsightsCollapsed = false; // reset after use
+
   var desktopToggle = isMob ? '' :
     '<div style="display:flex;justify-content:center;margin:6px 0 14px;">'
     + '<button id="hist-cards-toggle-btn" onclick="toggleAllHistCards()" '
     + 'style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;'
     + 'font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
-    + '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
-    + 'Less</button></div>';
+    + (histInsightsCollapsed
+      ? '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More'
+      : '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Less')
+    + '</button></div>';
 
   return (isMob ? '<div style="margin-bottom:12px">' + cardsHtml + '</div>'
                 : '<div style="margin-bottom:6px">' + cardsHtml + desktopToggle + '</div>')
@@ -3336,6 +3349,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
 var _histTimer = null;
 var histFiltersOpen = false; // persists across re-renders
+var histInsightsCollapsed = false; // set true when navigating from dashboard links
 
 function onHistOpponentInput(val) {
   filterState.history.opponent = val.trim().toLowerCase();
