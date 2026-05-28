@@ -2013,8 +2013,11 @@ function buildSplitsTable(matches, isDashboard) {
     const lCell = (isDashboard && lKey && l > 0)
       ? `<td class="${cls||''}" onclick="drillSplit('${lKey}')" style="${linkStyle}">${l}</td>`
       : `<td class="${cls||''}">${l}</td>`;
+    const labelCell = (isDashboard && wKey && lKey)
+      ? `<td onclick="drillSplit('${wKey}_all')" style="${linkStyle}">${label}</td>`
+      : `<td>${label}</td>`;
     return `<tr>
-      <td>${label}</td>
+      ${labelCell}
       ${wCell}
       ${lCell}
       <td class="${pClass}">${p}</td>
@@ -2612,11 +2615,13 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
 
 function drillSplit(key) {
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
+  histFiltersOpen = false;
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
   document.getElementById('topbar-title').textContent = 'Match History';
   renderHistory(1);
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 function viewPartnerHistory(name) {
@@ -2854,7 +2859,11 @@ function renderHistory(page, preFilterPartner) {
       three_w:'3-Set Wins', three_l:'3-Set Losses',
       tb_w:'Tiebreak Wins', tb_l:'Tiebreak Losses',
       close_w:'Close Match Wins', close_l:'Close Match Losses',
-      playoff_w:'Playoff Wins', playoff_l:'Playoff Losses'
+      playoff_w:'Playoff Wins', playoff_l:'Playoff Losses',
+      home_w_all:'All Home Matches', away_w_all:'All Away Matches',
+      morning_w_all:'All Morning Matches', afternoon_w_all:'All Afternoon Matches', night_w_all:'All Night Matches',
+      two_w_all:'All 2-Set Matches', three_w_all:'All 3-Set Matches',
+      tb_w_all:'All Tiebreak Matches', close_w_all:'All Close Matches', playoff_w_all:'All Playoff Matches'
     };
     histTitle = sfLabels[filterState.history.splitFilter] || 'Match History';
   } else if (partnerFilter && opponentFilter) histTitle = `Match History with ${partnerFilter} against ${opponentFilter}`;
@@ -2908,6 +2917,16 @@ function renderHistory(page, preFilterPartner) {
       if (sf === 'close_l')     return isClose(m) && m.result === 'L';
       if (sf === 'playoff_w')   return m.playoff && m.result === 'W';
       if (sf === 'playoff_l')   return m.playoff && m.result === 'L';
+      if (sf === 'home_w_all')    return m.homeaway === 'Home';
+      if (sf === 'away_w_all')    return m.homeaway === 'Away';
+      if (sf === 'morning_w_all') return m.time === 'Morning' || m.time === 'Day';
+      if (sf === 'afternoon_w_all') return m.time === 'Afternoon';
+      if (sf === 'night_w_all')   return m.time === 'Night';
+      if (sf === 'two_w_all')     return countSets(m) === 2 && !m.oppRet && !m.weRet;
+      if (sf === 'three_w_all')   return countSets(m) === 3;
+      if (sf === 'tb_w_all')      return [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].some(([w,l])=>(num(w)===7&&num(l)===6)||(num(w)===6&&num(l)===7)||(!m.oppRet&&!m.weRet&&(num(w)===1&&num(l)===0||num(w)===0&&num(l)===1)));
+      if (sf === 'close_w_all')   return isClose(m);
+      if (sf === 'playoff_w_all') return !!m.playoff;
     }
     return true;
   }).sort((a,b) => sortOrder==='newest' ? parseDate(b.date)-parseDate(a.date) : parseDate(a.date)-parseDate(b.date));
