@@ -1839,11 +1839,9 @@ function renderDashboard() {
       <div class="card">
         <div class="card-header po-card-header" style="min-height:40px;">
           <div class="card-title" id="partners-card-title">${filterState.partners.mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partners'}</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div id="po-pill-wrap">${buildPOPill()}</div>
-            <div class="partners-controls" id="partner-header-controls">
-              ${buildPartnerOpponentControls()}
-            </div>
+          <div id="po-pill-wrap">${buildPOPill()}</div>
+          <div class="partners-controls" id="partner-header-controls">
+            ${buildPartnerOpponentControls()}
           </div>
         </div>
         <div class="partners-slide-wrap">
@@ -1991,7 +1989,7 @@ function calcStreak(sortedDesc) {
   return { current, longest };
 }
 
-function buildSplitsTable(matches, isDashboard, partnerContext) {
+function buildSplitsTable(matches, isDashboard, partnerContext, opponentContext) {
   const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
   const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
 
@@ -2007,15 +2005,18 @@ function buildSplitsTable(matches, isDashboard, partnerContext) {
     }
     const pClass = total === 0 ? 'pct-text' : (p === '0.0%' ? 'zero-pct' : cls || 'pct-text');
     const linkStyle = 'cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-style:dotted;';
-    const pArg = partnerContext ? `,'${escHtml(partnerContext)}'` : '';
-    const wCell = ((isDashboard || partnerContext) && wKey && w > 0)
-      ? `<td class="${cls||''}" onclick="drillSplit('${wKey}'${pArg})" style="${linkStyle}">${w}</td>`
+    const isClickable = isDashboard || partnerContext || opponentContext;
+    const ctxArgs = partnerContext ? `,'${escHtml(partnerContext)}',''`
+                  : opponentContext ? `,'','${escHtml(opponentContext)}'`
+                  : '';
+    const wCell = (isClickable && wKey && w > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${wKey}'${ctxArgs})" style="${linkStyle}">${w}</td>`
       : `<td class="${cls||''}">${w}</td>`;
-    const lCell = ((isDashboard || partnerContext) && lKey && l > 0)
-      ? `<td class="${cls||''}" onclick="drillSplit('${lKey}'${pArg})" style="${linkStyle}">${l}</td>`
+    const lCell = (isClickable && lKey && l > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${lKey}'${ctxArgs})" style="${linkStyle}">${l}</td>`
       : `<td class="${cls||''}">${l}</td>`;
-    const labelCell = ((isDashboard || partnerContext) && wKey && lKey)
-      ? `<td onclick="drillSplit('${wKey}_all'${pArg})" style="${linkStyle}">${label}</td>`
+    const labelCell = (isClickable && wKey && lKey)
+      ? `<td onclick="drillSplit('${wKey}_all'${ctxArgs})" style="${linkStyle}">${label}</td>`
       : `<td>${label}</td>`;
     return `<tr>
       ${labelCell}
@@ -2572,24 +2573,18 @@ function drillPartner(name) {
     return m.partner === name;
   });
 
-  const titleEl = document.getElementById('partners-card-title');
-  const isMob = window.innerWidth <= 768;
-  const displayName = formatPartnerName(name);
-  if (isMob) {
-    titleEl.style.cssText = 'max-width:100%';
-    titleEl.innerHTML = `Performance with<br><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%">${escHtml(displayName)}</span>`;
-  } else {
-    titleEl.style.cssText = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%';
-    titleEl.textContent = `Performance with ${displayName}`;
-  }
   const pW = matches.filter(m => m.result==='W').length;
   const pL = matches.filter(m => m.result==='L').length;
   const pGreat = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
   const pPoor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
   const pRate  = pW + pL > 0 ? pW / (pW + pL) : 0;
   const pCol   = pRate > pGreat ? 'var(--win)' : pRate < pPoor ? 'var(--loss)' : 'var(--warn)';
+  const displayName = formatPartnerName(name);
+  const titleEl = document.getElementById('partners-card-title');
+  titleEl.style.cssText = 'min-width:0;flex:1';
+  titleEl.innerHTML = `With ${escHtml(displayName)} you are <span style="font-weight:700;color:${pCol}">${pW}–${pL}</span> <span style="color:var(--muted);font-size:11px">${pct(pW,pL)}</span>`;
   const pPillWrap = document.getElementById('po-pill-wrap');
-  if (pPillWrap) pPillWrap.innerHTML = `<span style="font-size:13px;font-weight:700;color:${pCol}">${pW}–${pL}</span><span style="font-size:11px;color:var(--muted);margin-left:5px">${pct(pW,pL)}</span>`;
+  if (pPillWrap) pPillWrap.innerHTML = '';
 
   document.getElementById('partner-header-controls').innerHTML = `
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewPartnerHistory('${escHtml(name)}')">History</button>
@@ -2614,8 +2609,8 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
   document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
 }
 
-function drillSplit(key, partner) {
-  filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
+function drillSplit(key, partner, opponent) {
+  filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent: opponent||'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -2766,23 +2761,14 @@ function drillOpponent(name) {
   const contextLine = contextParts.length > 1 ? contextParts.join(', ') : '';
 
   const titleEl = document.getElementById('partners-card-title');
-  const isMob = window.innerWidth <= 768;
-  if (isMob) {
-    titleEl.style.cssText = 'max-width:100%';
-    titleEl.innerHTML = `vs<br><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%">${escHtml(name)}</span>`;
-  } else {
-    titleEl.style.cssText = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%';
-    titleEl.textContent = `vs ${name}`;
+  titleEl.style.cssText = 'min-width:0;flex:1';
+  let titleHtml = `Against ${escHtml(name)} you are <span style="font-weight:700;color:${recCol}">${W}–${L}</span> <span style="color:var(--muted);font-size:11px">${pct(W,L)}</span>`;
+  if (singlesCount > 0 && doublesCount > 0) {
+    titleHtml += ` <span style="font-size:11px;color:var(--muted);padding-left:6px;border-left:1px solid var(--border);margin-left:4px">${singlesCount}S · ${doublesCount}D</span>`;
   }
-
+  titleEl.innerHTML = titleHtml;
   const oPillWrap = document.getElementById('po-pill-wrap');
-  if (oPillWrap) {
-    let pillContent = `<span style="font-size:13px;font-weight:700;color:${recCol}">${W}–${L}</span><span style="font-size:11px;color:var(--muted);margin-left:5px">${pct(W,L)}</span>`;
-    if (singlesCount > 0 && doublesCount > 0) {
-      pillContent += `<span style="font-size:11px;color:var(--muted);margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">${singlesCount}S · ${doublesCount}D</span>`;
-    }
-    oPillWrap.innerHTML = pillContent;
-  }
+  if (oPillWrap) oPillWrap.innerHTML = '';
 
   document.getElementById('partner-header-controls').innerHTML = `
     <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="viewOpponentHistory('${escHtml(name)}')">History</button>
@@ -2790,8 +2776,7 @@ function drillOpponent(name) {
   `;
 
   document.getElementById('partners-drill-panel').innerHTML =
-    (contextLine ? `<div style="font-size:11px;color:var(--muted);margin-bottom:10px">${contextLine}</div>` : '')
-    + buildSplitsTable(matches)
+    buildSplitsTable(matches, false, null, name)
     + `<div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>`;
 
   document.getElementById('partners-slide-inner').classList.add('drilled');
@@ -2876,7 +2861,9 @@ function renderHistory(page, preFilterPartner) {
       tb_w_all:'All Tiebreak Matches', close_w_all:'All Close Matches', playoff_w_all:'All Playoff Matches'
     };
     const baseLabel = sfLabels[filterState.history.splitFilter] || 'Match History';
-    histTitle = partnerFilter ? `${baseLabel} with ${formatPartnerName(partnerFilter)}` : baseLabel;
+    if (partnerFilter) histTitle = `${baseLabel} with ${formatPartnerName(partnerFilter)}`;
+    else if (opponentFilter) histTitle = `${baseLabel} vs ${opponentFilter}`;
+    else histTitle = baseLabel;
   } else if (partnerFilter && opponentFilter) histTitle = `Match History with ${partnerFilter} against ${opponentFilter}`;
   else if (partnerFilter)  histTitle = `Match History with ${partnerFilter}`;
   else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
