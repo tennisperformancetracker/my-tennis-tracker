@@ -618,7 +618,10 @@ textarea:focus { border-color: var(--accent2) !important; }
   padding: 8px 14px; gap: 8px; flex-wrap: wrap; overflow-x: auto;
 }
 
-.po-card-header { display: flex; align-items: center; justify-content: space-between; }
+.po-card-header { display: flex; align-items: center; gap: 10px; }
+.po-card-header .card-title { flex-shrink: 0; }
+.po-card-header #po-pill-wrap { flex-shrink: 0; }
+.po-card-header #partner-header-controls { margin-left: auto; }
 .po-card-header #po-pill-wrap button { padding-top: 5px; padding-bottom: 5px; }
 .mobile-filters select {
   background: var(--surface2); border: 1px solid var(--border);
@@ -1603,6 +1606,7 @@ function sortedLevels(arr) {
 
 function showPage(page) {
   currentPage = page;
+  dashboardReturnState = null;
   window.scrollTo(0, 0);
   closeSidebar();
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -1989,7 +1993,7 @@ function calcStreak(sortedDesc) {
   return { current, longest };
 }
 
-function buildSplitsTable(matches, isDashboard, partnerContext, opponentContext) {
+function buildSplitsTable(matches, isDashboard, partnerContext) {
   const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
   const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
 
@@ -2005,18 +2009,15 @@ function buildSplitsTable(matches, isDashboard, partnerContext, opponentContext)
     }
     const pClass = total === 0 ? 'pct-text' : (p === '0.0%' ? 'zero-pct' : cls || 'pct-text');
     const linkStyle = 'cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-style:dotted;';
-    const isClickable = isDashboard || partnerContext || opponentContext;
-    const ctxArgs = partnerContext ? `,'${escHtml(partnerContext)}',''`
-                  : opponentContext ? `,'','${escHtml(opponentContext)}'`
-                  : '';
-    const wCell = (isClickable && wKey && w > 0)
-      ? `<td class="${cls||''}" onclick="drillSplit('${wKey}'${ctxArgs})" style="${linkStyle}">${w}</td>`
+    const pArg = partnerContext ? `,'${escHtml(partnerContext)}'` : '';
+    const wCell = ((isDashboard || partnerContext) && wKey && w > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${wKey}'${pArg})" style="${linkStyle}">${w}</td>`
       : `<td class="${cls||''}">${w}</td>`;
-    const lCell = (isClickable && lKey && l > 0)
-      ? `<td class="${cls||''}" onclick="drillSplit('${lKey}'${ctxArgs})" style="${linkStyle}">${l}</td>`
+    const lCell = ((isDashboard || partnerContext) && lKey && l > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${lKey}'${pArg})" style="${linkStyle}">${l}</td>`
       : `<td class="${cls||''}">${l}</td>`;
-    const labelCell = (isClickable && wKey && lKey)
-      ? `<td onclick="drillSplit('${wKey}_all'${ctxArgs})" style="${linkStyle}">${label}</td>`
+    const labelCell = ((isDashboard || partnerContext) && wKey && lKey)
+      ? `<td onclick="drillSplit('${wKey}_all'${pArg})" style="${linkStyle}">${label}</td>`
       : `<td>${label}</td>`;
     return `<tr>
       ${labelCell}
@@ -2582,7 +2583,7 @@ function drillPartner(name) {
   const displayName = formatPartnerName(name);
   const titleEl = document.getElementById('partners-card-title');
   titleEl.style.cssText = 'min-width:0;flex:1';
-  titleEl.innerHTML = `With ${escHtml(displayName)} you are <span style="font-weight:700;color:${pCol}">${pW}–${pL}</span> <span style="color:var(--muted);font-size:11px">${pct(pW,pL)}</span>`;
+  titleEl.innerHTML = `With ${escHtml(displayName)} you are: <span style="font-weight:700;color:${pCol}">${pW}–${pL},</span> <span style="font-weight:700;color:${pCol}">${pct(pW,pL)}</span>`;
   const pPillWrap = document.getElementById('po-pill-wrap');
   if (pPillWrap) pPillWrap.innerHTML = '';
 
@@ -2610,6 +2611,11 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
 }
 
 function drillSplit(key, partner, opponent) {
+  dashboardReturnState = {
+    scrollY: window.scrollY,
+    drillPartner: partner || null,
+    drillOpponent: opponent || null
+  };
   filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent: opponent||'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
@@ -2622,6 +2628,7 @@ function drillSplit(key, partner, opponent) {
 }
 
 function viewPartnerHistory(name) {
+  dashboardReturnState = { scrollY: window.scrollY, drillPartner: name, drillOpponent: null };
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
@@ -2762,7 +2769,7 @@ function drillOpponent(name) {
 
   const titleEl = document.getElementById('partners-card-title');
   titleEl.style.cssText = 'min-width:0;flex:1';
-  let titleHtml = `Against ${escHtml(name)} you are <span style="font-weight:700;color:${recCol}">${W}–${L}</span> <span style="color:var(--muted);font-size:11px">${pct(W,L)}</span>`;
+  let titleHtml = `Against ${escHtml(name)} you are: <span style="font-weight:700;color:${recCol}">${W}–${L},</span> <span style="font-weight:700;color:${recCol}">${pct(W,L)}</span>`;
   if (singlesCount > 0 && doublesCount > 0) {
     titleHtml += ` <span style="font-size:11px;color:var(--muted);padding-left:6px;border-left:1px solid var(--border);margin-left:4px">${singlesCount}S · ${doublesCount}D</span>`;
   }
@@ -2776,13 +2783,15 @@ function drillOpponent(name) {
   `;
 
   document.getElementById('partners-drill-panel').innerHTML =
-    buildSplitsTable(matches, false, null, name)
+    (contextLine ? `<div style="font-size:11px;color:var(--muted);margin-bottom:10px">${contextLine}</div>` : '')
+    + buildSplitsTable(matches)
     + `<div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>`;
 
   document.getElementById('partners-slide-inner').classList.add('drilled');
 }
 
 function viewOpponentHistory(name) {
+  dashboardReturnState = { scrollY: window.scrollY, drillPartner: null, drillOpponent: name };
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
   filterState.history.opponent = name.toLowerCase();
   histFiltersOpen = false;
@@ -2795,9 +2804,25 @@ function viewOpponentHistory(name) {
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-// 
-// MATCH HISTORY
-// 
+function backToDashboard() {
+  const state = dashboardReturnState;
+  dashboardReturnState = null;
+  currentPage = 'dashboard';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[0].classList.add('active');
+  document.getElementById('topbar-title').textContent = 'Dashboard';
+  renderDashboard();
+  // Restore scroll position
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: state ? state.scrollY : 0, behavior: 'instant' });
+    // Re-drill into partner or opponent if we came from there
+    if (state && state.drillPartner) {
+      setTimeout(() => drillPartner(state.drillPartner), 50);
+    } else if (state && state.drillOpponent) {
+      setTimeout(() => drillOpponent(state.drillOpponent), 50);
+    }
+  });
+}
 function renderHistory(page, preFilterPartner) {
   historyPage = page || 1;
 
@@ -2861,9 +2886,7 @@ function renderHistory(page, preFilterPartner) {
       tb_w_all:'All Tiebreak Matches', close_w_all:'All Close Matches', playoff_w_all:'All Playoff Matches'
     };
     const baseLabel = sfLabels[filterState.history.splitFilter] || 'Match History';
-    if (partnerFilter) histTitle = `${baseLabel} with ${formatPartnerName(partnerFilter)}`;
-    else if (opponentFilter) histTitle = `${baseLabel} vs ${opponentFilter}`;
-    else histTitle = baseLabel;
+    histTitle = partnerFilter ? `${baseLabel} with ${formatPartnerName(partnerFilter)}` : baseLabel;
   } else if (partnerFilter && opponentFilter) histTitle = `Match History with ${partnerFilter} against ${opponentFilter}`;
   else if (partnerFilter)  histTitle = `Match History with ${partnerFilter}`;
   else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
@@ -2872,6 +2895,7 @@ function renderHistory(page, preFilterPartner) {
   document.getElementById('mobile-filters').innerHTML = '';
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
+      ${dashboardReturnState ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;margin-right:8px" onclick="backToDashboard()">← Dashboard</button>` : ''}
       <span class="topbar-label">Sort:</span>
       <select class="topbar-select" id="hist-sort" onchange="renderHistory()">
         <option value="newest" ${sortOrder==='newest'?'selected':''}>Newest First</option>
@@ -3337,6 +3361,7 @@ function buildHistoryResults(filtered, sortOrder) {
 var _histTimer = null;
 var histFiltersOpen = false; // persists across re-renders
 var histInsightsCollapsed = false; // set true when navigating from dashboard links
+var dashboardReturnState = null; // stores scroll + drill state for back-to-dashboard
 
 function onHistOpponentInput(val) {
   filterState.history.opponent = val.trim().toLowerCase();
