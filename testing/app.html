@@ -1991,7 +1991,7 @@ function calcStreak(sortedDesc) {
   return { current, longest };
 }
 
-function buildSplitsTable(matches, isDashboard) {
+function buildSplitsTable(matches, isDashboard, partnerContext) {
   const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
   const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
 
@@ -2007,14 +2007,15 @@ function buildSplitsTable(matches, isDashboard) {
     }
     const pClass = total === 0 ? 'pct-text' : (p === '0.0%' ? 'zero-pct' : cls || 'pct-text');
     const linkStyle = 'cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-style:dotted;';
-    const wCell = (isDashboard && wKey && w > 0)
-      ? `<td class="${cls||''}" onclick="drillSplit('${wKey}')" style="${linkStyle}">${w}</td>`
+    const pArg = partnerContext ? `,'${escHtml(partnerContext)}'` : '';
+    const wCell = ((isDashboard || partnerContext) && wKey && w > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${wKey}'${pArg})" style="${linkStyle}">${w}</td>`
       : `<td class="${cls||''}">${w}</td>`;
-    const lCell = (isDashboard && lKey && l > 0)
-      ? `<td class="${cls||''}" onclick="drillSplit('${lKey}')" style="${linkStyle}">${l}</td>`
+    const lCell = ((isDashboard || partnerContext) && lKey && l > 0)
+      ? `<td class="${cls||''}" onclick="drillSplit('${lKey}'${pArg})" style="${linkStyle}">${l}</td>`
       : `<td class="${cls||''}">${l}</td>`;
-    const labelCell = (isDashboard && wKey && lKey)
-      ? `<td onclick="drillSplit('${wKey}_all')" style="${linkStyle}">${label}</td>`
+    const labelCell = ((isDashboard || partnerContext) && wKey && lKey)
+      ? `<td onclick="drillSplit('${wKey}_all'${pArg})" style="${linkStyle}">${label}</td>`
       : `<td>${label}</td>`;
     return `<tr>
       ${labelCell}
@@ -2596,7 +2597,7 @@ function drillPartner(name) {
   `;
 
   document.getElementById('partners-drill-panel').innerHTML = `
-    ${buildSplitsTable(matches)}
+    ${buildSplitsTable(matches, false, name)}
     <div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>
   `;
   document.getElementById('partners-slide-inner').classList.add('drilled');
@@ -2613,8 +2614,8 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
   document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
 }
 
-function drillSplit(key) {
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
+function drillSplit(key, partner) {
+  filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
   histFiltersOpen = false;
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -2625,11 +2626,14 @@ function drillSplit(key) {
 }
 
 function viewPartnerHistory(name) {
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
+  histFiltersOpen = false;
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
   document.getElementById('topbar-title').textContent = 'Match History';
   renderHistory(1, name);
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // ── Opponents table ──────────────────────────────────────────
@@ -2792,12 +2796,15 @@ function drillOpponent(name) {
 }
 
 function viewOpponentHistory(name) {
+  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
   filterState.history.opponent = name.toLowerCase();
+  histFiltersOpen = false;
   currentPage = 'history';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
   document.getElementById('topbar-title').textContent = 'Match History';
   renderHistory(1);
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // 
@@ -2865,7 +2872,8 @@ function renderHistory(page, preFilterPartner) {
       two_w_all:'All 2-Set Matches', three_w_all:'All 3-Set Matches',
       tb_w_all:'All Tiebreak Matches', close_w_all:'All Close Matches', playoff_w_all:'All Playoff Matches'
     };
-    histTitle = sfLabels[filterState.history.splitFilter] || 'Match History';
+    const baseLabel = sfLabels[filterState.history.splitFilter] || 'Match History';
+    histTitle = partnerFilter ? `${baseLabel} with ${formatPartnerName(partnerFilter)}` : baseLabel;
   } else if (partnerFilter && opponentFilter) histTitle = `Match History with ${partnerFilter} against ${opponentFilter}`;
   else if (partnerFilter)  histTitle = `Match History with ${partnerFilter}`;
   else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
