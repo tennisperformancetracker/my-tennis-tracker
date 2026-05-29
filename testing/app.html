@@ -211,8 +211,6 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .kpi2-bar { height: 4px; border-radius: 100px; transition: width 0.3s; }
 .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
 .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
-.kpi-grid.kpi-collapsed .kpi2-card { display: none; }
-.kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
 .kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
 .kpi2-mini-row {
   display: flex; gap: 0; border-top: 1px solid var(--border);
@@ -719,7 +717,6 @@ textarea:focus { border-color: var(--accent2) !important; }
   .topbar { background: #2f4157; padding: 0 14px; height: 52px; border-bottom: none; }
   .topbar-title { font-size: 16px; font-weight: 700; color: #fff; }
   .topbar-right { display: none; }
-  #mob-topbar-right { display: flex !important; }
   #mob-topbar-right { display: flex !important; }
   .mob-hamburger { display: flex; color: #fff; }
 
@@ -2424,7 +2421,7 @@ function initKpiCollapse() {
   var btn  = document.getElementById('kpi-toggle-btn');
   if (!grid) return;
   var count = grid.querySelectorAll('.kpi2-card').length;
-  var wasCollapsed = localStorage.getItem('kpiCollapsed') !== '0';
+  var wasCollapsed = localStorage.getItem('kpiCollapsed') === '1';
   var text = wasCollapsed ? 'Show ' + count + ' stat cards' : 'Hide stat cards';
   // Desktop pill
   var desktopLabel = document.getElementById('kpi-desktop-label');
