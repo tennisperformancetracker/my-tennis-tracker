@@ -2389,39 +2389,51 @@ function buildKPIs(matches, curYearMatches) {
   var cardHtml  = cardOrder.map(buildCard).join('');
   var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
   return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
-    + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '');
+    + '<div style="display:flex;justify-content:center;margin:-4px 0 14px">'
+    + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"></button>' : '')
+    + '<div id="kpi-desktop-bar" style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">'
+    + '<button id="kpi-desktop-toggle" onclick="toggleKpiCollapse()" style="background:none;border:none;padding:4px 14px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;line-height:1.4" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'"><span id="kpi-desktop-label">Hide stat cards</span></button>'
+    + '<div style="width:1px;background:var(--border);align-self:stretch;flex-shrink:0"></div>'
+    + '<button onclick="navigateToSettingsSection(\'sec-appearance\')" style="background:none;border:none;padding:4px 10px;cursor:pointer;font-size:12px;line-height:1.4;color:var(--muted)" title="Edit cards" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>'
+    + '</div>'
+    + '</div>';
 }
 
 // KPI collapse toggle (mobile only)
 function toggleKpiCollapse() {
   var grid = document.getElementById('kpi-grid-main');
   var btn  = document.getElementById('kpi-toggle-btn');
-  if (!grid || !btn) return;
+  if (!grid) return;
   var isCollapsed = grid.classList.toggle('kpi-collapsed');
-  btn.classList.toggle('collapsed', isCollapsed);
+  if (btn) btn.classList.toggle('collapsed', isCollapsed);
   var count = grid.querySelectorAll('.kpi2-card').length;
-  document.getElementById('kpi-toggle-label').textContent = isCollapsed
-    ? 'Show ' + count + ' stat cards'
-    : 'Hide stat cards';
+  var mobileLabel = document.getElementById('kpi-toggle-label');
+  var desktopLabel = document.getElementById('kpi-desktop-label');
+  var text = isCollapsed ? 'Show ' + count + ' stat cards' : 'Hide stat cards';
+  if (mobileLabel) mobileLabel.textContent = text;
+  if (desktopLabel) desktopLabel.textContent = text;
   localStorage.setItem('kpiCollapsed', isCollapsed ? '1' : '0');
 }
 
 function initKpiCollapse() {
   var grid = document.getElementById('kpi-grid-main');
   var btn  = document.getElementById('kpi-toggle-btn');
-  if (!grid || !btn) return;
+  if (!grid) return;
+  var count = grid.querySelectorAll('.kpi2-card').length;
+  var wasCollapsed = localStorage.getItem('kpiCollapsed') !== '0';
+  var text = wasCollapsed ? 'Show ' + count + ' stat cards' : 'Hide stat cards';
+  // Desktop pill
+  var desktopLabel = document.getElementById('kpi-desktop-label');
+  if (desktopLabel) desktopLabel.textContent = text;
+  if (wasCollapsed) grid.classList.add('kpi-collapsed');
+  // Mobile toggle button
+  if (!btn) return;
   if (window.innerWidth > 768) { btn.style.display = 'none'; return; }
   if (!grid.hasAttribute('data-collapsible')) return;
   btn.style.display = 'flex';
-  var count = grid.querySelectorAll('.kpi2-card').length;
-  var wasCollapsed = localStorage.getItem('kpiCollapsed') !== '0';
-  if (wasCollapsed) {
-    grid.classList.add('kpi-collapsed');
-    btn.classList.add('collapsed');
-    document.getElementById('kpi-toggle-label').textContent = 'Show ' + count + ' stat cards';
-  } else {
-    document.getElementById('kpi-toggle-label').textContent = 'Hide stat cards';
-  }
+  if (wasCollapsed) btn.classList.add('collapsed');
+  var mobileLabel = document.getElementById('kpi-toggle-label');
+  if (mobileLabel) mobileLabel.textContent = text;
 }
 
 // Wire up sparkbar tooltips after DOM render
