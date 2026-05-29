@@ -5042,9 +5042,9 @@ function renderSettings() {
                 <div class="settings-sub-card-title">Matches Per Page</div>
                 <div class="settings-sub-card-desc">How many matches to show per page in Match History.</div>
               </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div style="display:flex;gap:10px;flex-wrap:nowrap">
                 ${['10','25','50'].map(v => `
-                  <label style="display:flex;align-items:center;gap:8px;padding:8px 18px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:${savedPageSize===v?'var(--surface2)':'var(--surface)'}">
+                  <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;cursor:pointer;flex:1;justify-content:center;background:${savedPageSize===v?'var(--surface2)':'var(--surface)'}">
                     <input type="radio" name="hist-page-size" value="${v}" ${savedPageSize===v?'checked':''} style="accent-color:var(--accent2);width:16px;height:16px;flex-shrink:0">
                     <span style="font-size:14px;font-weight:600;color:var(--text)">${v}</span>
                   </label>`).join('')}
@@ -5081,10 +5081,26 @@ function renderSettings() {
           <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
             <div class="settings-sub-card">
               <div>
-                <div class="settings-sub-card-title">General Defaults & Partner Defaults</div>
+                <div class="settings-sub-card-title">General & Partner Defaults</div>
                 <div class="settings-sub-card-desc">Set optional defaults to save time during match entry. Any field left blank shows no pre-selection.</div>
               </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+            <div style="display:flex;flex-direction:column;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
+                ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
+                  ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
+                      const key   = 'defaultPartner_' + t;
+                      const saved = localStorage.getItem(key) || '';
+                      return `<div class="field">
+                        <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
+                        <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
+                          <option value="">— None —</option>
+                          ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
+                        </select>
+                      </div>`;
+                    }).join('')
+                  : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
+              </div>
               <div style="display:flex;flex-direction:column;gap:10px">
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
                 <div class="field">
@@ -5130,22 +5146,6 @@ function renderSettings() {
                     onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
                   <div style="font-size:11px;color:var(--muted);margin-top:4px">Auto-fills Location when "Home" is selected</div>
                 </div>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:10px">
-                <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
-                ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
-                  ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
-                      const key   = 'defaultPartner_' + t;
-                      const saved = localStorage.getItem(key) || '';
-                      return `<div class="field">
-                        <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
-                        <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
-                          <option value="">— None —</option>
-                          ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
-                        </select>
-                      </div>`;
-                    }).join('')
-                  : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
               </div>
             </div>
             
