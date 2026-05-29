@@ -716,6 +716,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   .topbar-title { font-size: 16px; font-weight: 700; color: #fff; }
   .topbar-right { display: none; }
   #mob-topbar-right { display: flex !important; }
+  #mob-topbar-right { display: flex !important; }
   .mob-hamburger { display: flex; color: #fff; }
 
   /* Mobile filters */
@@ -1692,6 +1693,8 @@ function showPage(page) {
   closeSidebar();
   const mtr = document.getElementById('mob-topbar-right');
   if (mtr) mtr.innerHTML = '';
+  const mtr = document.getElementById('mob-topbar-right');
+  if (mtr) mtr.innerHTML = '';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
@@ -2303,7 +2306,7 @@ function buildKPIs(matches, curYearMatches) {
       }
 
       case 'comeback': {
-        var badge = comebackRate !== null ? kpiBadge(comebackRate>great?'Strong':comebackRate<poor?'Weak':'Average', kpiBadgeClass(comebackRate,great,poor)) : '';
+        var badge = comebackRate !== null ? kpiBadge(comebackRate>0.5?'Strong':'Average', 'kpi2-badge-navy') : '';
         var valHtml = '<div class="kpi2-value" style="color:var(--text)">' + rPct(comebackRate) + '</div>';
         var sub = comebackWins + ' of ' + fsLost.length + ' comebacks after losing 1st set';
         var mini = kpiMiniStats([
@@ -2382,12 +2385,12 @@ function buildKPIs(matches, curYearMatches) {
   }
 
   var cardOrder = getDashboardCardOrder();
+  if (cardOrder.length === 0) return '';
   var colCount  = cardOrder.length >= 5 ? 5 : 4;
   var cardHtml  = cardOrder.map(buildCard).join('');
-  var cardOrder2 = getDashboardCardOrder();
-  var collapsible = cardOrder2.length >= 3 ? ' data-collapsible="true"' : '';
+  var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
   return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
-    + (cardOrder2.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><span class="kpi-toggle-arrow">▼</span></button>' : '');
+    + (cardOrder.length >= 3 ? '<div style="display:none;align-items:center;gap:8px" id="kpi-toggle-row"><button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="flex:1"><span id="kpi-toggle-label">Stats</span><span class="kpi-toggle-arrow">▼</span></button><button onclick="navigateToSettingsSection(\'sec-appearance\')" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:14px;line-height:1;color:var(--muted);flex-shrink:0" title="Edit dashboard cards">✏️</button></div>' : '');
 }
 
 // KPI collapse toggle (mobile only)
@@ -2407,10 +2410,11 @@ function toggleKpiCollapse() {
 function initKpiCollapse() {
   var grid = document.getElementById('kpi-grid-main');
   var btn  = document.getElementById('kpi-toggle-btn');
+  var row  = document.getElementById('kpi-toggle-row');
   if (!grid || !btn) return;
-  if (window.innerWidth > 768) { btn.style.display = 'none'; return; }
+  if (window.innerWidth > 768) { if (row) row.style.display = 'none'; else btn.style.display = 'none'; return; }
   if (!grid.hasAttribute('data-collapsible')) return;
-  btn.style.display = 'flex';
+  if (row) row.style.display = 'flex'; else btn.style.display = 'flex';
   var count = grid.querySelectorAll('.kpi2-card').length;
   var wasCollapsed = localStorage.getItem('kpiCollapsed') !== '0';
   if (wasCollapsed) {
@@ -3371,9 +3375,10 @@ function renderHistory(page, preFilterPartner) {
 
   document.getElementById('mobile-filters').innerHTML = '';
   const mobTopbarRight = document.getElementById('mob-topbar-right');
-  if (mobTopbarRight) mobTopbarRight.innerHTML = dashboardReturnState
+  if (mobTopbarRight) mobTopbarRight.innerHTML = (dashboardReturnState
     ? `<button onclick="backToDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;white-space:nowrap;">← Back</button>`
-    : '';
+    : '')
+    + `<select onchange="filterState.history.sort=this.value;renderHistory()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;"><option value="newest" ${sortOrder==='newest'?'selected':''}>Newest</option><option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest</option></select>`;
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
       ${dashboardReturnState ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;margin-right:8px" onclick="backToDashboard()">← Dashboard</button>` : ''}
@@ -4864,6 +4869,25 @@ let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true
 
 function markSettingsDirty() { settingsDirty = true; }
 
+async function saveAllSettings() {
+  const btn = document.getElementById('settings-global-save');
+  const mobBtn = document.getElementById('settings-global-save-mob');
+  [btn, mobBtn].forEach(b => { if (b) { b.textContent = 'Saving…'; b.disabled = true; } });
+  try {
+    await Promise.all([
+      saveDashboardCards(true),
+      saveDisplaySettings(true),
+      saveHistorySettings(true),
+      saveDefaultSettings(true),
+    ]);
+    settingsDirty = false;
+    showToast('✓ All settings saved!');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, true);
+  }
+  [btn, mobBtn].forEach(b => { if (b) { b.textContent = '💾 Save'; b.disabled = false; } });
+}
+
 function renderSettings() {
   const content = document.getElementById('content');
   const enabledCats = getPerfCats();
@@ -4871,7 +4895,11 @@ function renderSettings() {
   const poor  = parseInt(localStorage.getItem('thresholdPoor')  || '45');
   const currentUrl = webAppUrl || '';
 
-  document.getElementById('topbar-right').innerHTML = '';
+  const saveBtnHtml = `<button id="settings-global-save" onclick="saveAllSettings()" style="background:#e8f0f7;color:#3b6ea8;border:1px solid #c2d3ef;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 20px;cursor:pointer;white-space:nowrap;">💾 Save</button>`;
+  const saveBtnMobHtml = `<button id="settings-global-save-mob" onclick="saveAllSettings()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;white-space:nowrap;">💾 Save</button>`;
+  document.getElementById('topbar-right').innerHTML = saveBtnHtml;
+  const mtr = document.getElementById('mob-topbar-right');
+  if (mtr) mtr.innerHTML = saveBtnMobHtml;
   document.getElementById('mobile-filters').innerHTML = '';
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
@@ -4910,13 +4938,10 @@ function renderSettings() {
             <div class="settings-sub-card">
               <div>
                 <div class="settings-sub-card-title">Dashboard Cards</div>
-                <div class="settings-sub-card-desc">Choose up to 5 cards to show on your Dashboard. Drag to reorder — the top 4 appear by default, and a 5th slot unlocks when you select it.</div>
+                <div class="settings-sub-card-desc">Choose up to 5 cards to show on your Dashboard, or deselect all to hide the section entirely. Drag to reorder — the top 4 appear by default, and a 5th slot unlocks when you select it.</div>
               </div>
               <div id="card-picker-container"></div>
               <div id="settings-cards-msg" style="display:none;font-size:12px;margin-top:6px"></div>
-              <div style="display:flex;justify-content:flex-end;padding-top:4px">
-                <button onclick="saveDashboardCards()" class="settings-save-btn" id="save-cards-btn">Save</button>
-              </div>
             </div>
 
             <!-- Partner Name Format -->
@@ -4983,9 +5008,6 @@ function renderSettings() {
               </div>
             </div>
             <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px"></div>
-            <div style="display:flex;justify-content:flex-end;padding-top:4px">
-                <button onclick="saveDisplaySettings()" class="settings-save-btn" id="save-thresh-btn">Save</button>
-              </div>
             </div>
           </div>
         </div>
@@ -5030,9 +5052,6 @@ function renderSettings() {
             </div>
             <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
             <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
-            <div style="display:flex;justify-content:flex-end;padding-top:4px">
-                <button onclick="saveHistorySettings()" class="settings-save-btn" id="save-cats-btn">Save</button>
-              </div>
             </div>
           </div>
         </div>
@@ -5118,9 +5137,7 @@ function renderSettings() {
                   : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
               </div>
             </div>
-            <div style="display:flex;justify-content:flex-end;padding-top:4px">
-                <button onclick="saveDefaultSettings()" class="settings-save-btn" id="save-defaults-btn">Save</button>
-              </div>
+            
             </div>
           </div>
         </div>
@@ -5433,7 +5450,7 @@ function renderCardPicker() {
         var fl=allMatches.filter(function(m){return num(m.s1w)!==null&&num(m.s1l)!==null&&num(m.s1w)<num(m.s1l);});
         var cw2=fl.filter(function(m){return m.result==='W';}).length;
         var cr2=fl.length>0?cw2/fl.length:null;
-        return {val:rPct(cr2), sub:cw2+' of '+fl.length+' deficits', col:cr2===null?'var(--muted)':cr2>great?'var(--win)':cr2<poor?'var(--loss)':'var(--warn)'};
+        return {val:rPct(cr2), sub:cw2+' of '+fl.length+' deficits', col:'var(--text)'};
       }
       case 'tiebreak': {
         var tw2=0,tl2=0;
@@ -5498,6 +5515,7 @@ function renderCardPicker() {
     container.innerHTML = '<div class="card-picker-grid">' + html + '</div>'
       + '<div style="font-size:12px;color:var(--muted)">' + sel.length + ' of 5 selected'
       + (sel.length === 5 ? ' \u00b7 5th card shown on wider screens' : '')
+      + (sel.length === 0 ? ' \u00b7 KPI section will be hidden' : '')
       + '</div>';
   }
 
@@ -5548,25 +5566,23 @@ function renderCardPicker() {
   render();
 }
 
-async function saveDashboardCards() {
+async function saveDashboardCards(silent) {
   const btn = document.getElementById('save-cards-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
-  const sel = window._pickerSelected || getDashboardCardOrder();
-  if (sel.length === 0) { showToast('Select at least 1 card', true); if(btn){btn.textContent='Save';btn.disabled=false;} return; }
+  const sel = window._pickerSelected !== undefined ? window._pickerSelected : getDashboardCardOrder();
   localStorage.setItem('dashboardCards', JSON.stringify(sel));
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:{dashboardCards: sel.join(',')}})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false;
-  showToast('✓ Dashboard cards saved!');
+  if (!silent) { settingsDirty = false; showToast('✓ Dashboard cards saved!'); }
 }
 
-async function saveDisplaySettings() {
+async function saveDisplaySettings(silent) {
   const btn = document.getElementById('save-thresh-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const great = parseInt(document.getElementById('settings-t-great')?.value);
   const poor  = parseInt(document.getElementById('settings-t-poor')?.value);
-  if (isNaN(great) || isNaN(poor)) { showToast('Invalid threshold values', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
-  if (great <= poor) { showToast('Great threshold must be higher than Poor', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
+  if (isNaN(great) || isNaN(poor)) { if (!silent) showToast('Invalid threshold values', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
+  if (great <= poor) { if (!silent) showToast('Great threshold must be higher than Poor', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
   const nameFormat = document.querySelector('input[name="partner-name-format"]:checked')?.value || 'firstLastInitial';
   localStorage.setItem('thresholdGreat', great);
   localStorage.setItem('thresholdPoor',  poor);
@@ -5577,24 +5593,23 @@ async function saveDisplaySettings() {
     await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})});
   } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false; showToast('✓ Display settings saved!');
+  if (!silent) { settingsDirty = false; showToast('✓ Display settings saved!'); }
 }
 
-async function saveHistorySettings() {
+async function saveHistorySettings(silent) {
   const btn = document.getElementById('save-cats-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
-  if (checked.length === 0) { showToast('Please enable at least one category', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
   const pageSize = document.querySelector('input[name="hist-page-size"]:checked')?.value || '25';
   savePerfCats(checked);
   localStorage.setItem('histPageSize', pageSize);
   const settingsToSave = { perfCats: checked.join(','), histPageSize: pageSize };
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false; showToast('✓ Match History settings saved!');
+  if (!silent) { settingsDirty = false; showToast('✓ Match History settings saved!'); }
 }
 
-async function saveDefaultSettings() {
+async function saveDefaultSettings(silent) {
   const btn = document.getElementById('save-defaults-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const defType     = document.getElementById('def-type')?.value     || '';
@@ -5617,7 +5632,7 @@ async function saveDefaultSettings() {
   });
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false; showToast('✓ Defaults saved!');
+  if (!silent) { settingsDirty = false; showToast('✓ Defaults saved!'); }
 }
 
 document.addEventListener('change', function(e) {
