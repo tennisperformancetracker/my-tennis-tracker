@@ -209,6 +209,10 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .kpi2-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; color: var(--text); }
 .kpi2-bar-wrap { height: 4px; background: var(--border); border-radius: 100px; overflow: hidden; flex-shrink: 0; }
 .kpi2-bar { height: 4px; border-radius: 100px; transition: width 0.3s; }
+.kpi-grid.kpi-collapsed .kpi2-card { display: none; }
+.kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
+.kpi-grid.kpi-collapsed .kpi2-card { display: none; }
+.kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
 .kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
 .kpi2-mini-row {
   display: flex; gap: 0; border-top: 1px solid var(--border);
@@ -728,6 +732,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   /* KPI: 2 columns */
   .kpi-grid { grid-template-columns: 1fr !important; gap: 10px; margin-bottom: 14px; }
   .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
+  .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
+  #kpi-desktop-bar { display: none; }
   .kpi-toggle-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }
   .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
   .kpi-toggle-btn .kpi-toggle-arrow { transform: rotate(180deg); }
@@ -735,7 +741,6 @@ textarea:focus { border-color: var(--accent2) !important; }
   .kpi-card { padding: 12px 14px; }
   .kpi2-card { padding: 12px 14px; min-height: 0; }
   .kpi2-card-last10 { display: flex; }
-  .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
   .kpi2-value { font-size: 22px; }
   .kpi2-partner-name { font-size: 15px; }
   .kpi2-split-val { font-size: 14px; }
@@ -2389,14 +2394,13 @@ function buildKPIs(matches, curYearMatches) {
   var cardHtml  = cardOrder.map(buildCard).join('');
   var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
   return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
-    + '<div style="display:flex;justify-content:center;margin:-4px 0 14px">'
-    + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"></button>' : '')
-    + '<div id="kpi-desktop-bar" style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">'
+    + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '')
+    + '<div id="kpi-desktop-bar" style="display:flex;justify-content:center;margin:-4px 0 14px">'
+    + '<div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">'
     + '<button id="kpi-desktop-toggle" onclick="toggleKpiCollapse()" style="background:none;border:none;padding:4px 14px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;line-height:1.4" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'"><span id="kpi-desktop-label">Hide stat cards</span></button>'
     + '<div style="width:1px;background:var(--border);align-self:stretch;flex-shrink:0"></div>'
     + '<button onclick="navigateToSettingsSection(\'sec-appearance\')" style="background:none;border:none;padding:4px 10px;cursor:pointer;font-size:12px;line-height:1.4;color:var(--muted)" title="Edit cards" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>'
-    + '</div>'
-    + '</div>';
+    + '</div></div>';
 }
 
 // KPI collapse toggle (mobile only)
