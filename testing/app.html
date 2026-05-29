@@ -182,21 +182,88 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 }
 .setup-field input:focus { border-color: var(--accent2); }
 
-/* ── KPI Cards ──────────────────────────────────────────── */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.kpi-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  padding: 18px 20px; box-shadow: var(--shadow);
-}
+/* ── KPI Cards (legacy classes kept for compat) ─────────── */
 .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px; }
-.kpi-main { display: flex; align-items: flex-end; gap: 10px; }
-.kpi-record { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
-.kpi-pct { font-size: 13px; font-weight: 600; color: var(--muted); padding-bottom: 2px; }
-.kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
-.kpi-streak { font-size: 28px; font-weight: 700; line-height: 1; }
-.kpi-streak.win  { color: var(--win); }
-.kpi-streak.loss { color: var(--loss); }
-.kpi-streak.none { color: var(--muted); }
+
+/* ── KPI2 Cards (new design) ────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; align-items: stretch; }
+.kpi2-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px 18px 14px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 160px; box-sizing: border-box;
+}
+.kpi2-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.kpi2-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); line-height: 1.3; }
+.kpi2-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; }
+.kpi2-badge-green  { background: var(--win-bg); color: var(--win); border: 0.5px solid rgba(30,107,58,0.2); }
+.kpi2-badge-red    { background: var(--loss-bg); color: var(--loss); border: 0.5px solid rgba(179,20,18,0.2); }
+.kpi2-badge-orange { background: #fef4e4; color: #d97706; border: 0.5px solid rgba(217,119,6,0.2); }
+.kpi2-badge-blue   { background: #e6f1fb; color: #185fa5; border: 0.5px solid rgba(24,95,165,0.2); }
+.kpi2-badge-navy   { background: rgba(47,65,87,0.1); color: var(--accent); border: 0.5px solid rgba(47,65,87,0.15); }
+body.dark .kpi2-badge-green  { background: rgba(30,107,58,0.25); }
+body.dark .kpi2-badge-red    { background: rgba(179,20,18,0.25); }
+body.dark .kpi2-badge-orange { background: rgba(217,119,6,0.2); color: #f59e0b; }
+body.dark .kpi2-badge-blue   { background: rgba(24,95,165,0.2); color: #60a5fa; }
+body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--muted); }
+.kpi2-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; color: var(--text); }
+.kpi2-bar-wrap { height: 4px; background: var(--border); border-radius: 100px; overflow: hidden; flex-shrink: 0; }
+.kpi2-bar { height: 4px; border-radius: 100px; transition: width 0.3s; }
+.kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.kpi2-mini-row {
+  display: flex; gap: 0; border-top: 1px solid var(--border);
+  padding-top: 8px; margin-top: auto; flex-shrink: 0;
+}
+.kpi2-mini-stat { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.kpi2-mini-stat + .kpi2-mini-stat { border-left: 1px solid var(--border); padding-left: 10px; }
+.kpi2-mini-label { font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.kpi2-mini-val { font-size: 13px; font-weight: 700; color: var(--text); }
+.kpi2-mini-val.green { color: var(--win); }
+.kpi2-mini-val.red   { color: var(--loss); }
+.kpi2-partner-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); line-height: 1.2; margin-top: -2px; }
+.kpi2-spark-wrap { position: relative; flex-shrink: 0; }
+.kpi2-spark-row { display: flex; align-items: flex-end; gap: 3px; height: 32px; }
+.kpi2-spark-bar { flex: 1; border-radius: 3px 3px 0 0; cursor: pointer; transition: opacity 0.12s, transform 0.12s; }
+.kpi2-spark-bar:hover { opacity: 1 !important; transform: scaleY(1.06); transform-origin: bottom; }
+.kpi2-spark-tooltip {
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent); border-radius: 7px; padding: 7px 11px;
+  z-index: 20; white-space: nowrap; pointer-events: none; min-width: 110px;
+}
+.kpi2-spark-tooltip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 4px solid transparent; border-top-color: var(--accent);
+}
+.kpi2-tt-result { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+.kpi2-tt-w { color: #7ecba1; }
+.kpi2-tt-l { color: #f09595; }
+.kpi2-tt-opp { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.85); margin-bottom: 3px; }
+.kpi2-tt-score { font-size: 12px; font-weight: 700; color: #fff; }
+.kpi2-split-row { display: flex; gap: 0; border-top: 1px solid var(--border); padding-top: 8px; margin-top: auto; }
+.kpi2-split-col { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.kpi2-split-col + .kpi2-split-col { border-left: 1px solid var(--border); padding-left: 10px; }
+.kpi2-split-label { font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.kpi2-split-val { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+.kpi2-split-rec { font-size: 11px; color: var(--muted); }
+.card-picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+.card-picker-item {
+  background: var(--surface2); border: 2px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; cursor: grab; user-select: none; position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card-picker-item:active { cursor: grabbing; }
+.card-picker-item.selected { border-color: var(--accent2); background: var(--surface); box-shadow: 0 0 0 3px rgba(99,133,162,0.15); }
+.card-picker-item.dragging { opacity: 0.4; }
+.card-picker-item.drag-over { border-color: var(--accent2); background: rgba(99,133,162,0.08); }
+.picker-badge {
+  position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--accent2); color: #fff;
+  font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.picker-label { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.picker-value { font-size: 18px; font-weight: 700; color: var(--win); letter-spacing: -0.5px; }
+.picker-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
 
 /* ── Dashboard grid ─────────────────────────────────────── */
 .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -658,11 +725,16 @@ textarea:focus { border-color: var(--accent2) !important; }
   /* KPI: 2 columns */
   .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .kpi-card { padding: 12px 14px; }
+  .kpi2-card { padding: 12px 14px; min-height: 130px; }
+  .kpi2-value { font-size: 22px; }
+  .kpi2-partner-name { font-size: 15px; }
+  .kpi2-split-val { font-size: 16px; }
   .kpi-record { font-size: 20px; }
   .kpi-streak { font-size: 20px; }
   .kpi-label { font-size: 10px; margin-bottom: 6px; }
   .kpi-pct { font-size: 12px; }
   .kpi-sub { font-size: 11px; }
+  .card-picker-grid { grid-template-columns: 1fr 1fr; }
 
   /* Dashboard: single column */
   .dash-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -1623,7 +1695,7 @@ function showPage(page) {
   };
   document.getElementById('topbar-title').textContent = titles[page] || page;
 
-  if (page === 'dashboard')    renderDashboard();
+  if (page === 'dashboard')    { renderDashboard(); setTimeout(initSparkTooltips, 50); }
   else if (page === 'history') renderHistory();
   else if (page === 'entry')   renderEntry();
   else if (page === 'validEntries') renderValidEntries();
@@ -1911,71 +1983,373 @@ function onChartModeChange() {
   renderMonthChart(getChartMatches());
 }
 
+// ── KPI Card System ─────────────────────────────────────────────────────────
+const KPI_CARD_DEFS = [
+  { id: 'overall',    label: 'Overall Record' },
+  { id: 'year',       label: 'Current Year' },
+  { id: 'streak',     label: 'Current Streak' },
+  { id: 'last10',     label: 'Last 10 Matches' },
+  { id: 'firstset',   label: 'First-Set Win Rate' },
+  { id: 'comeback',   label: 'Comeback Rate' },
+  { id: 'tiebreak',   label: 'Tiebreak Record' },
+  { id: 'singles_v_doubles', label: 'Singles vs Doubles' },
+  { id: 'playoff',    label: 'Playoff Record' },
+  { id: 'best_partner', label: 'Best Partner' },
+  { id: 'active_league', label: 'Most Active League' },
+];
+const KPI_DEFAULT_ORDER = ['overall','year','streak','last10'];
+
+function getDashboardCardOrder() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dashboardCards') || 'null');
+    if (Array.isArray(saved) && saved.length > 0) return saved.slice(0, 5);
+  } catch(e) {}
+  return KPI_DEFAULT_ORDER;
+}
+
 function buildKPIs(matches, curYearMatches) {
   const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
   const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
-  function recordColor(w, l) {
-    if (w+l===0) return 'var(--text)';
-    const r = w/(w+l);
+
+  function rateColor(r) {
+    if (r === null || isNaN(r)) return 'var(--text)';
     return r > great ? 'var(--win)' : r < poor ? 'var(--loss)' : 'var(--warn)';
   }
+  function recordColor(w, l) {
+    if (w+l===0) return 'var(--text)';
+    return rateColor(w/(w+l));
+  }
+  function badgeForRate(r) {
+    if (r === null || isNaN(r)) return '';
+    if (r > great) return `<span class="kpi2-badge kpi2-badge-green">Strong</span>`;
+    if (r < poor)  return `<span class="kpi2-badge kpi2-badge-red">Weak</span>`;
+    return `<span class="kpi2-badge kpi2-badge-orange">Average</span>`;
+  }
+  function barHtml(pct, color) {
+    const w = Math.round(Math.max(0, Math.min(100, pct * 100)));
+    const col = color || (pct > great ? 'var(--win)' : pct < poor ? 'var(--loss)' : 'var(--warn)');
+    return `<div class="kpi2-bar-wrap"><div class="kpi2-bar" style="width:${w}%;background:${col}"></div></div>`;
+  }
+  function miniStats(items) {
+    const cells = items.map(([lbl, val, cls]) =>
+      `<div class="kpi2-mini-stat"><div class="kpi2-mini-label">${lbl}</div><div class="kpi2-mini-val${cls?' '+cls:''}">${val}</div></div>`
+    ).join('');
+    return `<div class="kpi2-mini-row">${cells}</div>`;
+  }
 
+  // ── Compute all stats ─────────────────────────────────────────────────────
+  const allSorted = [...matches].sort((a,b) => parseDate(b.date)-parseDate(a.date));
   const W = matches.filter(m => m.result==='W').length;
   const L = matches.filter(m => m.result==='L').length;
+
+  const curYear = new Date().getFullYear();
   const cyW = curYearMatches.filter(m => m.result==='W').length;
   const cyL = curYearMatches.filter(m => m.result==='L').length;
+  const prevYear = curYear - 1;
+  const prevYearMatches = allMatches.filter(m => m.year === prevYear);
+  const pyW = prevYearMatches.filter(m=>m.result==='W').length;
+  const pyL = prevYearMatches.filter(m=>m.result==='L').length;
+  const pyPct = pyW+pyL > 0 ? pyW/(pyW+pyL) : null;
 
-  // Last 10 (sorted by date descending)
-  const sorted = [...matches].sort((a,b) => parseDate(b.date)-parseDate(a.date));
-  const last10 = sorted.slice(0,10);
+  const last10 = allSorted.slice(0, 10);
   const l10W = last10.filter(m=>m.result==='W').length;
   const l10L = last10.filter(m=>m.result==='L').length;
 
-  // Streak
-  const streak = calcStreak(sorted);
+  const streak = calcStreak(allSorted);
 
-  return `
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Overall Record</div>
-        <div class="kpi-main">
-          <div class="kpi-record" style="color:${recordColor(W,L)}">${W}–${L}</div>
-          <div class="kpi-pct">${pct(W,L)}</div>
-        </div>
-        <div class="kpi-sub">${W+L} total matches</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Current Year (${new Date().getFullYear()})</div>
-        <div class="kpi-main">
-          <div class="kpi-record" style="color:${recordColor(cyW,cyL)}">${cyW}–${cyL}</div>
-          <div class="kpi-pct">${pct(cyW,cyL)}</div>
-        </div>
-        <div class="kpi-sub">${cyW+cyL} matches this year</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Current Streak</div>
-        <div class="kpi-main">
-          <div class="kpi-streak ${streak.current > 0 ? 'win' : streak.current < 0 ? 'loss' : 'none'}">
-            ${streak.current === 0 ? '—' : (streak.current > 0 ? 'W' : 'L') + Math.abs(streak.current)}
+  // First-set win rate
+  const withSets = matches.filter(m => num(m.s1w) !== null && num(m.s1l) !== null);
+  const fs_wins = withSets.filter(m => num(m.s1w) > num(m.s1l));
+  const fs_then_match_win = fs_wins.filter(m => m.result==='W').length;
+  const fsRate = withSets.length > 0 ? fs_wins.length / withSets.length : null;
+  const fsThenWinRate = fs_wins.length > 0 ? fs_then_match_win / fs_wins.length : null;
+  const careerRate = W+L > 0 ? W/(W+L) : null;
+
+  // Comeback rate
+  const fs_lost = withSets.filter(m => num(m.s1w) < num(m.s1l));
+  const comeback_wins = fs_lost.filter(m => m.result==='W').length;
+  const comebackRate = fs_lost.length > 0 ? comeback_wins / fs_lost.length : null;
+
+  // Tiebreak record
+  let tbW = 0, tbL = 0, tbSznW = 0, tbSznL = 0, tb3W = 0, tb3L = 0;
+  const curSznMatches = (() => {
+    const seasons = [...new Set(allMatches.map(m=>m.season).filter(Boolean))];
+    const latestSzn = seasons[seasons.length-1] || '';
+    return latestSzn ? allMatches.filter(m=>m.season===latestSzn) : [];
+  })();
+  matches.forEach(m => {
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l], idx) => {
+      const nw=num(w), nl=num(l);
+      if (nw!==null && nl!==null && nw+nl >= 12 && Math.abs(nw-nl)<=2 && (nw===7||nl===7)) {
+        if (nw>nl) tbW++; else tbL++;
+      }
+    });
+  });
+  curSznMatches.forEach(m => {
+    [[m.s1w,m.s1l],[m.s2w,m.s2l]].forEach(([w,l]) => {
+      const nw=num(w), nl=num(l);
+      if (nw!==null && nl!==null && nw+nl >= 12 && Math.abs(nw-nl)<=2 && (nw===7||nl===7)) {
+        if (nw>nl) tbSznW++; else tbSznL++;
+      }
+    });
+    if (num(m.s3w)!==null && num(m.s3l)!==null) {
+      const nw=num(m.s3w), nl=num(m.s3l);
+      if (nw+nl >= 12 && (nw===7||nl===7)) { if(nw>nl) tb3W++; else tb3L++; }
+    }
+  });
+  const tbRate = tbW+tbL > 0 ? tbW/(tbW+tbL) : null;
+
+  // Singles vs doubles
+  const singleMatches = matches.filter(m => (m.type||'').toLowerCase().includes('singles') || (!m.partner && !(m.type||'').toLowerCase().includes('doubles')));
+  const doublesMatches = matches.filter(m => (m.type||'').toLowerCase().includes('doubles') || m.partner);
+  const sW = singleMatches.filter(m=>m.result==='W').length;
+  const sL = singleMatches.filter(m=>m.result==='L').length;
+  const dW = doublesMatches.filter(m=>m.result==='W').length;
+  const dL = doublesMatches.filter(m=>m.result==='L').length;
+  const sRate = sW+sL > 0 ? sW/(sW+sL) : null;
+  const dRate = dW+dL > 0 ? dW/(dW+dL) : null;
+
+  // Playoff record
+  const playoffMatches = matches.filter(m => m.playoff===true || m.playoff==='TRUE');
+  const plW = playoffMatches.filter(m=>m.result==='W').length;
+  const plL = playoffMatches.filter(m=>m.result==='L').length;
+  const plRate = plW+plL > 0 ? plW/(plW+plL) : null;
+
+  // Best partner (min 5)
+  const partnerMap = {};
+  matches.forEach(m => {
+    if (!m.partner) return;
+    const k = m.partner;
+    if (!partnerMap[k]) partnerMap[k] = {w:0, l:0};
+    if (m.result==='W') partnerMap[k].w++; else partnerMap[k].l++;
+  });
+  let bestPartner = null, bestPartnerRate = -1;
+  Object.entries(partnerMap).forEach(([name, {w, l}]) => {
+    if (w+l < 5) return;
+    const r = w/(w+l);
+    if (r > bestPartnerRate) { bestPartnerRate = r; bestPartner = {name, w, l}; }
+  });
+
+  // Most active league
+  const leagueMap = {};
+  matches.forEach(m => {
+    if (!m.league) return;
+    const k = m.league;
+    if (!leagueMap[k]) leagueMap[k] = {matches:[], types:{}};
+    leagueMap[k].matches.push(m);
+    const t = m.type || 'Unknown';
+    leagueMap[k].types[t] = (leagueMap[k].types[t]||0) + 1;
+  });
+  let activeLeague = null;
+  Object.entries(leagueMap).forEach(([name, data]) => {
+    if (!activeLeague || data.matches.length > activeLeague.matches.length)
+      activeLeague = { name, matches: data.matches, types: data.types };
+  });
+  let activeLeagueType = '', activeLeagueTypeCount = 0;
+  if (activeLeague) {
+    Object.entries(activeLeague.types).forEach(([t, c]) => {
+      if (c > activeLeagueTypeCount) { activeLeagueTypeCount = c; activeLeagueType = t; }
+    });
+  }
+  const alW = activeLeague ? activeLeague.matches.filter(m=>m.result==='W').length : 0;
+  const alL = activeLeague ? activeLeague.matches.filter(m=>m.result==='L').length : 0;
+  const alSeasons = activeLeague ? new Set(activeLeague.matches.map(m=>m.season).filter(Boolean)).size : 0;
+
+  // ── Build each card ───────────────────────────────────────────────────────
+  function buildCard(id) {
+    switch(id) {
+
+      case 'overall': {
+        const r = W+L > 0 ? W/(W+L) : null;
+        const badge = r !== null ? `<span class="kpi2-badge ${r>great?'kpi2-badge-green':r<poor?'kpi2-badge-red':'kpi2-badge-orange'}">${Math.round(r*100)}%</span>` : '';
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Overall Record</div>${badge}</div>
+          <div class="kpi2-value" style="color:${recordColor(W,L)}">${W}–${L}</div>
+          ${r!==null?barHtml(r,''):''}
+          <div class="kpi2-sub">${W+L} matches played</div>
+          ${miniStats([['Singles', sW+sL>0?Math.round(sW/(sW+sL)*100)+'%':'—', sRate!==null?(sRate>great?'green':sRate<poor?'red':''):''], ['Doubles', dW+dL>0?Math.round(dW/(dW+dL)*100)+'%':'—', dRate!==null?(dRate>great?'green':dRate<poor?'red':''):''], ['This Year', cyW+cyL>0?Math.round(cyW/(cyW+cyL)*100)+'%':'—', cyW+cyL>0?(cyW/(cyW+cyL)>great?'green':cyW/(cyW+cyL)<poor?'red':''):''], ])}
+        </div>`;
+      }
+
+      case 'year': {
+        const r = cyW+cyL > 0 ? cyW/(cyW+cyL) : null;
+        const badge = `<span class="kpi2-badge kpi2-badge-blue">${curYear}</span>`;
+        const vsPrev = (r !== null && pyPct !== null) ? (r - pyPct) : null;
+        const vsStr = vsPrev !== null
+          ? `<span style="color:${vsPrev>=0?'var(--win)':'var(--loss)'}; font-weight:600">${vsPrev>=0?'+':''}${Math.round(vsPrev*100)}%</span> vs ${prevYear} (${Math.round(pyPct*100)}%)`
+          : `${cyW+cyL} matches`;
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Current Year</div>${badge}</div>
+          <div class="kpi2-value" style="color:${recordColor(cyW,cyL)}">${r!==null?Math.round(r*100)+'%':'—'}</div>
+          ${r!==null?barHtml(r,''):''}
+          <div class="kpi2-sub">${vsStr}</div>
+          ${miniStats([['Record', cyW+'-'+cyL, ''], ['Matches', String(cyW+cyL), ''], ['Prev Year', pyPct!==null?Math.round(pyPct*100)+'%':'—', '']])}
+        </div>`;
+      }
+
+      case 'streak': {
+        const n = Math.abs(streak.current);
+        const isWin = streak.current > 0;
+        const isLoss = streak.current < 0;
+        const streakColor = isWin ? 'var(--win)' : isLoss ? 'var(--loss)' : 'var(--text)';
+        const streakWord = streak.current === 0 ? '—'
+          : n === 1 ? (isWin ? '1 Win' : '1 Loss')
+          : (isWin ? n + ' Wins' : n + ' Losses');
+        const badge = streak.current === 0 ? '' : `<span class="kpi2-badge ${isWin?'kpi2-badge-green':'kpi2-badge-red'}">Active</span>`;
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Current Streak</div>${badge}</div>
+          <div class="kpi2-value" style="color:${streakColor}">${streakWord}</div>
+          <div class="kpi2-sub" style="margin-top:2px">Last result: <span style="color:${allSorted[0]?.result==='W'?'var(--win)':'var(--loss)'}; font-weight:600">${allSorted[0]?.result||'—'}</span></div>
+          ${miniStats([['Best streak', streak.longest ? streak.longest+' wins' : '—', ''], ['This season', (() => { const ss=[...allSorted].filter(m=>m.season); const csz=ss[0]?.season||''; const csm=ss.filter(m=>m.season===csz); const sw=csm.filter(m=>m.result==='W').length; const sl=csm.filter(m=>m.result==='L').length; return sw+sl>0?sw+'-'+sl:'—'; })(), ''], ['Career W%', careerRate!==null?Math.round(careerRate*100)+'%':'—', '']])}
+        </div>`;
+      }
+
+      case 'last10': {
+        const r = l10W+l10L > 0 ? l10W/(l10W+l10L) : null;
+        const badge = r !== null ? `<span class="kpi2-badge ${r>great?'kpi2-badge-green':r<poor?'kpi2-badge-red':'kpi2-badge-orange'}">${r>great?'Hot':r<poor?'Cold':'Steady'}</span>` : '';
+        // Game win % sparkbars
+        const sparkBars = last10.map(m => {
+          const sets = [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].filter(([w,l])=>num(w)!==null&&num(l)!==null);
+          let gW=0,gT=0;
+          sets.forEach(([w,l])=>{gW+=num(w);gT+=num(w)+num(l);});
+          const gpct = gT>0 ? gW/gT : (m.result==='W' ? 0.75 : 0.35);
+          const minH=0.18;
+          const h = Math.round((minH + gpct*(1-minH))*100);
+          const col = m.result==='W' ? 'rgba(30,107,58,0.38)' : 'rgba(179,20,18,0.30)';
+          const opp = escHtml(m.opponent1 || m.opponent || '');
+          const score = sets.length ? sets.map(([w,l])=>w+'–'+l).join(', ') : m.result;
+          return `<div class="kpi2-spark-bar" style="height:${h}%;background:${col}" data-result="${m.result}" data-opp="${opp}" data-score="${score}"></div>`;
+        }).join('');
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Last 10 Matches</div>${badge}</div>
+          <div class="kpi2-value" style="color:${recordColor(l10W,l10L)}">${l10W}–${l10L}</div>
+          <div class="kpi2-spark-wrap" id="spark-wrap-main">
+            <div class="kpi2-spark-row">${sparkBars}</div>
+            <div class="kpi2-spark-tooltip" id="spark-tt" style="display:none"></div>
           </div>
-        </div>
-        <div class="kpi-sub">Longest: ${streak.longest !== 0 ? Math.abs(streak.longest) + ' wins' : '—'}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Last 10 Matches</div>
-        <div class="kpi-main">
-          <div class="kpi-record" style="color:${recordColor(l10W,l10L)}">${l10W}–${l10L}</div>
-          <div class="kpi-pct">${pct(l10W,l10L)}</div>
-        </div>
-        <div class="kpi-sub">${l10W > l10L ? '↑ Strong recent form' : l10W < l10L ? '↓ Rough recent stretch' : '→ Even recent form'}</div>
-      </div>
-    </div>
-  `;
+          <div class="kpi2-sub"><span style="color:${r!==null?(r>great?'var(--win)':r<poor?'var(--loss)':'var(--warn)'):'var(--muted)'}; font-weight:600">${r!==null?Math.round(r*100)+'%':'—'}</span> vs <span style="font-weight:600">${careerRate!==null?Math.round(careerRate*100)+'%':'—'}</span> career avg</div>
+        </div>`;
+      }
+
+      case 'firstset': {
+        const badge = badgeForRate(fsRate);
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">First-Set Win Rate</div>${badge}</div>
+          <div class="kpi2-value" style="color:${rateColor(fsRate)}">${fsRate!==null?Math.round(fsRate*100)+'%':'—'}</div>
+          ${fsRate!==null?barHtml(fsRate,''):''}
+          <div class="kpi2-sub">vs <span style="font-weight:600">${careerRate!==null?Math.round(careerRate*100)+'%':'—'}</span> overall · Win 1st set → win match <span style="color:var(--win);font-weight:600">${fsThenWinRate!==null?Math.round(fsThenWinRate*100)+'%':'—'}</span></div>
+          ${miniStats([['1st set wins', String(fs_wins.length), ''], ['1st set losses', String(withSets.length - fs_wins.length), ''], ['Matches tracked', String(withSets.length), '']])}
+        </div>`;
+      }
+
+      case 'comeback': {
+        const badge = badgeForRate(comebackRate);
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Comeback Rate</div>${badge}</div>
+          <div class="kpi2-value" style="color:${rateColor(comebackRate)}">${comebackRate!==null?Math.round(comebackRate*100)+'%':'—'}</div>
+          ${comebackRate!==null?barHtml(comebackRate,''):''}
+          <div class="kpi2-sub"><span style="font-weight:600">${comeback_wins} of ${fs_lost.length}</span> deficits recovered</div>
+          ${miniStats([['Down 0-1', String(fs_lost.length), ''], ['Came back', String(comeback_wins), comeback_wins>0?'green':''], ['Didn\'t', String(fs_lost.length-comeback_wins), '']])}
+        </div>`;
+      }
+
+      case 'tiebreak': {
+        const badge = badgeForRate(tbRate);
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Tiebreak Record</div>${badge}</div>
+          <div class="kpi2-value" style="color:${recordColor(tbW,tbL)}">${tbW}–${tbL}</div>
+          ${tbRate!==null?barHtml(tbRate,''):''}
+          ${miniStats([['Win rate', tbRate!==null?Math.round(tbRate*100)+'%':'—', tbRate!==null?(tbRate>great?'green':tbRate<poor?'red':''):''], ['This season', tbSznW+'-'+tbSznL, ''], ['3rd-set TBs', tb3W+'-'+tb3L, '']])}
+        </div>`;
+      }
+
+      case 'singles_v_doubles': {
+        const diff = sRate!==null && dRate!==null ? Math.abs(sRate-dRate) : null;
+        const better = sRate!==null && dRate!==null ? (sRate>=dRate?'singles':'doubles') : null;
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Singles vs Doubles</div></div>
+          <div class="kpi2-sub" style="margin-top:0">${diff!==null?`You perform <span style="font-weight:600">${Math.round(diff*100)}%</span> better in ${better}`:'Not enough data'}</div>
+          <div class="kpi2-split-row">
+            <div class="kpi2-split-col">
+              <div class="kpi2-split-label">Singles</div>
+              <div class="kpi2-split-val" style="color:${rateColor(sRate)}">${sRate!==null?Math.round(sRate*100)+'%':'—'}</div>
+              <div class="kpi2-split-rec">${sW}–${sL}</div>
+            </div>
+            <div class="kpi2-split-col">
+              <div class="kpi2-split-label">Doubles</div>
+              <div class="kpi2-split-val" style="color:${rateColor(dRate)}">${dRate!==null?Math.round(dRate*100)+'%':'—'}</div>
+              <div class="kpi2-split-rec">${dW}–${dL}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      case 'playoff': {
+        const badge = plRate!==null ? `<span class="kpi2-badge ${plRate>great?'kpi2-badge-green':plRate<poor?'kpi2-badge-red':'kpi2-badge-orange'}">${plRate>=0.5?'Above .500':'Under .500'}</span>` : '';
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Playoff Record</div>${badge}</div>
+          <div class="kpi2-value" style="color:${recordColor(plW,plL)}">${plW}–${plL}</div>
+          ${plRate!==null?barHtml(plRate,''):''}
+          <div class="kpi2-sub"><span style="color:${rateColor(plRate)};font-weight:600">${plRate!==null?Math.round(plRate*100)+'%':'—'}</span> playoffs vs <span style="font-weight:600">${careerRate!==null?Math.round(careerRate*100)+'%':'—'}</span> regular season</div>
+          ${miniStats([['Playoff W', String(plW), plW>0?'green':''], ['Playoff L', String(plL), ''], ['Total', String(plW+plL), '']])}
+        </div>`;
+      }
+
+      case 'best_partner': {
+        const rate = bestPartner ? bestPartner.w/(bestPartner.w+bestPartner.l) : null;
+        const badge = rate !== null ? `<span class="kpi2-badge ${rate>great?'kpi2-badge-green':rate<poor?'kpi2-badge-red':'kpi2-badge-orange'}">${rate>great?'75%+':'<75%'}</span>` : '';
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Best Partner <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(min. 5)</span></div>${badge}</div>
+          <div class="kpi2-partner-name">${bestPartner ? escHtml(formatPartnerName(bestPartner.name)) : '—'}</div>
+          ${miniStats([['Record', bestPartner?bestPartner.w+'-'+bestPartner.l:'—', ''], ['Win rate', rate!==null?Math.round(rate*100)+'%':'—', rate!==null?(rate>great?'green':rate<poor?'red':''):''], ['Matches', bestPartner?String(bestPartner.w+bestPartner.l):'—', '']])}
+        </div>`;
+      }
+
+      case 'active_league': {
+        const alRate = alW+alL > 0 ? alW/(alW+alL) : null;
+        const badge = activeLeague ? `<span class="kpi2-badge kpi2-badge-navy">${escHtml(activeLeague.name)}</span>` : '';
+        return `<div class="kpi2-card">
+          <div class="kpi2-header"><div class="kpi2-label">Most Active League</div>${badge}</div>
+          <div class="kpi2-partner-name">${activeLeague ? escHtml(activeLeagueType) : '—'}</div>
+          ${miniStats([['Matches', String(alW+alL), ''], ['Win rate', alRate!==null?Math.round(alRate*100)+'%':'—', alRate!==null?(alRate>great?'green':alRate<poor?'red':''):''], ['Seasons', String(alSeasons), '']])}
+        </div>`;
+      }
+
+      default: return '';
+    }
+  }
+
+  const cardOrder = getDashboardCardOrder();
+  const colCount = cardOrder.length >= 5 ? 5 : 4;
+  const cardHtml = cardOrder.map(buildCard).join('');
+  return `<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(${colCount},1fr)">${cardHtml}</div>`;
+}
+
+// Wire up sparkbar tooltips after DOM render
+function initSparkTooltips() {
+  const wrap = document.getElementById('spark-wrap-main');
+  if (!wrap) return;
+  const tt = document.getElementById('spark-tt');
+  const bars = wrap.querySelectorAll('.kpi2-spark-bar');
+  bars.forEach(bar => {
+    bar.addEventListener('mouseenter', function(e) {
+      const result = this.getAttribute('data-result');
+      const opp    = this.getAttribute('data-opp');
+      const score  = this.getAttribute('data-score');
+      tt.innerHTML = `<div class="kpi2-tt-result ${result==='W'?'kpi2-tt-w':'kpi2-tt-l'}">${result==='W'?'Win':'Loss'}</div>${opp?`<div class="kpi2-tt-opp">${opp}</div>`:''}${score?`<div class="kpi2-tt-score">${score}</div>`:''}`;
+      tt.style.display = 'block';
+      const barRect  = this.getBoundingClientRect();
+      const wrapRect = wrap.getBoundingClientRect();
+      let left = barRect.left - wrapRect.left + barRect.width/2;
+      tt.style.left = left + 'px';
+      tt.style.transform = 'translateX(-50%)';
+    });
+    bar.addEventListener('mouseleave', () => { tt.style.display = 'none'; });
+  });
 }
 
 function calcStreak(sortedDesc) {
   if (!sortedDesc.length) return { current: 0, longest: 0 };
-  // Current streak
   const first = sortedDesc[0].result;
   let current = 0;
   for (const m of sortedDesc) {
@@ -1983,8 +2357,6 @@ function calcStreak(sortedDesc) {
     else break;
   }
   if (first === 'L') current = -current;
-
-  // Longest win streak
   let longest = 0, run = 0;
   for (const m of sortedDesc) {
     if (m.result === 'W') { run++; longest = Math.max(longest, run); }
@@ -4421,6 +4793,19 @@ function renderSettings() {
         <div class="settings-section-body" id="sec-appearance">
           <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
 
+            <!-- Dashboard Card Order -->
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Dashboard Cards</div>
+                <div class="settings-sub-card-desc">Choose up to 5 cards to show on your Dashboard. Drag to reorder — the top 4 appear by default, and a 5th slot unlocks when you select it.</div>
+              </div>
+              <div id="card-picker-container"></div>
+              <div id="settings-cards-msg" style="display:none;font-size:12px;margin-top:6px"></div>
+              <div style="display:flex;justify-content:flex-end;padding-top:4px">
+                <button onclick="saveDashboardCards()" class="settings-save-btn" id="save-cards-btn">Save</button>
+              </div>
+            </div>
+
             <!-- Partner Name Format -->
             <div class="settings-sub-card">
               <div>
@@ -4747,6 +5132,7 @@ function toggleSettingsSection(id) {
       const isOpen = body.classList.contains('open');
       body.classList.toggle('open', !isOpen);
       if (chev) chev.classList.toggle('open', !isOpen);
+      if (sid === 'sec-appearance' && !isOpen) setTimeout(renderCardPicker, 20);
     } else {
       body.classList.remove('open');
       if (chev) chev.classList.remove('open');
@@ -4855,7 +5241,126 @@ function settingsPerfCatChange() {
   }
 }
 
-async function saveDisplaySettings() {
+// ── Dashboard Card Picker ────────────────────────────────────────────────────
+function renderCardPicker() {
+  const container = document.getElementById('card-picker-container');
+  if (!container) return;
+  const selected = getDashboardCardOrder();
+  let dragSrc = null;
+
+  function getPreviewData(id) {
+    const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+    const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+    const W = allMatches.filter(m=>m.result==='W').length;
+    const L = allMatches.filter(m=>m.result==='L').length;
+    const r = W+L>0 ? W/(W+L) : null;
+    const col = r===null?'var(--muted)':r>great?'var(--win)':r<poor?'var(--loss)':'var(--warn)';
+    switch(id) {
+      case 'overall':   return { val: W+'-'+L, sub: Math.round((r||0)*100)+'% win rate', col };
+      case 'year':      { const cy=new Date().getFullYear(); const cym=allMatches.filter(m=>m.year===cy); const cw=cym.filter(m=>m.result==='W').length,cl=cym.filter(m=>m.result==='L').length; const cr=cw+cl>0?cw/(cw+cl):null; const cc=cr===null?'var(--muted)':cr>great?'var(--win)':cr<poor?'var(--loss)':'var(--warn)'; return {val:(cr!==null?Math.round(cr*100)+'%':'—'), sub:cw+'-'+cl+' record', col:cc}; }
+      case 'streak':    { const s=calcStreak([...allMatches].sort((a,b)=>parseDate(b.date)-parseDate(a.date))); const n=Math.abs(s.current); const iw=s.current>0; return {val:s.current===0?'—':n==1?(iw?'1 Win':'1 Loss'):(iw?n+' Wins':n+' Losses'), sub:'Current streak', col:s.current>0?'var(--win)':s.current<0?'var(--loss)':'var(--muted)'}; }
+      case 'last10':    { const last=([...allMatches].sort((a,b)=>parseDate(b.date)-parseDate(a.date))).slice(0,10); const lw=last.filter(m=>m.result==='W').length,ll=last.filter(m=>m.result==='L').length; const lr=lw+ll>0?lw/(lw+ll):null; const lc=lr===null?'var(--muted)':lr>great?'var(--win)':lr<poor?'var(--loss)':'var(--warn)'; return {val:lw+'-'+ll, sub:Math.round((lr||0)*100)+'% win rate', col:lc}; }
+      case 'firstset':  { const ws=allMatches.filter(m=>m.s1w!=null&&m.s1l!=null); const fw=ws.filter(m=>num(m.s1w)>num(m.s1l)); const fr=ws.length>0?fw.length/ws.length:null; const fc=fr===null?'var(--muted)':fr>great?'var(--win)':fr<poor?'var(--loss)':'var(--warn)'; return {val:fr!==null?Math.round(fr*100)+'%':'—', sub:'First-set win rate', col:fc}; }
+      case 'comeback':  { const fl=allMatches.filter(m=>m.s1w!=null&&m.s1l!=null&&num(m.s1w)<num(m.s1l)); const cw=fl.filter(m=>m.result==='W').length; const cr2=fl.length>0?cw/fl.length:null; const cc2=cr2===null?'var(--muted)':cr2>great?'var(--win)':cr2<poor?'var(--loss)':'var(--warn)'; return {val:cr2!==null?Math.round(cr2*100)+'%':'—', sub:cw+' of '+fl.length+' deficits', col:cc2}; }
+      case 'tiebreak':  { let tw=0,tl=0; allMatches.forEach(m=>{ [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l])=>{ const nw=num(w),nl=num(l); if(nw!==null&&nl!==null&&nw+nl>=12&&Math.abs(nw-nl)<=2&&(nw===7||nl===7)){if(nw>nl)tw++;else tl++;} }); }); const tr=tw+tl>0?tw/(tw+tl):null; const tc=tr===null?'var(--muted)':tr>great?'var(--win)':tr<poor?'var(--loss)':'var(--warn)'; return {val:tw+'-'+tl, sub:tr!==null?Math.round(tr*100)+'% win rate':'No tiebreaks', col:tc}; }
+      case 'singles_v_doubles': { const sm=allMatches.filter(m=>(m.type||'').toLowerCase().includes('singles')||(!m.partner&&!(m.type||'').toLowerCase().includes('doubles'))); const dm=allMatches.filter(m=>(m.type||'').toLowerCase().includes('doubles')||m.partner); const sw=sm.filter(m=>m.result==='W').length,sl=sm.filter(m=>m.result==='L').length; const dw=dm.filter(m=>m.result==='W').length,dl=dm.filter(m=>m.result==='L').length; const sr=sw+sl>0?sw/(sw+sl):null,dr=dw+dl>0?dw/(dw+dl):null; const sc=sr===null?'var(--muted)':sr>great?'var(--win)':sr<poor?'var(--loss)':'var(--warn)'; return {val:sr!==null?Math.round(sr*100)+'%':'—', sub:'Singles · Doubles: '+(dr!==null?Math.round(dr*100)+'%':'—'), col:sc}; }
+      case 'playoff':   { const pm=allMatches.filter(m=>m.playoff===true||m.playoff==='TRUE'); const pw=pm.filter(m=>m.result==='W').length,pl=pm.filter(m=>m.result==='L').length; const pr=pw+pl>0?pw/(pw+pl):null; const pc=pr===null?'var(--muted)':pr>great?'var(--win)':pr<poor?'var(--loss)':'var(--warn)'; return {val:pw+'-'+pl, sub:pr!==null?Math.round(pr*100)+'% in playoffs':'No playoff data', col:pc}; }
+      case 'best_partner': { const pm={}; allMatches.forEach(m=>{if(!m.partner)return;if(!pm[m.partner])pm[m.partner]={w:0,l:0};if(m.result==='W')pm[m.partner].w++;else pm[m.partner].l++;}); let best=null,br=-1; Object.entries(pm).forEach(([n,{w,l}])=>{if(w+l<5)return;const rv=w/(w+l);if(rv>br){br=rv;best={name:n,w,l};}});  return {val:best?formatPartnerName(best.name):'—', sub:best?best.w+'-'+best.l+' record':'No partners (min 5)', col:best&&br>great?'var(--win)':best&&br<poor?'var(--loss)':'var(--warn)'}; }
+      case 'active_league': { const lm={}; allMatches.forEach(m=>{if(!m.league)return;if(!lm[m.league])lm[m.league]={c:0,w:0};lm[m.league].c++;if(m.result==='W')lm[m.league].w++;}); let al=null; Object.entries(lm).forEach(([n,d])=>{if(!al||d.c>lm[al].c)al=n;}); const ald=al?lm[al]:{c:0,w:0}; const alr=ald.c>0?ald.w/ald.c:null; const alc=alr===null?'var(--muted)':alr>great?'var(--win)':alr<poor?'var(--loss)':'var(--warn)'; return {val:al||'—', sub:ald.c+' matches · '+Math.round((alr||0)*100)+'%', col:alc}; }
+      default: return {val:'—', sub:'', col:'var(--muted)'};
+    }
+  }
+
+  function render() {
+    const sel = window._pickerSelected || [...selected];
+    window._pickerSelected = sel;
+
+    const html = KPI_CARD_DEFS.map(def => {
+      const idx = sel.indexOf(def.id);
+      const isSelected = idx !== -1;
+      const preview = getPreviewData(def.id);
+      const badgeHtml = isSelected ? `<div class="picker-badge">${idx+1}</div>` : '';
+      return `<div class="card-picker-item${isSelected?' selected':''}" 
+        draggable="true"
+        data-id="${def.id}"
+        ondragstart="pickerDragStart(event)"
+        ondragover="pickerDragOver(event)"
+        ondrop="pickerDrop(event)"
+        ondragend="pickerDragEnd(event)"
+        onclick="pickerToggle('${def.id}')">
+        ${badgeHtml}
+        <div class="picker-label">${def.label}</div>
+        <div class="picker-value" style="color:${preview.col}">${preview.val}</div>
+        <div class="picker-sub">${preview.sub}</div>
+      </div>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="card-picker-grid">${html}</div>
+      <div style="font-size:12px;color:var(--muted)">${sel.length} of 5 selected — top 4 shown by default${sel.length===5?' · 5th card shown on wider screens':''}</div>
+    `;
+  }
+
+  window.pickerToggle = function(id) {
+    const sel = window._pickerSelected;
+    const idx = sel.indexOf(id);
+    if (idx !== -1) {
+      sel.splice(idx, 1);
+    } else {
+      if (sel.length >= 5) { showToast('Max 5 cards. Deselect one first.', true); return; }
+      sel.push(id);
+    }
+    settingsDirty = true;
+    render();
+  };
+
+  window.pickerDragStart = function(e) {
+    dragSrc = e.currentTarget.getAttribute('data-id');
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  window.pickerDragOver = function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.card-picker-item').forEach(el => el.classList.remove('drag-over'));
+    e.currentTarget.classList.add('drag-over');
+  };
+  window.pickerDrop = function(e) {
+    e.preventDefault();
+    const dropId = e.currentTarget.getAttribute('data-id');
+    if (!dragSrc || dragSrc === dropId) return;
+    const sel = window._pickerSelected;
+    const srcIdx = sel.indexOf(dragSrc);
+    const dstIdx = sel.indexOf(dropId);
+    if (srcIdx !== -1 && dstIdx !== -1) {
+      sel.splice(srcIdx, 1);
+      sel.splice(dstIdx, 0, dragSrc);
+      settingsDirty = true;
+      render();
+    }
+  };
+  window.pickerDragEnd = function(e) {
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('.card-picker-item').forEach(el => el.classList.remove('drag-over'));
+  };
+
+  window._pickerSelected = [...selected];
+  render();
+}
+
+async function saveDashboardCards() {
+  const btn = document.getElementById('save-cards-btn');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  const sel = window._pickerSelected || getDashboardCardOrder();
+  if (sel.length === 0) { showToast('Select at least 1 card', true); if(btn){btn.textContent='Save';btn.disabled=false;} return; }
+  localStorage.setItem('dashboardCards', JSON.stringify(sel));
+  try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:{dashboardCards: sel.join(',')}})}); } catch(e) {}
+  if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
+  settingsDirty = false;
+  showToast('✓ Dashboard cards saved!');
+}
+
+
   const btn = document.getElementById('save-thresh-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const great = parseInt(document.getElementById('settings-t-great')?.value);
