@@ -5189,10 +5189,10 @@ function renderSettings() {
                 <div class="settings-sub-card-title">Google Sheet Connection</div>
                 <div class="settings-sub-card-desc">Your Google Apps Script Web App URL. This connects Match Tracker Pro to your Google Sheet.</div>
               </div>
-              <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap">
+              <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap;min-width:0;width:100%">
                 <input type="text" id="settings-url" value="${currentUrl}"
                   placeholder="Paste your Apps Script URL here…"
-                  style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:16px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box"
+                  style="flex:1;min-width:0;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:16px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis"
                   onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
               </div>
               <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
