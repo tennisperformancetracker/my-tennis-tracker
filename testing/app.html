@@ -715,6 +715,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   .topbar { background: #2f4157; padding: 0 14px; height: 52px; border-bottom: none; }
   .topbar-title { font-size: 16px; font-weight: 700; color: #fff; }
   .topbar-right { display: none; }
+  #mob-topbar-right { display: flex !important; }
   .mob-hamburger { display: flex; color: #fff; }
 
   /* Mobile filters */
@@ -731,6 +732,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   .kpi-grid.kpi-collapsed + .kpi-toggle-btn .kpi-toggle-arrow, .kpi-toggle-btn.collapsed .kpi-toggle-arrow { transform: rotate(-90deg); }
   .kpi-card { padding: 12px 14px; }
   .kpi2-card { padding: 12px 14px; min-height: 0; }
+  .kpi2-card-last10 { display: flex; }
+  .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
   .kpi2-value { font-size: 22px; }
   .kpi2-partner-name { font-size: 15px; }
   .kpi2-split-val { font-size: 14px; }
@@ -1339,6 +1342,7 @@ textarea:focus { border-color: var(--accent2) !important; }
       <div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
     <div class="topbar-right" id="topbar-right"></div>
+    <div id="mob-topbar-right" style="display:none;align-items:center;gap:8px;flex-shrink:0"></div>
   </div>
 
   <!-- MOBILE FILTER BAR (populated by JS on mobile) -->
@@ -1686,6 +1690,8 @@ function showPage(page) {
   dashboardReturnState = null;
   window.scrollTo(0, 0);
   closeSidebar();
+  const mtr = document.getElementById('mob-topbar-right');
+  if (mtr) mtr.innerHTML = '';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
@@ -1737,6 +1743,8 @@ function setContent(html) {
   document.getElementById('content').innerHTML = html;
   document.getElementById('topbar-right').innerHTML = '';
   document.getElementById('mobile-filters').innerHTML = '';
+  const mtr = document.getElementById('mob-topbar-right');
+  if (mtr) mtr.innerHTML = '';
 }
 
 // 
@@ -1858,9 +1866,10 @@ function renderDashboard() {
     </div>
   `;
 
-  // Mobile filter bar
-  document.getElementById('mobile-filters').innerHTML = `
-    <select onchange="filterState.dash.type=this.value;renderDashboard()" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:12px;padding:6px 24px 6px 8px;outline:none;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;">
+  document.getElementById('mobile-filters').innerHTML = '';
+  const mobTopbarRightDash = document.getElementById('mob-topbar-right');
+  if (mobTopbarRightDash) mobTopbarRightDash.innerHTML = `
+    <select onchange="filterState.dash.type=this.value;renderDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;">
       ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
     </select>
   `;
@@ -1936,6 +1945,7 @@ function renderDashboard() {
     <div class="card achievements-card">
       <div class="card-header">
         <div class="card-title">Achievements</div>
+        <button class="badge-shelf-link" onclick="slideToAchievements()">View all →</button>
       </div>
       <div id="badge-shelf-content">${buildBadgeShelf()}</div>
     </div>
@@ -2270,7 +2280,7 @@ function buildKPIs(matches, curYearMatches) {
           + '<div class="kpi2-spark-tooltip" id="spark-tt" style="display:none"></div>'
           + '</div>';
         var subHtml = '<div class="kpi2-sub" style="margin-top:4px">' + vsStr + '</div>';
-        return '<div class="kpi2-card" style="display:flex;flex-direction:column;">'
+        return '<div class="kpi2-card kpi2-card-last10" style="flex-direction:column;">'
           + '<div class="kpi2-header"><div class="kpi2-label">Last 10 Matches</div>' + badge + '</div>'
           + valHtml
           + sparkHtml
@@ -3359,8 +3369,10 @@ function renderHistory(page, preFilterPartner) {
   else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
   document.getElementById('topbar-title').textContent = histTitle;
 
-  document.getElementById('mobile-filters').innerHTML = dashboardReturnState
-    ? `<button onclick="backToDashboard()" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;padding:7px 14px;cursor:pointer;white-space:nowrap;">← Dashboard</button>`
+  document.getElementById('mobile-filters').innerHTML = '';
+  const mobTopbarRight = document.getElementById('mob-topbar-right');
+  if (mobTopbarRight) mobTopbarRight.innerHTML = dashboardReturnState
+    ? `<button onclick="backToDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;white-space:nowrap;">← Back</button>`
     : '';
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
@@ -7357,10 +7369,7 @@ function buildBadgeShelf() {
   BADGE_DEFS_TIERED.forEach(def => { if (getHighestEarnedTier(def, earned)) earnedDisplayCount++; });
 
   if (earned.length === 0) {
-    return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>
-      <div class="badge-shelf-footer"><span></span>
-        <button class="badge-shelf-link" onclick="slideToAchievements()">View all achievements →</button>
-      </div>`;
+    return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>`;
   }
   const recent = earned.slice(-3).reverse();
   const shelfItems = recent.map(id => {
@@ -7411,7 +7420,6 @@ function buildBadgeShelf() {
   return `<div class="badge-shelf">${shelfItems}</div>${nextUpHtml}
     <div class="badge-shelf-footer">
       <span class="badge-shelf-progress">${earnedDisplayCount} of ${totalBadges} badges earned</span>
-      <button class="badge-shelf-link" onclick="slideToAchievements()">View all →</button>
     </div>`;
 }
 </script>
