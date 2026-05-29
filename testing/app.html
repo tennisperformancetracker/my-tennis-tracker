@@ -747,6 +747,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   .kpi-pct { font-size: 12px; }
   .kpi-sub { font-size: 11px; }
   .card-picker-grid { grid-template-columns: 1fr 1fr; }
+  #defaults-grid { grid-template-columns: 1fr !important; }
+  #defaults-grid > div + div { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 4px; }
 
   /* Dashboard: single column */
   .dash-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -5084,7 +5086,7 @@ function renderSettings() {
                 <div class="settings-sub-card-title">General & Partner Defaults</div>
                 <div class="settings-sub-card-desc">Set optional defaults to save time during match entry. Any field left blank shows no pre-selection.</div>
               </div>
-            <div style="display:flex;flex-direction:column;gap:20px">
+            <div id="defaults-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
               <div style="display:flex;flex-direction:column;gap:10px">
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
                 ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
