@@ -725,6 +725,10 @@ textarea:focus { border-color: var(--accent2) !important; }
 
   /* KPI: 2 columns */
   .kpi-grid { grid-template-columns: 1fr !important; gap: 10px; margin-bottom: 14px; }
+  .kpi-grid.kpi-collapsed .kpi2-card:not(.kpi-pinned) { display: none; }
+  .kpi-toggle-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }
+  .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
+  .kpi-grid.kpi-collapsed + .kpi-toggle-btn .kpi-toggle-arrow, .kpi-toggle-btn.collapsed .kpi-toggle-arrow { transform: rotate(-90deg); }
   .kpi-card { padding: 12px 14px; }
   .kpi2-card { padding: 12px 14px; min-height: 0; }
   .kpi2-value { font-size: 22px; }
@@ -1696,7 +1700,7 @@ function showPage(page) {
   };
   document.getElementById('topbar-title').textContent = titles[page] || page;
 
-  if (page === 'dashboard')    { renderDashboard(); setTimeout(initSparkTooltips, 50); }
+  if (page === 'dashboard')    { renderDashboard(); setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50); }
   else if (page === 'history') renderHistory();
   else if (page === 'entry')   renderEntry();
   else if (page === 'validEntries') renderValidEntries();
@@ -2371,7 +2375,42 @@ function buildKPIs(matches, curYearMatches) {
   var cardOrder = getDashboardCardOrder();
   var colCount  = cardOrder.length >= 5 ? 5 : 4;
   var cardHtml  = cardOrder.map(buildCard).join('');
-  return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)">' + cardHtml + '</div>';
+  var cardOrder2 = getDashboardCardOrder();
+  var collapsible = cardOrder2.length >= 3 ? ' data-collapsible="true"' : '';
+  return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
+    + (cardOrder2.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><span class="kpi-toggle-arrow">▼</span></button>' : '');
+}
+
+// KPI collapse toggle (mobile only)
+function toggleKpiCollapse() {
+  var grid = document.getElementById('kpi-grid-main');
+  var btn  = document.getElementById('kpi-toggle-btn');
+  if (!grid || !btn) return;
+  var isCollapsed = grid.classList.toggle('kpi-collapsed');
+  btn.classList.toggle('collapsed', isCollapsed);
+  var count = grid.querySelectorAll('.kpi2-card').length;
+  document.getElementById('kpi-toggle-label').textContent = isCollapsed
+    ? 'Show ' + count + ' stat cards'
+    : 'Hide stat cards';
+  localStorage.setItem('kpiCollapsed', isCollapsed ? '1' : '0');
+}
+
+function initKpiCollapse() {
+  var grid = document.getElementById('kpi-grid-main');
+  var btn  = document.getElementById('kpi-toggle-btn');
+  if (!grid || !btn) return;
+  if (window.innerWidth > 768) { btn.style.display = 'none'; return; }
+  if (!grid.hasAttribute('data-collapsible')) return;
+  btn.style.display = 'flex';
+  var count = grid.querySelectorAll('.kpi2-card').length;
+  var wasCollapsed = localStorage.getItem('kpiCollapsed') === '1';
+  if (wasCollapsed) {
+    grid.classList.add('kpi-collapsed');
+    btn.classList.add('collapsed');
+    document.getElementById('kpi-toggle-label').textContent = 'Show ' + count + ' stat cards';
+  } else {
+    document.getElementById('kpi-toggle-label').textContent = 'Hide stat cards';
+  }
 }
 
 // Wire up sparkbar tooltips after DOM render
