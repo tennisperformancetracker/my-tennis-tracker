@@ -372,7 +372,7 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 
 /* Partners threshold control */
 .partners-controls {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-width: 0;
 }
 .partners-threshold {
   background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
@@ -689,7 +689,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 .po-card-header { display: flex; align-items: center; gap: 10px; }
 .po-card-header .card-title { flex: 1; }
 .po-card-header #po-pill-wrap { flex-shrink: 0; }
-.po-card-header #partner-header-controls { flex-shrink: 0; }
+<div class="card-header po-card-header" style="min-height:40px;">
 .po-card-header #po-pill-wrap button { padding-top: 5px; padding-bottom: 5px; }
 .mobile-filters select {
   background: var(--surface2); border: 1px solid var(--border);
@@ -725,7 +725,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 
   /* KPI: 2 columns */
   .kpi-grid { grid-template-columns: 1fr !important; gap: 10px; margin-bottom: 14px; }
-  .kpi-grid.kpi-collapsed .kpi2-card:not(.kpi-pinned) { display: none; }
+  .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
   .kpi-toggle-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }
   .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
   .kpi-grid.kpi-collapsed + .kpi-toggle-btn .kpi-toggle-arrow, .kpi-toggle-btn.collapsed .kpi-toggle-arrow { transform: rotate(-90deg); }
@@ -2294,15 +2294,14 @@ function buildKPIs(matches, curYearMatches) {
 
       case 'comeback': {
         var badge = comebackRate !== null ? kpiBadge(comebackRate>great?'Strong':comebackRate<poor?'Weak':'Average', kpiBadgeClass(comebackRate,great,poor)) : '';
-        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(comebackRate,great,poor) + '">' + rPct(comebackRate) + '</div>';
+        var valHtml = '<div class="kpi2-value" style="color:var(--text)">' + rPct(comebackRate) + '</div>';
         var sub = comebackWins + ' of ' + fsLost.length + ' comebacks after losing 1st set';
         var mini = kpiMiniStats([
           ['Down 0-1',  String(fsLost.length), ''],
-          ['Came back', String(comebackWins), comebackWins>0?'green':''],
+          ['Came back', String(comebackWins), ''],
           ["Didn't",    String(fsLost.length - comebackWins), '']
         ]);
-        return kpiCard('Comeback Rate', badge, valHtml,
-          comebackRate!==null ? kpiBar(comebackRate,great,poor) : '', sub, mini);
+        return kpiCard('Comeback Rate', badge, valHtml, '', sub, mini);
       }
 
       case 'tiebreak': {
@@ -2403,7 +2402,7 @@ function initKpiCollapse() {
   if (!grid.hasAttribute('data-collapsible')) return;
   btn.style.display = 'flex';
   var count = grid.querySelectorAll('.kpi2-card').length;
-  var wasCollapsed = localStorage.getItem('kpiCollapsed') === '1';
+  var wasCollapsed = localStorage.getItem('kpiCollapsed') !== '0';
   if (wasCollapsed) {
     grid.classList.add('kpi-collapsed');
     btn.classList.add('collapsed');
@@ -2885,7 +2884,7 @@ function buildPartnerOpponentControls() {
     ? `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
     : `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
 
-  return `<div style="display:flex;align-items:center;gap:8px">
+  return `<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
       <span class="partners-threshold-label">Min:</span>
       ${selectHtml}
     </div>`;
@@ -3360,7 +3359,9 @@ function renderHistory(page, preFilterPartner) {
   else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
   document.getElementById('topbar-title').textContent = histTitle;
 
-  document.getElementById('mobile-filters').innerHTML = '';
+  document.getElementById('mobile-filters').innerHTML = dashboardReturnState
+    ? `<button onclick="backToDashboard()" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;padding:7px 14px;cursor:pointer;white-space:nowrap;">← Dashboard</button>`
+    : '';
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
       ${dashboardReturnState ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;margin-right:8px" onclick="backToDashboard()">← Dashboard</button>` : ''}
@@ -3772,7 +3773,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var threeCards =
       cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
-    + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
+    + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="navigateToSettingsSection(\'sec-history\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
     + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header);
 
   var cardsHtml;
@@ -4791,14 +4792,22 @@ async function veConfirmDelete() {
 // 
 async function saveNote(idx) {
   const note = document.getElementById('detail-notes-input')?.value?.trim() || '';
+  const saveBtn = document.querySelector('.detail-modal-footer .btn-modal-save');
+  if (saveBtn) { saveBtn.textContent = '💾 Saving…'; saveBtn.disabled = true; }
   try {
     const res  = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({ action:'saveNote', matchIndex: idx, note }) });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     allMatches[idx].notes = note;
-    showToast('Note saved');
+    if (saveBtn) { saveBtn.textContent = '✓ Saved'; saveBtn.style.color = 'var(--win)'; }
+    setTimeout(function() {
+      if (saveBtn) { saveBtn.textContent = '💾 Save'; saveBtn.disabled = false; saveBtn.style.color = ''; }
+    }, 1800);
     if (currentPage === 'history') renderHistory(historyPage);
-  } catch(e) { showToast('Failed to save note: ' + e.message, true); }
+  } catch(e) {
+    if (saveBtn) { saveBtn.textContent = '💾 Save'; saveBtn.disabled = false; saveBtn.style.color = ''; }
+    showToast('Failed to save note: ' + e.message, true);
+  }
 }
 
 // 
@@ -5230,6 +5239,37 @@ function toggleSettingsSection(id) {
       if (chev) chev.classList.remove('open');
     }
   });
+}
+
+function navigateToSettingsSection(sectionId) {
+  navigateTo('settings');
+  // After settings renders, open the target section and scroll to it
+  setTimeout(function() {
+    const ids = ['sec-appearance','sec-history','sec-entry','sec-general'];
+    ids.forEach(function(sid) {
+      const body = document.getElementById(sid);
+      const chev = document.getElementById('chev-' + sid);
+      if (!body) return;
+      if (sid === sectionId) {
+        body.classList.add('open');
+        if (chev) chev.classList.add('open');
+        if (sid === 'sec-appearance') setTimeout(renderCardPicker, 20);
+        // Scroll the section into view
+        const hdr = body.previousElementSibling;
+        if (hdr) hdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        body.classList.remove('open');
+        if (chev) chev.classList.remove('open');
+      }
+    });
+    // Focus the Performance Breakdown Categories heading if targeting sec-history
+    if (sectionId === 'sec-history') {
+      setTimeout(function() {
+        const perfCard = document.querySelector('#sec-history .settings-sub-card:last-of-type');
+        if (perfCard) perfCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+  }, 80);
 }
 
 function settingsUpdatePreview() {
