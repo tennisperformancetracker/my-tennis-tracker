@@ -1693,8 +1693,6 @@ function showPage(page) {
   closeSidebar();
   const mtr = document.getElementById('mob-topbar-right');
   if (mtr) mtr.innerHTML = '';
-  const mtr = document.getElementById('mob-topbar-right');
-  if (mtr) mtr.innerHTML = '';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
