@@ -240,6 +240,7 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .kpi2-tt-l { color: #f09595; }
 .kpi2-tt-opp { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.85); margin-bottom: 3px; }
 .kpi2-tt-score { font-size: 12px; font-weight: 700; color: #fff; }
+.kpi2-tt-pct { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; }
 .kpi2-split-row { display: flex; gap: 0; border-top: 1px solid var(--border); padding-top: 8px; margin-top: auto; }
 .kpi2-split-col { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .kpi2-split-col + .kpi2-split-col { border-left: 1px solid var(--border); padding-left: 10px; }
@@ -723,12 +724,12 @@ textarea:focus { border-color: var(--accent2) !important; }
   .content { padding: 12px 14px; overflow-x: hidden; }
 
   /* KPI: 2 columns */
-  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .kpi-grid { grid-template-columns: 1fr !important; gap: 10px; margin-bottom: 14px; }
   .kpi-card { padding: 12px 14px; }
-  .kpi2-card { padding: 12px 14px; min-height: 130px; }
+  .kpi2-card { padding: 12px 14px; min-height: 0; }
   .kpi2-value { font-size: 22px; }
   .kpi2-partner-name { font-size: 15px; }
-  .kpi2-split-val { font-size: 16px; }
+  .kpi2-split-val { font-size: 14px; }
   .kpi-record { font-size: 20px; }
   .kpi-streak { font-size: 20px; }
   .kpi-label { font-size: 10px; margin-bottom: 6px; }
@@ -794,7 +795,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 }
 
 @media (max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-grid { grid-template-columns: 1fr !important; }
   .modal-detail-grid { grid-template-columns: 1fr; }
   .edit-grid { grid-template-columns: 1fr; }
   .topbar-title { font-size: 14px; }
@@ -2174,7 +2175,7 @@ function buildKPIs(matches, curYearMatches) {
   }
   var alW = alData ? alData.matches.filter(function(m){ return m.result==='W'; }).length : 0;
   var alL = alData ? alData.matches.filter(function(m){ return m.result==='L'; }).length : 0;
-  var alSeasons = alData ? (function(){ var ss={}; alData.matches.forEach(function(m){ if(m.season) ss[m.season]=1; }); return Object.keys(ss).length; })() : 0;
+  var alSeasons = alData ? (function(){ var ss={}; alData.matches.forEach(function(m){ if(m.season && m.year) ss[m.year+'-'+m.season]=1; else if(m.season) ss[m.season]=1; }); return Object.keys(ss).length; })() : 0;
   var alRate = alW+alL > 0 ? alW/(alW+alL) : null;
 
   // ── Build each card ───────────────────────────────────────────────────────
@@ -2227,7 +2228,8 @@ function buildKPIs(matches, curYearMatches) {
         // current season record
         var csnMatches = allSorted.filter(function(m){ return m.season; });
         var csnName = csnMatches.length ? csnMatches[0].season : '';
-        var csnMs = csnName ? allSorted.filter(function(m){ return m.season===csnName; }) : [];
+        var csnYear = csnMatches.length ? csnMatches[0].year : '';
+        var csnMs = csnName ? allSorted.filter(function(m){ return m.season===csnName && m.year===csnYear; }) : [];
         var csnW = csnMs.filter(function(m){ return m.result==='W'; }).length;
         var csnL = csnMs.filter(function(m){ return m.result==='L'; }).length;
         var mini = kpiMiniStats([
@@ -2253,16 +2255,23 @@ function buildKPIs(matches, curYearMatches) {
           var col = m.result==='W' ? 'rgba(30,107,58,0.38)' : 'rgba(179,20,18,0.30)';
           var opp = escHtml(m.opponent1 || m.opponent || '');
           var score = sets.length ? sets.map(function(p){ return p[0]+'–'+p[1]; }).join(', ') : m.result;
+          var gpctLabel = Math.round(gpct * 100) + '% game win rate';
           return '<div class="kpi2-spark-bar" style="height:' + h + '%;background:' + col + '"'
-            + ' data-result="' + m.result + '" data-opp="' + opp + '" data-score="' + score + '"></div>';
+            + ' data-result="' + m.result + '" data-opp="' + opp + '" data-score="' + score + '" data-gpct="' + gpctLabel + '"></div>';
         }).join('');
-        var sparkHtml = '<div class="kpi2-spark-wrap" id="spark-wrap-main">'
-          + '<div class="kpi2-spark-row">' + bars + '</div>'
-          + '<div class="kpi2-spark-tooltip" id="spark-tt" style="display:none"></div>'
-          + '</div>';
         var vsStr = '<span style="color:' + kpiThreshColor(l10Rate,great,poor) + ';font-weight:600">' + rPct(l10Rate) + '</span>'
           + ' vs <span style="font-weight:600">' + rPct(careerRate) + '</span> career avg';
-        return kpiCard('Last 10 Matches', badge, valHtml, sparkHtml, vsStr, '');
+        var sparkHtml = '<div class="kpi2-spark-wrap" id="spark-wrap-main" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;">'
+          + '<div class="kpi2-spark-row" style="height:100%;min-height:40px;">' + bars + '</div>'
+          + '<div class="kpi2-spark-tooltip" id="spark-tt" style="display:none"></div>'
+          + '</div>';
+        var subHtml = '<div class="kpi2-sub" style="margin-top:4px">' + vsStr + '</div>';
+        return '<div class="kpi2-card" style="display:flex;flex-direction:column;">'
+          + '<div class="kpi2-header"><div class="kpi2-label">Last 10 Matches</div>' + badge + '</div>'
+          + valHtml
+          + sparkHtml
+          + subHtml
+          + '</div>';
       }
 
       case 'firstset': {
@@ -2273,7 +2282,7 @@ function buildKPIs(matches, curYearMatches) {
         var mini = kpiMiniStats([
           ['1st set wins',   String(fsWins.length), ''],
           ['1st set losses', String(withSets.length - fsWins.length), ''],
-          ['Tracked',        String(withSets.length), '']
+          ['Matches',        String(withSets.length), '']
         ]);
         return kpiCard('First-Set Win Rate', badge, valHtml,
           fsRate!==null ? kpiBar(fsRate,great,poor) : '', sub, mini);
@@ -2282,7 +2291,7 @@ function buildKPIs(matches, curYearMatches) {
       case 'comeback': {
         var badge = comebackRate !== null ? kpiBadge(comebackRate>great?'Strong':comebackRate<poor?'Weak':'Average', kpiBadgeClass(comebackRate,great,poor)) : '';
         var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(comebackRate,great,poor) + '">' + rPct(comebackRate) + '</div>';
-        var sub = '<strong>' + comebackWins + ' of ' + fsLost.length + '</strong> deficits recovered';
+        var sub = comebackWins + ' of ' + fsLost.length + ' comebacks after losing 1st set';
         var mini = kpiMiniStats([
           ['Down 0-1',  String(fsLost.length), ''],
           ['Came back', String(comebackWins), comebackWins>0?'green':''],
@@ -2308,25 +2317,18 @@ function buildKPIs(matches, curYearMatches) {
         var diff = sRate!==null && dRate!==null ? Math.abs(sRate-dRate) : null;
         var better = sRate!==null && dRate!==null ? (sRate>=dRate?'singles':'doubles') : null;
         var sub = diff!==null ? 'You perform <strong>' + Math.round(diff*100) + '%</strong> better in ' + better : 'Not enough data';
-        var splitHtml = '<div class="kpi2-split-row">'
-          + '<div class="kpi2-split-col">'
-          + '<div class="kpi2-split-label">Singles</div>'
-          + '<div class="kpi2-split-val" style="color:' + kpiThreshColor(sRate,great,poor) + '">' + rPct(sRate) + '</div>'
-          + '<div class="kpi2-split-rec">' + sW + '–' + sL + '</div>'
-          + '</div>'
-          + '<div class="kpi2-split-col">'
-          + '<div class="kpi2-split-label">Doubles</div>'
-          + '<div class="kpi2-split-val" style="color:' + kpiThreshColor(dRate,great,poor) + '">' + rPct(dRate) + '</div>'
-          + '<div class="kpi2-split-rec">' + dW + '–' + dL + '</div>'
-          + '</div>'
-          + '</div>';
-        var valHtml = '<div class="kpi2-sub" style="margin-top:0">' + sub + '</div>';
-        return kpiCard('Singles vs Doubles', '', valHtml, '', '', splitHtml);
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(sRate,great,poor) + '">' + rPct(sRate) + '</div>';
+        var mini = kpiMiniStats([
+          ['Singles',  rPct(sRate),  sRate!==null?(sRate>great?'green':sRate<poor?'red':''):''],
+          ['S Record', sW + '–' + sL, ''],
+          ['Doubles',  rPct(dRate),  dRate!==null?(dRate>great?'green':dRate<poor?'red':''):''],
+          ['D Record', dW + '–' + dL, '']
+        ]);
+        return kpiCard('Singles vs Doubles', '', valHtml, sRate!==null?kpiBar(sRate,great,poor):'', sub, mini);
       }
 
       case 'playoff': {
-        var plLabel = plRate!==null ? (plRate>=0.5?'Above .500':'Under .500') : '';
-        var badge = plLabel ? kpiBadge(plLabel, kpiBadgeClass(plRate,great,poor)) : '';
+        var badge = plRate!==null ? kpiBadge(plRate>great?'Strong':plRate<poor?'Weak':'Average', kpiBadgeClass(plRate,great,poor)) : '';
         var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(plRate,great,poor) + '">' + plW + '–' + plL + '</div>';
         var sub = rPct(plRate) + ' playoffs vs <strong>' + rPct(careerRate) + '</strong> regular season';
         var mini = kpiMiniStats([
@@ -2385,7 +2387,8 @@ function initSparkTooltips() {
       var score  = this.getAttribute('data-score');
       tt.innerHTML = '<div class="kpi2-tt-result ' + (result==='W'?'kpi2-tt-w':'kpi2-tt-l') + '">' + (result==='W'?'Win':'Loss') + '</div>'
         + (opp ? '<div class="kpi2-tt-opp">' + opp + '</div>' : '')
-        + (score ? '<div class="kpi2-tt-score">' + score + '</div>' : '');
+        + (score ? '<div class="kpi2-tt-score">' + score + '</div>' : '')
+        + (this.getAttribute('data-gpct') ? '<div class="kpi2-tt-pct">' + this.getAttribute('data-gpct') + '</div>' : '');
       tt.style.display = 'block';
       var barRect  = this.getBoundingClientRect();
       var wrapRect = wrap.getBoundingClientRect();
