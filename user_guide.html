@@ -880,14 +880,50 @@
       <div class="note note-tip">
         <strong>The insight summary beneath the table</strong> automatically compares your overall win percentage to your strongest and weakest sub-categories, flagging where you're above or below your baseline. It does the analysis for you.
       </div>
+
+      <div class="note">
+        <strong>Drill into any result.</strong> The category label, W count, and L count in each row are all clickable. Clicking takes you to Match History pre-filtered to exactly those matches — for example, clicking the W next to Morning shows only morning wins. Use the <strong>← Dashboard</strong> button at the top of Match History to come straight back.
+      </div>
     </div>
 
     <!-- TOP PARTNERS -->
     <div class="card">
-      <div class="card-title">Top Partners</div>
-      <p>The Top Partners panel ranks your doubles partners by win percentage, giving you a data-backed look at your most effective on-court pairings. Partners are sorted by win percentage descending, with wins, losses, and win percentage shown for each.</p>
-      <p>Use the <strong>Min</strong> dropdown to set a minimum match threshold — for example, setting it to 5 means only partners with at least 5 matches together are included in the ranking. This filters out statistical noise from one-off pairings and keeps the list meaningful.</p>
-      <p>You can click a partner's name to view your performance breakdown with that partner. While viewing your breakdown, you can click <strong>History</strong> to jump directly to a filtered view of all matches played with that partner in Match History.</p>
+      <div class="card-title">Top Partners &amp; Opponents</div>
+      <p>This panel has two modes — switch between them using the <strong>Partners / Opponents</strong> toggle in the card header.</p>
+
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>What It Shows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Partners</td><td>Your doubles partners ranked by win percentage. Shows wins, losses, and W% for each pairing.</td></tr>
+          <tr><td>Opponents</td><td>Every opponent you've faced ranked by your win percentage against them — useful for spotting who you handle well and who gives you trouble.</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:14px">Use the <strong>Min</strong> dropdown to filter out low-sample entries. Column headers are sortable — click W, L, or W% to re-sort, click again to reverse. A <strong>More</strong> button appears at the bottom if the list extends beyond the initial view.</p>
+
+      <p>Click any name to drill into their individual breakdown — your head-to-head record and a full performance split filtered to matches involving that person. Inside the breakdown, the category label, W count, and L count in each row are all clickable. Clicking a category takes you to Match History showing all matches for that category with that partner or opponent. Clicking a W or L narrows it further to only wins or only losses. From the drill view:</p>
+
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Button</th>
+            <th>What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>History</td><td>Goes to Match History pre-filtered to all matches with that partner or opponent.</td></tr>
+          <tr><td>Back</td><td>Returns to the full ranking list without leaving the Dashboard.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note note-tip">
+        <strong>Returning from Match History:</strong> A <strong>← Dashboard</strong> button appears at the top of Match History whenever you arrive from a drill view. Clicking it returns you to the Dashboard and automatically reopens the drill view you were in.
+      </div>
     </div>
 
     <!-- ACHIEVEMENTS SHELF -->
