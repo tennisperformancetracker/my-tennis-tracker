@@ -2300,8 +2300,8 @@ function buildKPIs(matches, curYearMatches) {
         var sub = 'vs <strong>' + rPct(careerRate) + '</strong> overall'
           + (fsThenWinRate!==null ? ' · Win 1st set → win match <span style="color:var(--win);font-weight:600">' + rPct(fsThenWinRate) + '</span>' : '');
         var mini = kpiMiniStats([
-          ['1st set Ws', String(fsWins.length), ''],
-          ['1st set Ls', String(withSets.length - fsWins.length), ''],
+          ['1st set W', String(fsWins.length), ''],
+          ['1st set L', String(withSets.length - fsWins.length), ''],
           ['Matches',    String(withSets.length), '']
         ]);
         return kpiCard('First-Set Win Rate', badge, valHtml,
@@ -2389,7 +2389,7 @@ function buildKPIs(matches, curYearMatches) {
 
   var cardOrder = getDashboardCardOrder();
   if (cardOrder.length === 0) return '';
-  var colCount  = cardOrder.length >= 5 ? 5 : 4;
+  var colCount  = 4;
   var cardHtml  = cardOrder.map(buildCard).join('');
   var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
   return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
@@ -4951,7 +4951,7 @@ function renderSettings() {
             <div class="settings-sub-card">
               <div>
                 <div class="settings-sub-card-title">Dashboard Cards</div>
-                <div class="settings-sub-card-desc">Choose up to 5 cards to show on your Dashboard, or deselect all to hide the section entirely. Drag to reorder — the top 4 appear by default, and a 5th slot unlocks when you select it.</div>
+                <div class="settings-sub-card-desc">Choose up to 4 cards to show on your Dashboard, or deselect all to hide the section entirely. Drag to reorder.</div>
               </div>
               <div id="card-picker-container"></div>
               <div id="settings-cards-msg" style="display:none;font-size:12px;margin-top:6px"></div>
@@ -5526,8 +5526,7 @@ function renderCardPicker() {
     }).join('');
 
     container.innerHTML = '<div class="card-picker-grid">' + html + '</div>'
-      + '<div style="font-size:12px;color:var(--muted)">' + sel.length + ' of 5 selected'
-      + (sel.length === 5 ? ' \u00b7 5th card shown on wider screens' : '')
+      + '<div style="font-size:12px;color:var(--muted)">' + sel.length + ' of 4 selected'
       + (sel.length === 0 ? ' \u00b7 KPI section will be hidden' : '')
       + '</div>';
   }
@@ -5538,7 +5537,7 @@ function renderCardPicker() {
     if (idx !== -1) {
       sel.splice(idx, 1);
     } else {
-      if (sel.length >= 5) { showToast('Max 5 cards. Deselect one first.', true); return; }
+      if (sel.length >= 4) { showToast('Max 4 cards. Deselect one first.', true); return; }
       sel.push(id);
     }
     settingsDirty = true;
