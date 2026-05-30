@@ -2300,9 +2300,9 @@ function buildKPIs(matches, curYearMatches) {
         var sub = 'vs <strong>' + rPct(careerRate) + '</strong> overall'
           + (fsThenWinRate!==null ? ' · Win 1st set → win match <span style="color:var(--win);font-weight:600">' + rPct(fsThenWinRate) + '</span>' : '');
         var mini = kpiMiniStats([
-          ['1st set wins',   String(fsWins.length), ''],
-          ['1st set losses', String(withSets.length - fsWins.length), ''],
-          ['Matches',        String(withSets.length), '']
+          ['1st set Ws', String(fsWins.length), ''],
+          ['1st set Ls', String(withSets.length - fsWins.length), ''],
+          ['Matches',    String(withSets.length), '']
         ]);
         return kpiCard('First-Set Win Rate', badge, valHtml,
           fsRate!==null ? kpiBar(fsRate,great,poor) : '', sub, mini);
@@ -2338,10 +2338,10 @@ function buildKPIs(matches, curYearMatches) {
         var sub = diff!==null ? 'You perform <strong>' + Math.round(diff*100) + '%</strong> better in ' + better : 'Not enough data';
         var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(sRate,great,poor) + '">' + rPct(sRate) + '</div>';
         var mini = kpiMiniStats([
-          ['Singles',  rPct(sRate),  sRate!==null?(sRate>great?'green':sRate<poor?'red':''):''],
-          ['S Record', sW + '–' + sL, ''],
-          ['Doubles',  rPct(dRate),  dRate!==null?(dRate>great?'green':dRate<poor?'red':''):''],
-          ['D Record', dW + '–' + dL, '']
+          ['Singles', rPct(sRate),  sRate!==null?(sRate>great?'green':sRate<poor?'red':''):''],
+          ['Record',  sW + '–' + sL, ''],
+          ['Doubles', rPct(dRate),  dRate!==null?(dRate>great?'green':dRate<poor?'red':''):''],
+          ['Record',  dW + '–' + dL, '']
         ]);
         return kpiCard('Singles vs Doubles', '', valHtml, sRate!==null?kpiBar(sRate,great,poor):'', sub, mini);
       }
