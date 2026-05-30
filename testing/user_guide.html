@@ -682,7 +682,7 @@
       Everything you need to connect your spreadsheet, log your matches, and gain real insights into your game. <br><br>This guide walks you through setup and each section of the app so you can start logging your matches now!
     </p>
     <div class="cover-tags">
-      <a href="https://youtu.be/pi7LTBR6ksM" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;">▶ Watch Setup Walkthrough Video</a>
+      <a href="https://youtu.be/-4Z8fEHmb00" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;">▶ Watch Setup Walkthrough Video</a>
     </div>
     
   </div>
@@ -713,7 +713,7 @@
       Match Tracker Pro runs as a web app that reads from and writes to your Google Sheet. Before you can log a single match, you need to deploy an Apps Script web app from your spreadsheet and paste its URL into the tracker. This is a one-time process — once it's connected, you won't need to touch the spreadsheet again.
     </p>
 
-    <a href="https://youtu.be/pi7LTBR6ksM" target="_blank" style="display:flex;align-items:center;gap:16px;background:var(--navy);border-radius:10px;padding:18px 22px;margin-bottom:24px;text-decoration:none;">
+    <a href="https://youtu.be/-4Z8fEHmb00" target="_blank" style="display:flex;align-items:center;gap:16px;background:var(--navy);border-radius:10px;padding:18px 22px;margin-bottom:24px;text-decoration:none;">
       <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">▶</div>
       <div>
         <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;">Watch the Setup Walkthrough Video</div>
@@ -800,32 +800,13 @@
     <!-- SUMMARY CARDS -->
     <div class="card">
       <div class="card-title">Performance Summary Cards</div>
-      <p>Across the top of the Dashboard, four summary cards give you an instant snapshot of your record. These update automatically as you log new matches.</p>
+      <p>Across the top of the Dashboard, up to four stat cards give you an instant snapshot of your record. These update automatically as you log new matches. The cards you see are fully customizable — choose which ones to display and in what order from the <a href="#settings" style="color:var(--navy);font-weight:600">Settings page</a> (Display Preferences → Dashboard Cards), where each available card is described in detail.</p>
 
-      <div class="metric-row">
-        <div class="metric-card">
-          <div class="metric-label">Overall Record</div>
-          <div class="metric-value">W–L</div>
-          <div class="metric-desc">All-time wins, losses, and win percentage across every match in the tracker.</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Current Year</div>
-          <div class="metric-value">W–L</div>
-          <div class="metric-desc">Your record and win percentage for the current calendar year only.</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Current Streak</div>
-          <div class="metric-value">W1</div>
-          <div class="metric-desc">Your active win or loss streak, plus your longest streak on record.</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Last 10 Matches</div>
-          <div class="metric-value">7–3</div>
-          <div class="metric-desc">Recent form indicator — your record and win % over your last 10 outings.</div>
-        </div>
-      </div>
+      <p>The defaults are <strong>Overall Record</strong>, <strong>Current Year</strong>, <strong>Current Streak</strong>, and <strong>Last 10 Matches</strong>, but you can swap in any combination of the 10 available cards — including First-Set Win Rate, Comeback Rate, Tiebreak Record, Singles vs Doubles, Playoff Record, Best Partner, and Most Active League.</p>
 
-      <p>The <strong>Type</strong> dropdown in the top-right corner of the Dashboard lets you filter all summary cards and charts by match type — Singles, Doubles, Mixed Doubles, or All Types combined.</p>
+      <p>To the right of the cards, a small <strong>✏️</strong> icon links directly to the Dashboard Cards settings. On mobile, a <strong>Stats</strong> pill at the top of the section lets you collapse and expand the cards to free up screen space.</p>
+
+      <p>The <strong>Type</strong> dropdown in the top-right corner of the Dashboard filters all summary cards and charts by match type — Singles, Doubles, Mixed Doubles, or All Types combined.</p>
     </div>
 
     <!-- WIN % CHART -->
@@ -880,14 +861,50 @@
       <div class="note note-tip">
         <strong>The insight summary beneath the table</strong> automatically compares your overall win percentage to your strongest and weakest sub-categories, flagging where you're above or below your baseline. It does the analysis for you.
       </div>
+
+      <div class="note">
+        <strong>Drill into any result.</strong> The category label, W count, and L count in each row are all clickable. Clicking takes you to Match History pre-filtered to exactly those matches — for example, clicking the W next to Morning shows only morning wins. Use the <strong>← Dashboard</strong> button at the top of Match History to come straight back.
+      </div>
     </div>
 
     <!-- TOP PARTNERS -->
     <div class="card">
-      <div class="card-title">Top Partners</div>
-      <p>The Top Partners panel ranks your doubles partners by win percentage, giving you a data-backed look at your most effective on-court pairings. Partners are sorted by win percentage descending, with wins, losses, and win percentage shown for each.</p>
-      <p>Use the <strong>Min</strong> dropdown to set a minimum match threshold — for example, setting it to 5 means only partners with at least 5 matches together are included in the ranking. This filters out statistical noise from one-off pairings and keeps the list meaningful.</p>
-      <p>You can click a partner's name to view your performance breakdown with that partner. While viewing your breakdown, you can click <strong>History</strong> to jump directly to a filtered view of all matches played with that partner in Match History.</p>
+      <div class="card-title">Top Partners &amp; Opponents</div>
+      <p>This panel has two modes — switch between them using the <strong>Partners / Opponents</strong> toggle in the card header.</p>
+
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>What It Shows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Partners</td><td>Your doubles partners ranked by win percentage. Shows wins, losses, and W% for each pairing.</td></tr>
+          <tr><td>Opponents</td><td>Every opponent you've faced ranked by your win percentage against them — useful for spotting who you handle well and who gives you trouble.</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:14px">Use the <strong>Min</strong> dropdown to filter out low-sample entries. Column headers are sortable — click W, L, or W% to re-sort, click again to reverse. A <strong>More</strong> button appears at the bottom if the list extends beyond the initial view.</p>
+
+      <p>Click any name to drill into their individual breakdown — your head-to-head record and a full performance split filtered to matches involving that person. Inside the breakdown, the category label, W count, and L count in each row are all clickable. Clicking a category takes you to Match History showing all matches for that category with that partner or opponent. Clicking a W or L narrows it further to only wins or only losses. From the drill view:</p>
+
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Button</th>
+            <th>What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>History</td><td>Goes to Match History pre-filtered to all matches with that partner or opponent.</td></tr>
+          <tr><td>Back</td><td>Returns to the full ranking list without leaving the Dashboard.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note note-tip">
+        <strong>Returning from Match History:</strong> A <strong>← Dashboard</strong> button appears at the top of Match History whenever you arrive from a drill view. Clicking it returns you to the Dashboard and automatically reopens the drill view you were in.
+      </div>
     </div>
 
     <!-- ACHIEVEMENTS SHELF -->
@@ -1157,7 +1174,33 @@
     <div class="card-title">Display</div>
     <p>Controls visual preferences that affect how information appears throughout the entire app.</p>
 
-    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:18px 0 8px">Partner Name Format</h4>
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:18px 0 8px">Dashboard Cards</h4>
+    <p>Choose which stat cards appear at the top of your Dashboard, how many (up to 4), and in what order. Check or uncheck any card to show or hide it. Drag cards to reorder them. Deselect all to hide the section entirely.</p>
+
+    <table class="field-table" style="margin-top:10px">
+      <thead>
+        <tr><th>Card</th><th>What It Shows</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Overall Record</td><td>All-time wins, losses, and win percentage across every match in the tracker.</td></tr>
+        <tr><td>Current Year</td><td>Your record and win percentage for the current calendar year, with a comparison badge to last year.</td></tr>
+        <tr><td>Current Streak</td><td>Your active win or loss streak, your longest streak on record, and your current season record.</td></tr>
+        <tr><td>Last 10 Matches</td><td>Your record over the last 10 matches, with a sparkbar showing individual results and a comparison to your overall win rate.</td></tr>
+        <tr><td>First-Set Win Rate</td><td>How often you win the first set, and how your overall match record splits between winning and losing that first set.</td></tr>
+        <tr><td>Comeback Rate</td><td>How often you come back to win after dropping the first set.</td></tr>
+        <tr><td>Tiebreak Record</td><td>Your all-time record in tiebreaks, plus how your match outcomes split in matches that had a tiebreak.</td></tr>
+        <tr><td>Singles vs Doubles</td><td>A side-by-side win percentage comparison between your singles and doubles records.</td></tr>
+        <tr><td>Playoff Record</td><td>Your record specifically in playoff-designated matches versus regular season.</td></tr>
+        <tr><td>Best Partner</td><td>Your top doubles partner by win percentage (minimum 5 matches), with your record together.</td></tr>
+        <tr><td>Most Active League</td><td>The league where you've played the most matches, with your record and number of seasons in that league.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note note-tip" style="margin-top:14px">
+      <strong>The ✏️ icon</strong> on the Dashboard links directly here so you can update your card selection without navigating through the full Settings menu.
+    </div>
+
+    <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:24px 0 8px">Partner Name Format</h4>
     <p>Choose how partner names appear on the Dashboard, in Match History, and in the Partner Performance card. The full name is always preserved as a tooltip — the format setting only controls how names are displayed in the app.</p>
 
     <table class="field-table" style="margin-top:10px">
@@ -1681,10 +1724,7 @@
     </div>
   </div>  
 
-<div style="text-align:center;padding:12px 16px 20px;font-size:10px;color:var(--muted)">
-    © 2026 Match Tracker Pro. All rights reserved.<br>
-      <a href="MTP_Legal_Pages.html" target="_blank" style="color:var(--muted);text-decoration:none;border-bottom:1px solid rgba(0,0,0,0.15)">Privacy &amp; Terms</a>
-    </div>
+
 
 </section>
 
@@ -1737,11 +1777,11 @@
           <tr><td>💪 Never Say Die</td><td>Win a completed match after losing the first set</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
           <tr><td>🎽 Singles</td><td>Singles matches played</td><td>6 levels (25 to 1000)</td></tr>
           <tr><td>🤝 Doubles</td><td>Doubles matches played (any doubles type)</td><td>6 levels (25 to 1000)</td></tr>
-          <tr><td>👥 Dynamic Duo</td><td>Wins with your single most-won-with partner</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+          <tr><td>👥 Dynamic Duo</td><td>Wins with the same partner</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
           <tr><td>🏆 Playoff Warrior</td><td>Playoff matches won</td><td>6 levels (1 to 100)</td></tr>
-          <tr><td>🥯 Double Bagel</td><td>Win a match 6–0, 6–0 in straight sets with no retirements</td><td>4 levels (1 / 10 / 25 / 50)</td></tr>
+          <tr><td>🥯 Double Bagel</td><td>Win a match 6–0, 6–0 in straight sets with no retirements</td><td>4 levels (1 / 3 / 5 / 10)</td></tr>
           <tr><td>⚖️ Tiebreak Specialist</td><td>Tiebreaks won (7–6 in any set), regardless of match outcome</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
-          <tr><td>🚨 Clutch Performer</td><td>Win a match decided by a tiebreak in the third set (7–6 or 1–0), no retirements</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
+          <tr><td>🚨 Clutch Performer</td><td>Win a match decided by a tiebreak in the third set (7–6 or 1–0), no retirements</td><td>4 levels (5 / 10 / 25 / 50)</td></tr>
           <tr><td>🏠 Home Court Advantage</td><td>Wins in matches logged as Home</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
           <tr><td>✈️ Road Warrior</td><td>Wins in matches logged as Away</td><td>4 levels (10 / 25 / 50 / 100)</td></tr>
         </tbody>
@@ -1767,6 +1807,11 @@
     </div>
 
   </section>
+
+<div style="text-align:center;padding:12px 16px 20px;font-size:10px;color:var(--muted)">
+    © 2026 Match Tracker Pro. All rights reserved.<br>
+      <a href="MTP_Legal_Pages.html" target="_blank" style="color:var(--muted);text-decoration:none;border-bottom:1px solid rgba(0,0,0,0.15)">Privacy &amp; Terms</a>
+    </div>
 
 </main>
 
