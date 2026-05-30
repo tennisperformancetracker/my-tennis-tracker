@@ -3304,6 +3304,7 @@ function backToDashboard() {
   document.querySelectorAll('.nav-item')[0].classList.add('active');
   document.getElementById('topbar-title').textContent = 'Dashboard';
   renderDashboard();
+  setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50);
   // Restore scroll position
   requestAnimationFrame(() => {
     window.scrollTo({ top: state ? state.scrollY : 0, behavior: 'instant' });
