@@ -182,21 +182,91 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 }
 .setup-field input:focus { border-color: var(--accent2); }
 
-/* ── KPI Cards ──────────────────────────────────────────── */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.kpi-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  padding: 18px 20px; box-shadow: var(--shadow);
-}
+/* ── KPI Cards (legacy classes kept for compat) ─────────── */
 .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px; }
-.kpi-main { display: flex; align-items: flex-end; gap: 10px; }
-.kpi-record { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
-.kpi-pct { font-size: 13px; font-weight: 600; color: var(--muted); padding-bottom: 2px; }
-.kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
-.kpi-streak { font-size: 28px; font-weight: 700; line-height: 1; }
-.kpi-streak.win  { color: var(--win); }
-.kpi-streak.loss { color: var(--loss); }
-.kpi-streak.none { color: var(--muted); }
+
+/* ── KPI2 Cards (new design) ────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; align-items: stretch; }
+.kpi2-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px 18px 14px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 160px; box-sizing: border-box;
+}
+.kpi2-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.kpi2-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); line-height: 1.3; }
+.kpi2-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; }
+.kpi2-badge-green  { background: var(--win-bg); color: var(--win); border: 0.5px solid rgba(30,107,58,0.2); }
+.kpi2-badge-red    { background: var(--loss-bg); color: var(--loss); border: 0.5px solid rgba(179,20,18,0.2); }
+.kpi2-badge-orange { background: #fef4e4; color: #d97706; border: 0.5px solid rgba(217,119,6,0.2); }
+.kpi2-badge-blue   { background: #e6f1fb; color: #185fa5; border: 0.5px solid rgba(24,95,165,0.2); }
+.kpi2-badge-navy   { background: rgba(47,65,87,0.1); color: var(--accent); border: 0.5px solid rgba(47,65,87,0.15); }
+body.dark .kpi2-badge-green  { background: rgba(30,107,58,0.25); }
+body.dark .kpi2-badge-red    { background: rgba(179,20,18,0.25); }
+body.dark .kpi2-badge-orange { background: rgba(217,119,6,0.2); color: #f59e0b; }
+body.dark .kpi2-badge-blue   { background: rgba(24,95,165,0.2); color: #60a5fa; }
+body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--muted); }
+.kpi2-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; color: var(--text); }
+.kpi2-bar-wrap { height: 4px; background: var(--border); border-radius: 100px; overflow: hidden; flex-shrink: 0; }
+.kpi2-bar { height: 4px; border-radius: 100px; transition: width 0.3s; }
+.kpi-grid.kpi-collapsed .kpi2-card { display: none; }
+.kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
+.kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.kpi2-mini-row {
+  display: flex; gap: 0; border-top: 1px solid var(--border);
+  padding-top: 8px; margin-top: auto; flex-shrink: 0;
+}
+.kpi2-mini-stat { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.kpi2-mini-stat + .kpi2-mini-stat { border-left: 1px solid var(--border); padding-left: 10px; }
+.kpi2-mini-label { font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.kpi2-mini-val { font-size: 13px; font-weight: 700; color: var(--text); }
+.kpi2-mini-val.green { color: var(--win); }
+.kpi2-mini-val.red   { color: var(--loss); }
+.kpi2-partner-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); line-height: 1.2; margin-top: -2px; }
+.kpi2-spark-wrap { position: relative; flex-shrink: 0; }
+.kpi2-spark-row { display: flex; align-items: flex-end; gap: 3px; height: 32px; }
+.kpi2-spark-bar { flex: 1; border-radius: 3px 3px 0 0; cursor: pointer; transition: opacity 0.12s, transform 0.12s; }
+.kpi2-spark-bar:hover { opacity: 1 !important; transform: scaleY(1.06); transform-origin: bottom; }
+.kpi2-spark-tooltip {
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent); border-radius: 7px; padding: 7px 11px;
+  z-index: 20; white-space: nowrap; pointer-events: none; min-width: 110px;
+}
+.kpi2-spark-tooltip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 4px solid transparent; border-top-color: var(--accent);
+}
+.kpi2-tt-result { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+.kpi2-tt-w { color: #7ecba1; }
+.kpi2-tt-l { color: #f09595; }
+.kpi2-tt-opp { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.85); margin-bottom: 3px; }
+.kpi2-tt-score { font-size: 12px; font-weight: 700; color: #fff; }
+.kpi2-tt-pct { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.kpi2-split-row { display: flex; gap: 0; border-top: 1px solid var(--border); padding-top: 8px; margin-top: auto; }
+.kpi2-split-col { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.kpi2-split-col + .kpi2-split-col { border-left: 1px solid var(--border); padding-left: 10px; }
+.kpi2-split-label { font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.kpi2-split-val { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+.kpi2-split-rec { font-size: 11px; color: var(--muted); }
+.card-picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+.card-picker-item {
+  background: var(--surface2); border: 2px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; cursor: grab; user-select: none; position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card-picker-item:active { cursor: grabbing; }
+.card-picker-item.selected { border-color: var(--accent2); background: var(--surface); box-shadow: 0 0 0 3px rgba(99,133,162,0.15); }
+.card-picker-item.dragging { opacity: 0.4; }
+.card-picker-item.drag-over { border-color: var(--accent2); background: rgba(99,133,162,0.08); }
+.picker-badge {
+  position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--accent2); color: #fff;
+  font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.picker-label { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.picker-value { font-size: 18px; font-weight: 700; color: var(--win); letter-spacing: -0.5px; }
+.picker-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
 
 /* ── Dashboard grid ─────────────────────────────────────── */
 .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -304,7 +374,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
 /* Partners threshold control */
 .partners-controls {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-width: 0;
 }
 .partners-threshold {
   background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
@@ -621,7 +691,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 .po-card-header { display: flex; align-items: center; gap: 10px; }
 .po-card-header .card-title { flex: 1; }
 .po-card-header #po-pill-wrap { flex-shrink: 0; }
-.po-card-header #partner-header-controls { flex-shrink: 0; }
+<div class="card-header po-card-header" style="min-height:40px;">
 .po-card-header #po-pill-wrap button { padding-top: 5px; padding-bottom: 5px; }
 .mobile-filters select {
   background: var(--surface2); border: 1px solid var(--border);
@@ -647,6 +717,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   .topbar { background: #2f4157; padding: 0 14px; height: 52px; border-bottom: none; }
   .topbar-title { font-size: 16px; font-weight: 700; color: #fff; }
   .topbar-right { display: none; }
+  #mob-topbar-right { display: flex !important; }
   .mob-hamburger { display: flex; color: #fff; }
 
   /* Mobile filters */
@@ -656,13 +727,28 @@ textarea:focus { border-color: var(--accent2) !important; }
   .content { padding: 12px 14px; overflow-x: hidden; }
 
   /* KPI: 2 columns */
-  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .kpi-grid { grid-template-columns: 1fr !important; gap: 10px; margin-bottom: 14px; }
+  .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
+  .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
+  #kpi-desktop-bar { display: none !important; }
+  .kpi-toggle-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }
+  .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
+  .kpi-toggle-btn .kpi-toggle-arrow { transform: rotate(180deg); }
+  .kpi-toggle-btn.collapsed .kpi-toggle-arrow { transform: rotate(0deg); }
   .kpi-card { padding: 12px 14px; }
+  .kpi2-card { padding: 12px 14px; min-height: 0; }
+  .kpi2-card-last10 { display: flex; }
+  .kpi2-value { font-size: 22px; }
+  .kpi2-partner-name { font-size: 15px; }
+  .kpi2-split-val { font-size: 14px; }
   .kpi-record { font-size: 20px; }
   .kpi-streak { font-size: 20px; }
   .kpi-label { font-size: 10px; margin-bottom: 6px; }
   .kpi-pct { font-size: 12px; }
   .kpi-sub { font-size: 11px; }
+  .card-picker-grid { grid-template-columns: 1fr 1fr; }
+  #defaults-grid { grid-template-columns: 1fr !important; }
+  #defaults-grid > div + div { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 4px; }
 
   /* Dashboard: single column */
   .dash-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -722,7 +808,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 }
 
 @media (max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-grid { grid-template-columns: 1fr !important; }
   .modal-detail-grid { grid-template-columns: 1fr; }
   .edit-grid { grid-template-columns: 1fr; }
   .topbar-title { font-size: 14px; }
@@ -1262,6 +1348,7 @@ textarea:focus { border-color: var(--accent2) !important; }
       <div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
     <div class="topbar-right" id="topbar-right"></div>
+    <div id="mob-topbar-right" style="display:none;align-items:center;gap:8px;flex-shrink:0"></div>
   </div>
 
   <!-- MOBILE FILTER BAR (populated by JS on mobile) -->
@@ -1609,6 +1696,8 @@ function showPage(page) {
   dashboardReturnState = null;
   window.scrollTo(0, 0);
   closeSidebar();
+  const mtr = document.getElementById('mob-topbar-right');
+  if (mtr) mtr.innerHTML = '';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
@@ -1623,7 +1712,7 @@ function showPage(page) {
   };
   document.getElementById('topbar-title').textContent = titles[page] || page;
 
-  if (page === 'dashboard')    renderDashboard();
+  if (page === 'dashboard')    { renderDashboard(); setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50); }
   else if (page === 'history') renderHistory();
   else if (page === 'entry')   renderEntry();
   else if (page === 'validEntries') renderValidEntries();
@@ -1660,6 +1749,8 @@ function setContent(html) {
   document.getElementById('content').innerHTML = html;
   document.getElementById('topbar-right').innerHTML = '';
   document.getElementById('mobile-filters').innerHTML = '';
+  const mtr = document.getElementById('mob-topbar-right');
+  if (mtr) mtr.innerHTML = '';
 }
 
 // 
@@ -1781,9 +1872,10 @@ function renderDashboard() {
     </div>
   `;
 
-  // Mobile filter bar
-  document.getElementById('mobile-filters').innerHTML = `
-    <select onchange="filterState.dash.type=this.value;renderDashboard()" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:12px;padding:6px 24px 6px 8px;outline:none;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;">
+  document.getElementById('mobile-filters').innerHTML = '';
+  const mobTopbarRightDash = document.getElementById('mob-topbar-right');
+  if (mobTopbarRightDash) mobTopbarRightDash.innerHTML = `
+    <select onchange="filterState.dash.type=this.value;renderDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;">
       ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
     </select>
   `;
@@ -1859,6 +1951,7 @@ function renderDashboard() {
     <div class="card achievements-card">
       <div class="card-header">
         <div class="card-title">Achievements</div>
+        <button class="badge-shelf-link" onclick="slideToAchievements()">View all →</button>
       </div>
       <div id="badge-shelf-content">${buildBadgeShelf()}</div>
     </div>
@@ -1911,71 +2004,470 @@ function onChartModeChange() {
   renderMonthChart(getChartMatches());
 }
 
+// ── KPI Card System ─────────────────────────────────────────────────────────
+const KPI_CARD_DEFS = [
+  { id: 'overall',           label: 'Overall Record' },
+  { id: 'year',              label: 'Current Year' },
+  { id: 'streak',            label: 'Current Streak' },
+  { id: 'last10',            label: 'Last 10 Matches' },
+  { id: 'firstset',          label: 'First-Set Win Rate' },
+  { id: 'comeback',          label: 'Comeback Rate' },
+  { id: 'tiebreak',          label: 'Tiebreak Record' },
+  { id: 'singles_v_doubles', label: 'Singles vs Doubles' },
+  { id: 'playoff',           label: 'Playoff Record' },
+  { id: 'best_partner',      label: 'Best Partner' },
+  { id: 'active_league',     label: 'Most Active League' },
+];
+const KPI_DEFAULT_ORDER = ['overall','year','streak','last10'];
+
+function getDashboardCardOrder() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('dashboardCards') || 'null');
+    if (Array.isArray(saved) && saved.length > 0) return saved.slice(0, 5);
+  } catch(e) {}
+  return KPI_DEFAULT_ORDER;
+}
+
+// Helpers for card building
+function kpiThreshColor(r, great, poor) {
+  if (r === null || isNaN(r)) return 'var(--text)';
+  if (r > great) return 'var(--win)';
+  if (r < poor)  return 'var(--loss)';
+  return 'var(--warn)';
+}
+function kpiBadgeClass(r, great, poor) {
+  if (r === null || isNaN(r)) return 'kpi2-badge-orange';
+  if (r > great) return 'kpi2-badge-green';
+  if (r < poor)  return 'kpi2-badge-red';
+  return 'kpi2-badge-orange';
+}
+function kpiBar(r, great, poor) {
+  var w = Math.round(Math.max(0, Math.min(100, (r || 0) * 100)));
+  var col = kpiThreshColor(r, great, poor);
+  return '<div class="kpi2-bar-wrap"><div class="kpi2-bar" style="width:' + w + '%;background:' + col + '"></div></div>';
+}
+function kpiMiniStats(items) {
+  var cells = items.map(function(item) {
+    var label = item[0], val = item[1], cls = item[2] || '';
+    return '<div class="kpi2-mini-stat">'
+      + '<div class="kpi2-mini-label">' + label + '</div>'
+      + '<div class="kpi2-mini-val' + (cls ? ' ' + cls : '') + '">' + val + '</div>'
+      + '</div>';
+  }).join('');
+  return '<div class="kpi2-mini-row">' + cells + '</div>';
+}
+function kpiCard(headerLabel, badgeHtml, valueHtml, barHtml, subHtml, bodyHtml) {
+  return '<div class="kpi2-card">'
+    + '<div class="kpi2-header"><div class="kpi2-label">' + headerLabel + '</div>' + (badgeHtml || '') + '</div>'
+    + valueHtml
+    + (barHtml || '')
+    + (subHtml ? '<div class="kpi2-sub">' + subHtml + '</div>' : '')
+    + (bodyHtml || '')
+    + '</div>';
+}
+function kpiBadge(text, cls) {
+  return '<span class="kpi2-badge ' + cls + '">' + text + '</span>';
+}
+function rPct(r) {
+  if (r === null || isNaN(r)) return '—';
+  return Math.round(r * 100) + '%';
+}
+
 function buildKPIs(matches, curYearMatches) {
-  const great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
-  const poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
-  function recordColor(w, l) {
-    if (w+l===0) return 'var(--text)';
-    const r = w/(w+l);
-    return r > great ? 'var(--win)' : r < poor ? 'var(--loss)' : 'var(--warn)';
+  var great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+  var poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+
+  // ── Compute all data upfront ──────────────────────────────────────────────
+  var allSorted = matches.slice().sort(function(a,b){ return parseDate(b.date) - parseDate(a.date); });
+
+  var W = matches.filter(function(m){ return m.result==='W'; }).length;
+  var L = matches.filter(function(m){ return m.result==='L'; }).length;
+  var careerRate = W+L > 0 ? W/(W+L) : null;
+
+  var curYear = new Date().getFullYear();
+  var cyW = curYearMatches.filter(function(m){ return m.result==='W'; }).length;
+  var cyL = curYearMatches.filter(function(m){ return m.result==='L'; }).length;
+  var cyRate = cyW+cyL > 0 ? cyW/(cyW+cyL) : null;
+  var prevYear = curYear - 1;
+  var prevYearMatches = allMatches.filter(function(m){ return m.year === prevYear; });
+  var pyW = prevYearMatches.filter(function(m){ return m.result==='W'; }).length;
+  var pyL = prevYearMatches.filter(function(m){ return m.result==='L'; }).length;
+  var pyRate = pyW+pyL > 0 ? pyW/(pyW+pyL) : null;
+
+  var last10 = allSorted.slice(0, 10);
+  var l10W = last10.filter(function(m){ return m.result==='W'; }).length;
+  var l10L = last10.filter(function(m){ return m.result==='L'; }).length;
+  var l10Rate = l10W+l10L > 0 ? l10W/(l10W+l10L) : null;
+
+  var streak = calcStreak(allSorted);
+
+  // Singles vs doubles
+  var singleMatches = matches.filter(function(m){
+    var t = (m.type||'').toLowerCase();
+    return t.includes('singles') || (!m.partner && !t.includes('doubles'));
+  });
+  var doublesMatches = matches.filter(function(m){
+    var t = (m.type||'').toLowerCase();
+    return t.includes('doubles') || !!m.partner;
+  });
+  var sW = singleMatches.filter(function(m){ return m.result==='W'; }).length;
+  var sL = singleMatches.filter(function(m){ return m.result==='L'; }).length;
+  var dW = doublesMatches.filter(function(m){ return m.result==='W'; }).length;
+  var dL = doublesMatches.filter(function(m){ return m.result==='L'; }).length;
+  var sRate = sW+sL > 0 ? sW/(sW+sL) : null;
+  var dRate = dW+dL > 0 ? dW/(dW+dL) : null;
+
+  // First-set win rate
+  var withSets = matches.filter(function(m){ return num(m.s1w) !== null && num(m.s1l) !== null; });
+  var fsWins = withSets.filter(function(m){ return num(m.s1w) > num(m.s1l); });
+  var fsWinsMatchWin = fsWins.filter(function(m){ return m.result==='W'; }).length;
+  var fsRate = withSets.length > 0 ? fsWins.length / withSets.length : null;
+  var fsThenWinRate = fsWins.length > 0 ? fsWinsMatchWin / fsWins.length : null;
+
+  // Comeback rate
+  var fsLost = withSets.filter(function(m){ return num(m.s1w) < num(m.s1l); });
+  var comebackWins = fsLost.filter(function(m){ return m.result==='W'; }).length;
+  var comebackRate = fsLost.length > 0 ? comebackWins / fsLost.length : null;
+
+  // Tiebreak record
+  var tbW = 0, tbL = 0, tbSznW = 0, tbSznL = 0, tb3W = 0, tb3L = 0;
+  var seasonsList = [];
+  allMatches.forEach(function(m){ if(m.season && seasonsList.indexOf(m.season)===-1) seasonsList.push(m.season); });
+  var latestSzn = seasonsList.length ? seasonsList[seasonsList.length-1] : '';
+  var curSznMatches = latestSzn ? allMatches.filter(function(m){ return m.season===latestSzn; }) : [];
+  function isTB(nw, nl) { return nw!==null && nl!==null && nw+nl>=12 && Math.abs(nw-nl)<=2 && (nw===7||nl===7); }
+  matches.forEach(function(m) {
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
+      var nw=num(pair[0]), nl=num(pair[1]);
+      if (isTB(nw,nl)) { if(nw>nl) tbW++; else tbL++; }
+    });
+  });
+  curSznMatches.forEach(function(m) {
+    [[m.s1w,m.s1l],[m.s2w,m.s2l]].forEach(function(pair) {
+      var nw=num(pair[0]), nl=num(pair[1]);
+      if (isTB(nw,nl)) { if(nw>nl) tbSznW++; else tbSznL++; }
+    });
+    var nw=num(m.s3w), nl=num(m.s3l);
+    if (nw!==null && nl!==null && nw+nl>=12 && (nw===7||nl===7)) { if(nw>nl) tb3W++; else tb3L++; }
+  });
+  var tbRate = tbW+tbL > 0 ? tbW/(tbW+tbL) : null;
+
+  // Playoff
+  var playoffMs = matches.filter(function(m){ return m.playoff===true || m.playoff==='TRUE'; });
+  var plW = playoffMs.filter(function(m){ return m.result==='W'; }).length;
+  var plL = playoffMs.filter(function(m){ return m.result==='L'; }).length;
+  var plRate = plW+plL > 0 ? plW/(plW+plL) : null;
+
+  // Best partner (min 5)
+  var partnerMap = {};
+  matches.forEach(function(m) {
+    if (!m.partner) return;
+    if (!partnerMap[m.partner]) partnerMap[m.partner] = {w:0, l:0};
+    if (m.result==='W') partnerMap[m.partner].w++; else partnerMap[m.partner].l++;
+  });
+  var bestPartner = null, bestRate = -1;
+  Object.keys(partnerMap).forEach(function(name) {
+    var d = partnerMap[name];
+    if (d.w+d.l < 5) return;
+    var r = d.w/(d.w+d.l);
+    if (r > bestRate) { bestRate = r; bestPartner = {name:name, w:d.w, l:d.l}; }
+  });
+
+  // Most active league
+  var leagueMap = {};
+  matches.forEach(function(m) {
+    if (!m.league) return;
+    if (!leagueMap[m.league]) leagueMap[m.league] = {matches:[], types:{}};
+    leagueMap[m.league].matches.push(m);
+    var t = m.type || 'Unknown';
+    leagueMap[m.league].types[t] = (leagueMap[m.league].types[t]||0) + 1;
+  });
+  var activeLeague = null;
+  Object.keys(leagueMap).forEach(function(name) {
+    var d = leagueMap[name];
+    if (!activeLeague || d.matches.length > leagueMap[activeLeague].matches.length) activeLeague = name;
+  });
+  var alData = activeLeague ? leagueMap[activeLeague] : null;
+  var alTopType = '';
+  if (alData) {
+    var maxC = 0;
+    Object.keys(alData.types).forEach(function(t){ if(alData.types[t]>maxC){maxC=alData.types[t];alTopType=t;} });
+  }
+  var alW = alData ? alData.matches.filter(function(m){ return m.result==='W'; }).length : 0;
+  var alL = alData ? alData.matches.filter(function(m){ return m.result==='L'; }).length : 0;
+  var alSeasons = alData ? (function(){ var ss={}; alData.matches.forEach(function(m){ if(m.season && m.year) ss[m.year+'-'+m.season]=1; else if(m.season) ss[m.season]=1; }); return Object.keys(ss).length; })() : 0;
+  var alRate = alW+alL > 0 ? alW/(alW+alL) : null;
+
+  // ── Build each card ───────────────────────────────────────────────────────
+  function buildCard(id) {
+    switch(id) {
+
+      case 'overall': {
+        var badge = careerRate !== null ? kpiBadge(rPct(careerRate), kpiBadgeClass(careerRate,great,poor)) : '';
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(careerRate,great,poor) + '">' + W + '–' + L + '</div>';
+        var mini = kpiMiniStats([
+          ['Singles',  sRate!==null ? rPct(sRate) : '—',  sRate!==null ? (sRate>great?'green':sRate<poor?'red':'') : ''],
+          ['Doubles',  dRate!==null ? rPct(dRate) : '—',  dRate!==null ? (dRate>great?'green':dRate<poor?'red':'') : ''],
+          ['This Year', cyRate!==null ? rPct(cyRate) : '—', cyRate!==null ? (cyRate>great?'green':cyRate<poor?'red':'') : '']
+        ]);
+        return kpiCard('Overall Record', badge, valHtml,
+          careerRate!==null ? kpiBar(careerRate,great,poor) : '',
+          (W+L) + ' matches played', mini);
+      }
+
+      case 'year': {
+        var badge = kpiBadge(String(curYear), 'kpi2-badge-blue');
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(cyRate,great,poor) + '">' + rPct(cyRate) + '</div>';
+        var vsPrev = (cyRate!==null && pyRate!==null) ? (cyRate - pyRate) : null;
+        var vsStr = vsPrev !== null
+          ? '<span style="color:' + (vsPrev>=0?'var(--win)':'var(--loss)') + ';font-weight:600">' + (vsPrev>=0?'+':'') + Math.round(vsPrev*100) + '%</span>'
+            + ' vs ' + prevYear + ' (' + rPct(pyRate) + ')'
+          : (cyW+cyL) + ' matches this year';
+        var mini = kpiMiniStats([
+          ['Record',   cyW + '–' + cyL, ''],
+          ['Matches',  String(cyW+cyL),  ''],
+          ['Prev Year', pyRate!==null ? rPct(pyRate) : '—', '']
+        ]);
+        return kpiCard('Current Year', badge, valHtml,
+          cyRate!==null ? kpiBar(cyRate,great,poor) : '',
+          vsStr, mini);
+      }
+
+      case 'streak': {
+        var n = Math.abs(streak.current);
+        var isW = streak.current > 0;
+        var isL = streak.current < 0;
+        var streakCol = isW ? 'var(--win)' : isL ? 'var(--loss)' : 'var(--text)';
+        var streakWord = streak.current === 0 ? '—'
+          : n === 1 ? (isW ? '1 Win' : '1 Loss')
+          : (isW ? n + ' Wins' : n + ' Losses');
+        var badge = streak.current !== 0 ? kpiBadge('Active', isW ? 'kpi2-badge-green' : 'kpi2-badge-red') : '';
+        var valHtml = '<div class="kpi2-value" style="color:' + streakCol + '">' + streakWord + '</div>';
+        var lastRes = allSorted[0] ? allSorted[0].result : '—';
+        var lastCol = lastRes==='W' ? 'var(--win)' : lastRes==='L' ? 'var(--loss)' : 'var(--text)';
+        // current season record
+        var csnMatches = allSorted.filter(function(m){ return m.season; });
+        var csnName = csnMatches.length ? csnMatches[0].season : '';
+        var csnYear = csnMatches.length ? csnMatches[0].year : '';
+        var csnMs = csnName ? allSorted.filter(function(m){ return m.season===csnName && m.year===csnYear; }) : [];
+        var csnW = csnMs.filter(function(m){ return m.result==='W'; }).length;
+        var csnL = csnMs.filter(function(m){ return m.result==='L'; }).length;
+        var mini = kpiMiniStats([
+          ['Best streak', streak.longest ? streak.longest + ' wins' : '—', ''],
+          ['This season', csnW+csnL>0 ? csnW+'-'+csnL : '—', ''],
+          ['Career W%',   careerRate!==null ? rPct(careerRate) : '—', '']
+        ]);
+        return kpiCard('Current Streak', badge, valHtml, '',
+          'Last result: <span style="color:' + lastCol + ';font-weight:600">' + lastRes + '</span>',
+          mini);
+      }
+
+      case 'last10': {
+        var badge = l10Rate !== null ? kpiBadge(l10Rate>great?'Hot':l10Rate<poor?'Cold':'Steady', kpiBadgeClass(l10Rate,great,poor)) : '';
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(l10Rate,great,poor) + '">' + l10W + '–' + l10L + '</div>';
+        var bars = last10.map(function(m) {
+          var sets = [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].filter(function(p){ return num(p[0])!==null && num(p[1])!==null; });
+          var gW=0, gT=0;
+          sets.forEach(function(p){ gW+=num(p[0]); gT+=num(p[0])+num(p[1]); });
+          var gpct = gT>0 ? gW/gT : (m.result==='W' ? 0.75 : 0.35);
+          var minH = 0.18;
+          var h = Math.round((minH + gpct*(1-minH))*100);
+          var col = m.result==='W' ? 'rgba(30,107,58,0.38)' : 'rgba(179,20,18,0.30)';
+          var opp = escHtml(m.opponent1 || m.opponent || '');
+          var score = sets.length ? sets.map(function(p){ return p[0]+'–'+p[1]; }).join(', ') : m.result;
+          var gpctLabel = Math.round(gpct * 100) + '% game win rate';
+          return '<div class="kpi2-spark-bar" style="height:' + h + '%;background:' + col + '"'
+            + ' data-result="' + m.result + '" data-opp="' + opp + '" data-score="' + score + '" data-gpct="' + gpctLabel + '"></div>';
+        }).join('');
+        var vsStr = '<span style="color:' + kpiThreshColor(l10Rate,great,poor) + ';font-weight:600">' + rPct(l10Rate) + '</span>'
+          + ' vs <span style="font-weight:600">' + rPct(careerRate) + '</span> career avg';
+        var sparkHtml = '<div class="kpi2-spark-wrap" id="spark-wrap-main" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;">'
+          + '<div class="kpi2-spark-row" style="height:100%;min-height:40px;">' + bars + '</div>'
+          + '<div class="kpi2-spark-tooltip" id="spark-tt" style="display:none"></div>'
+          + '</div>';
+        var subHtml = '<div class="kpi2-sub" style="margin-top:4px">' + vsStr + '</div>';
+        return '<div class="kpi2-card kpi2-card-last10" style="flex-direction:column;">'
+          + '<div class="kpi2-header"><div class="kpi2-label">Last 10 Matches</div>' + badge + '</div>'
+          + valHtml
+          + sparkHtml
+          + subHtml
+          + '</div>';
+      }
+
+      case 'firstset': {
+        var badge = fsRate !== null ? kpiBadge(fsRate>great?'Strong':fsRate<poor?'Weak':'Average', kpiBadgeClass(fsRate,great,poor)) : '';
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(fsRate,great,poor) + '">' + rPct(fsRate) + '</div>';
+        var sub = 'vs <strong>' + rPct(careerRate) + '</strong> overall'
+          + (fsThenWinRate!==null ? ' · Win 1st set → win match <span style="color:var(--win);font-weight:600">' + rPct(fsThenWinRate) + '</span>' : '');
+        var mini = kpiMiniStats([
+          ['1st set W', String(fsWins.length), ''],
+          ['1st set L', String(withSets.length - fsWins.length), ''],
+          ['Matches',    String(withSets.length), '']
+        ]);
+        return kpiCard('First-Set Win Rate', badge, valHtml,
+          fsRate!==null ? kpiBar(fsRate,great,poor) : '', sub, mini);
+      }
+
+      case 'comeback': {
+        var badge = comebackRate !== null ? kpiBadge(comebackRate>0.5?'Strong':'Average', 'kpi2-badge-navy') : '';
+        var valHtml = '<div class="kpi2-value" style="color:var(--text)">' + rPct(comebackRate) + '</div>';
+        var sub = comebackWins + ' of ' + fsLost.length + ' comebacks after losing 1st set';
+        var mini = kpiMiniStats([
+          ['Down 0-1',  String(fsLost.length), ''],
+          ['Came back', String(comebackWins), ''],
+          ["Didn't",    String(fsLost.length - comebackWins), '']
+        ]);
+        return kpiCard('Comeback Rate', badge, valHtml, '', sub, mini);
+      }
+
+      case 'tiebreak': {
+        var badge = tbRate !== null ? kpiBadge(tbRate>great?'Strong':tbRate<poor?'Weak':'Average', kpiBadgeClass(tbRate,great,poor)) : '';
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(tbRate,great,poor) + '">' + tbW + '–' + tbL + '</div>';
+        var mini = kpiMiniStats([
+          ['Win rate',    tbRate!==null ? rPct(tbRate) : '—', tbRate!==null ? (tbRate>great?'green':tbRate<poor?'red':'') : ''],
+          ['This season', tbSznW + '-' + tbSznL, ''],
+          ['3rd-set TBs', tb3W + '-' + tb3L, '']
+        ]);
+        return kpiCard('Tiebreak Record', badge, valHtml,
+          tbRate!==null ? kpiBar(tbRate,great,poor) : '', '', mini);
+      }
+
+      case 'singles_v_doubles': {
+        var diff = sRate!==null && dRate!==null ? Math.abs(sRate-dRate) : null;
+        var better = sRate!==null && dRate!==null ? (sRate>=dRate?'singles':'doubles') : null;
+        var sub = diff!==null ? 'You perform <strong>' + Math.round(diff*100) + '%</strong> better in ' + better : 'Not enough data';
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(sRate,great,poor) + '">' + rPct(sRate) + '</div>';
+        var mini = kpiMiniStats([
+          ['Singles', rPct(sRate),  sRate!==null?(sRate>great?'green':sRate<poor?'red':''):''],
+          ['Record',  sW + '–' + sL, ''],
+          ['Doubles', rPct(dRate),  dRate!==null?(dRate>great?'green':dRate<poor?'red':''):''],
+          ['Record',  dW + '–' + dL, '']
+        ]);
+        return kpiCard('Singles vs Doubles', '', valHtml, sRate!==null?kpiBar(sRate,great,poor):'', sub, mini);
+      }
+
+      case 'playoff': {
+        var badge = plRate!==null ? kpiBadge(plRate>great?'Strong':plRate<poor?'Weak':'Average', kpiBadgeClass(plRate,great,poor)) : '';
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(plRate,great,poor) + '">' + plW + '–' + plL + '</div>';
+        var sub = rPct(plRate) + ' playoffs vs <strong>' + rPct(careerRate) + '</strong> regular season';
+        var mini = kpiMiniStats([
+          ['Playoff W', String(plW), plW>0?'green':''],
+          ['Playoff L', String(plL), ''],
+          ['Total',     String(plW+plL), '']
+        ]);
+        return kpiCard('Playoff Record', badge, valHtml,
+          plRate!==null ? kpiBar(plRate,great,poor) : '', sub, mini);
+      }
+
+      case 'best_partner': {
+        var bpRate = bestPartner ? bestPartner.w/(bestPartner.w+bestPartner.l) : null;
+        var badge = bpRate !== null ? kpiBadge(bpRate>great?'75%+':'<75%', kpiBadgeClass(bpRate,great,poor)) : '';
+        var nameStr = bestPartner ? escHtml(formatPartnerName(bestPartner.name)) : '—';
+        var valHtml = '<div class="kpi2-partner-name">' + nameStr + '</div>';
+        var mini = kpiMiniStats([
+          ['Record',  bestPartner ? bestPartner.w+'-'+bestPartner.l : '—', ''],
+          ['Win rate', bpRate!==null ? rPct(bpRate) : '—', bpRate!==null?(bpRate>great?'green':bpRate<poor?'red':''):''],
+          ['Matches',  bestPartner ? String(bestPartner.w+bestPartner.l) : '—', '']
+        ]);
+        return kpiCard('Best Partner <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(min. 5)</span>', badge, valHtml, '', '', mini);
+      }
+
+      case 'active_league': {
+        var badge = activeLeague ? kpiBadge(escHtml(activeLeague), 'kpi2-badge-navy') : '';
+        var valHtml = '<div class="kpi2-partner-name">' + escHtml(alTopType || '—') + '</div>';
+        var mini = kpiMiniStats([
+          ['Matches',  String(alW+alL), ''],
+          ['Win rate', alRate!==null ? rPct(alRate) : '—', alRate!==null?(alRate>great?'green':alRate<poor?'red':''):''],
+          ['Seasons',  String(alSeasons), '']
+        ]);
+        return kpiCard('Most Active League', badge, valHtml, '', '', mini);
+      }
+
+      default: return '';
+    }
   }
 
-  const W = matches.filter(m => m.result==='W').length;
-  const L = matches.filter(m => m.result==='L').length;
-  const cyW = curYearMatches.filter(m => m.result==='W').length;
-  const cyL = curYearMatches.filter(m => m.result==='L').length;
-
-  // Last 10 (sorted by date descending)
-  const sorted = [...matches].sort((a,b) => parseDate(b.date)-parseDate(a.date));
-  const last10 = sorted.slice(0,10);
-  const l10W = last10.filter(m=>m.result==='W').length;
-  const l10L = last10.filter(m=>m.result==='L').length;
-
-  // Streak
-  const streak = calcStreak(sorted);
-
-  return `
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Overall Record</div>
-        <div class="kpi-main">
-          <div class="kpi-record" style="color:${recordColor(W,L)}">${W}–${L}</div>
-          <div class="kpi-pct">${pct(W,L)}</div>
-        </div>
-        <div class="kpi-sub">${W+L} total matches</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Current Year (${new Date().getFullYear()})</div>
-        <div class="kpi-main">
-          <div class="kpi-record" style="color:${recordColor(cyW,cyL)}">${cyW}–${cyL}</div>
-          <div class="kpi-pct">${pct(cyW,cyL)}</div>
-        </div>
-        <div class="kpi-sub">${cyW+cyL} matches this year</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Current Streak</div>
-        <div class="kpi-main">
-          <div class="kpi-streak ${streak.current > 0 ? 'win' : streak.current < 0 ? 'loss' : 'none'}">
-            ${streak.current === 0 ? '—' : (streak.current > 0 ? 'W' : 'L') + Math.abs(streak.current)}
-          </div>
-        </div>
-        <div class="kpi-sub">Longest: ${streak.longest !== 0 ? Math.abs(streak.longest) + ' wins' : '—'}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Last 10 Matches</div>
-        <div class="kpi-main">
-          <div class="kpi-record" style="color:${recordColor(l10W,l10L)}">${l10W}–${l10L}</div>
-          <div class="kpi-pct">${pct(l10W,l10L)}</div>
-        </div>
-        <div class="kpi-sub">${l10W > l10L ? '↑ Strong recent form' : l10W < l10L ? '↓ Rough recent stretch' : '→ Even recent form'}</div>
-      </div>
-    </div>
-  `;
+  var cardOrder = getDashboardCardOrder();
+  if (cardOrder.length === 0) return '';
+  var colCount  = 4;
+  var cardHtml  = cardOrder.map(buildCard).join('');
+  var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
+  return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
+    + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '')
+    + '<div id="kpi-desktop-bar" style="display:flex;justify-content:center;margin:-4px 0 14px">'
+    + '<div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">'
+    + '<button id="kpi-desktop-toggle" onclick="toggleKpiCollapse()" style="background:none;border:none;padding:4px 14px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;line-height:1.4" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'"><span id="kpi-desktop-label">Hide stat cards</span></button>'
+    + '<div style="width:1px;background:var(--border);align-self:stretch;flex-shrink:0"></div>'
+    + '<button onclick="navigateToSettingsSection(\'sec-appearance\')" style="background:none;border:none;padding:4px 10px;cursor:pointer;font-size:12px;line-height:1.4;color:var(--muted)" title="Edit cards" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>'
+    + '</div></div>';
 }
+
+// KPI collapse toggle (mobile only)
+function toggleKpiCollapse() {
+  var grid = document.getElementById('kpi-grid-main');
+  var btn  = document.getElementById('kpi-toggle-btn');
+  if (!grid) return;
+  var isCollapsed = grid.classList.toggle('kpi-collapsed');
+  if (btn) btn.classList.toggle('collapsed', isCollapsed);
+  var count = grid.querySelectorAll('.kpi2-card').length;
+  var mobileLabel = document.getElementById('kpi-toggle-label');
+  var desktopLabel = document.getElementById('kpi-desktop-label');
+  var text = isCollapsed ? 'Show ' + count + ' stat cards' : 'Hide stat cards';
+  if (mobileLabel) mobileLabel.textContent = text;
+  if (desktopLabel) desktopLabel.textContent = text;
+  localStorage.setItem('kpiCollapsed', isCollapsed ? '1' : '0');
+}
+
+function initKpiCollapse() {
+  var grid = document.getElementById('kpi-grid-main');
+  var btn  = document.getElementById('kpi-toggle-btn');
+  if (!grid) return;
+  var count = grid.querySelectorAll('.kpi2-card').length;
+  var wasCollapsed = localStorage.getItem('kpiCollapsed') === '1';
+  var text = wasCollapsed ? 'Show ' + count + ' stat cards' : 'Hide stat cards';
+  // Desktop pill
+  var desktopLabel = document.getElementById('kpi-desktop-label');
+  if (desktopLabel) desktopLabel.textContent = text;
+  if (wasCollapsed) grid.classList.add('kpi-collapsed');
+  // Mobile toggle button
+  if (!btn) return;
+  if (window.innerWidth > 768) { btn.style.display = 'none'; return; }
+  if (!grid.hasAttribute('data-collapsible')) return;
+  btn.style.display = 'flex';
+  if (wasCollapsed) btn.classList.add('collapsed');
+  var mobileLabel = document.getElementById('kpi-toggle-label');
+  if (mobileLabel) mobileLabel.textContent = text;
+}
+
+// Wire up sparkbar tooltips after DOM render
+function initSparkTooltips() {
+  var wrap = document.getElementById('spark-wrap-main');
+  if (!wrap) return;
+  var tt = document.getElementById('spark-tt');
+  var bars = wrap.querySelectorAll('.kpi2-spark-bar');
+  bars.forEach(function(bar) {
+    bar.addEventListener('mouseenter', function() {
+      var result = this.getAttribute('data-result');
+      var opp    = this.getAttribute('data-opp');
+      var score  = this.getAttribute('data-score');
+      tt.innerHTML = '<div class="kpi2-tt-result ' + (result==='W'?'kpi2-tt-w':'kpi2-tt-l') + '">' + (result==='W'?'Win':'Loss') + '</div>'
+        + (opp ? '<div class="kpi2-tt-opp">' + opp + '</div>' : '')
+        + (score ? '<div class="kpi2-tt-score">' + score + '</div>' : '')
+        + (this.getAttribute('data-gpct') ? '<div class="kpi2-tt-pct">' + this.getAttribute('data-gpct') + '</div>' : '');
+      tt.style.display = 'block';
+      var barRect  = this.getBoundingClientRect();
+      var wrapRect = wrap.getBoundingClientRect();
+      var left = barRect.left - wrapRect.left + barRect.width/2;
+      tt.style.left  = left + 'px';
+      tt.style.transform = 'translateX(-50%)';
+    });
+    bar.addEventListener('mouseleave', function() { tt.style.display = 'none'; });
+  });
+}
+
 
 function calcStreak(sortedDesc) {
   if (!sortedDesc.length) return { current: 0, longest: 0 };
-  // Current streak
   const first = sortedDesc[0].result;
   let current = 0;
   for (const m of sortedDesc) {
@@ -1983,8 +2475,6 @@ function calcStreak(sortedDesc) {
     else break;
   }
   if (first === 'L') current = -current;
-
-  // Longest win streak
   let longest = 0, run = 0;
   for (const m of sortedDesc) {
     if (m.result === 'W') { run++; longest = Math.max(longest, run); }
@@ -2421,7 +2911,7 @@ function buildPartnerOpponentControls() {
     ? `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.partners.threshold=parseInt(this.value);refreshPartnersTable()">${partnerOptions}</select>`
     : `<select class="partners-threshold" id="partners-threshold" style="width:52px" onchange="filterState.opponents.threshold=parseInt(this.value);refreshPartnersTable()">${opponentOptions}</select>`;
 
-  return `<div style="display:flex;align-items:center;gap:8px">
+  return `<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
       <span class="partners-threshold-label">Min:</span>
       ${selectHtml}
     </div>`;
@@ -2897,6 +3387,11 @@ function renderHistory(page, preFilterPartner) {
   document.getElementById('topbar-title').textContent = histTitle;
 
   document.getElementById('mobile-filters').innerHTML = '';
+  const mobTopbarRight = document.getElementById('mob-topbar-right');
+  if (mobTopbarRight) mobTopbarRight.innerHTML = (dashboardReturnState
+    ? `<button onclick="backToDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;white-space:nowrap;">← Back</button>`
+    : '')
+    + `<select onchange="filterState.history.sort=this.value;renderHistory()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;"><option value="newest" ${sortOrder==='newest'?'selected':''}>Newest</option><option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest</option></select>`;
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
       ${dashboardReturnState ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;margin-right:8px" onclick="backToDashboard()">← Dashboard</button>` : ''}
@@ -3308,7 +3803,7 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var threeCards =
       cardHtml('hc-record',  'Record Breakdown',    '',          card1Body)
-    + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="showPage(\'settings\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
+    + cardHtml('hc-perf',    'Performance Breakdown', '', card2Body, '<button onclick="navigateToSettingsSection(\'sec-history\')" title="Edit categories" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0;line-height:1" onmouseover="this.style.color=\'var(--slate)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>')
     + cardHtml('hc-partner', 'Partner Performance',   '', card3Body, card3Header);
 
   var cardsHtml;
@@ -4327,14 +4822,22 @@ async function veConfirmDelete() {
 // 
 async function saveNote(idx) {
   const note = document.getElementById('detail-notes-input')?.value?.trim() || '';
+  const saveBtn = document.querySelector('.detail-modal-footer .btn-modal-save');
+  if (saveBtn) { saveBtn.textContent = '💾 Saving…'; saveBtn.disabled = true; }
   try {
     const res  = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({ action:'saveNote', matchIndex: idx, note }) });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     allMatches[idx].notes = note;
-    showToast('Note saved');
+    if (saveBtn) { saveBtn.textContent = '✓ Saved'; saveBtn.style.color = 'var(--win)'; }
+    setTimeout(function() {
+      if (saveBtn) { saveBtn.textContent = '💾 Save'; saveBtn.disabled = false; saveBtn.style.color = ''; }
+    }, 1800);
     if (currentPage === 'history') renderHistory(historyPage);
-  } catch(e) { showToast('Failed to save note: ' + e.message, true); }
+  } catch(e) {
+    if (saveBtn) { saveBtn.textContent = '💾 Save'; saveBtn.disabled = false; saveBtn.style.color = ''; }
+    showToast('Failed to save note: ' + e.message, true);
+  }
 }
 
 // 
@@ -4379,6 +4882,25 @@ let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true
 
 function markSettingsDirty() { settingsDirty = true; }
 
+async function saveAllSettings() {
+  const btn = document.getElementById('settings-global-save');
+  const mobBtn = document.getElementById('settings-global-save-mob');
+  [btn, mobBtn].forEach(b => { if (b) { b.textContent = 'Saving…'; b.disabled = true; } });
+  try {
+    await Promise.all([
+      saveDashboardCards(true),
+      saveDisplaySettings(true),
+      saveHistorySettings(true),
+      saveDefaultSettings(true),
+    ]);
+    settingsDirty = false;
+    showToast('✓ All settings saved!');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, true);
+  }
+  [btn, mobBtn].forEach(b => { if (b) { b.textContent = '💾 Save'; b.disabled = false; } });
+}
+
 function renderSettings() {
   const content = document.getElementById('content');
   const enabledCats = getPerfCats();
@@ -4386,7 +4908,11 @@ function renderSettings() {
   const poor  = parseInt(localStorage.getItem('thresholdPoor')  || '45');
   const currentUrl = webAppUrl || '';
 
-  document.getElementById('topbar-right').innerHTML = '';
+  const saveBtnHtml = `<button id="settings-global-save" onclick="saveAllSettings()" style="background:#e8f0f7;color:#3b6ea8;border:1px solid #c2d3ef;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 20px;cursor:pointer;white-space:nowrap;">💾 Save</button>`;
+  const saveBtnMobHtml = `<button id="settings-global-save-mob" onclick="saveAllSettings()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;white-space:nowrap;">💾 Save</button>`;
+  document.getElementById('topbar-right').innerHTML = saveBtnHtml;
+  const mtr = document.getElementById('mob-topbar-right');
+  if (mtr) mtr.innerHTML = saveBtnMobHtml;
   document.getElementById('mobile-filters').innerHTML = '';
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
@@ -4420,6 +4946,16 @@ function renderSettings() {
         </div>
         <div class="settings-section-body" id="sec-appearance">
           <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
+
+            <!-- Dashboard Card Order -->
+            <div class="settings-sub-card">
+              <div>
+                <div class="settings-sub-card-title">Dashboard Cards</div>
+                <div class="settings-sub-card-desc">Choose up to 4 cards to show on your Dashboard, or deselect all to hide the section entirely. Drag to reorder.</div>
+              </div>
+              <div id="card-picker-container"></div>
+              <div id="settings-cards-msg" style="display:none;font-size:12px;margin-top:6px"></div>
+            </div>
 
             <!-- Partner Name Format -->
             <div class="settings-sub-card">
@@ -4485,9 +5021,6 @@ function renderSettings() {
               </div>
             </div>
             <div id="settings-thresh-msg" style="display:none;font-size:12px;margin-top:10px"></div>
-            <div style="display:flex;justify-content:flex-end;padding-top:4px">
-                <button onclick="saveDisplaySettings()" class="settings-save-btn" id="save-thresh-btn">Save</button>
-              </div>
             </div>
           </div>
         </div>
@@ -4511,9 +5044,9 @@ function renderSettings() {
                 <div class="settings-sub-card-title">Matches Per Page</div>
                 <div class="settings-sub-card-desc">How many matches to show per page in Match History.</div>
               </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div style="display:flex;gap:10px;flex-wrap:nowrap">
                 ${['10','25','50'].map(v => `
-                  <label style="display:flex;align-items:center;gap:8px;padding:8px 18px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:${savedPageSize===v?'var(--surface2)':'var(--surface)'}">
+                  <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;cursor:pointer;flex:1;justify-content:center;background:${savedPageSize===v?'var(--surface2)':'var(--surface)'}">
                     <input type="radio" name="hist-page-size" value="${v}" ${savedPageSize===v?'checked':''} style="accent-color:var(--accent2);width:16px;height:16px;flex-shrink:0">
                     <span style="font-size:14px;font-weight:600;color:var(--text)">${v}</span>
                   </label>`).join('')}
@@ -4532,9 +5065,6 @@ function renderSettings() {
             </div>
             <div id="perf-cats-count" style="font-size:12px;color:var(--muted);margin-top:14px">${enabledCats.length} of ${PERF_CATS_ALL.length} enabled (max 6)</div>
             <div id="settings-cats-msg" style="display:none;font-size:12px;margin-top:6px"></div>
-            <div style="display:flex;justify-content:flex-end;padding-top:4px">
-                <button onclick="saveHistorySettings()" class="settings-save-btn" id="save-cats-btn">Save</button>
-              </div>
             </div>
           </div>
         </div>
@@ -4553,10 +5083,26 @@ function renderSettings() {
           <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
             <div class="settings-sub-card">
               <div>
-                <div class="settings-sub-card-title">General Defaults & Partner Defaults</div>
+                <div class="settings-sub-card-title">General & Partner Defaults</div>
                 <div class="settings-sub-card-desc">Set optional defaults to save time during match entry. Any field left blank shows no pre-selection.</div>
               </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+            <div id="defaults-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
+                ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
+                  ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
+                      const key   = 'defaultPartner_' + t;
+                      const saved = localStorage.getItem(key) || '';
+                      return `<div class="field">
+                        <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
+                        <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
+                          <option value="">— None —</option>
+                          ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
+                        </select>
+                      </div>`;
+                    }).join('')
+                  : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
+              </div>
               <div style="display:flex;flex-direction:column;gap:10px">
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
                 <div class="field">
@@ -4603,26 +5149,8 @@ function renderSettings() {
                   <div style="font-size:11px;color:var(--muted);margin-top:4px">Auto-fills Location when "Home" is selected</div>
                 </div>
               </div>
-              <div style="display:flex;flex-direction:column;gap:10px">
-                <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Default Partner by Match Type</div>
-                ${(validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).length > 0
-                  ? (validEntries.type||[]).filter(t=>t.toLowerCase().includes('doubles')||t.toLowerCase().includes('mixed')).map(t=>{
-                      const key   = 'defaultPartner_' + t;
-                      const saved = localStorage.getItem(key) || '';
-                      return `<div class="field">
-                        <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
-                        <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
-                          <option value="">— None —</option>
-                          ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
-                        </select>
-                      </div>`;
-                    }).join('')
-                  : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
-              </div>
             </div>
-            <div style="display:flex;justify-content:flex-end;padding-top:4px">
-                <button onclick="saveDefaultSettings()" class="settings-save-btn" id="save-defaults-btn">Save</button>
-              </div>
+            
             </div>
           </div>
         </div>
@@ -4676,10 +5204,10 @@ function renderSettings() {
                 <div class="settings-sub-card-title">Google Sheet Connection</div>
                 <div class="settings-sub-card-desc">Your Google Apps Script Web App URL. This connects Match Tracker Pro to your Google Sheet.</div>
               </div>
-              <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap">
+              <div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap;min-width:0;width:100%">
                 <input type="text" id="settings-url" value="${currentUrl}"
                   placeholder="Paste your Apps Script URL here…"
-                  style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:16px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box"
+                  style="flex:1;min-width:0;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:16px;padding:10px 14px;outline:none;transition:border-color 0.15s;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis"
                   onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
               </div>
               <div id="settings-url-msg" style="display:none;font-size:12px;margin-top:8px"></div>
@@ -4747,11 +5275,43 @@ function toggleSettingsSection(id) {
       const isOpen = body.classList.contains('open');
       body.classList.toggle('open', !isOpen);
       if (chev) chev.classList.toggle('open', !isOpen);
+      if (sid === 'sec-appearance' && !isOpen) setTimeout(renderCardPicker, 20);
     } else {
       body.classList.remove('open');
       if (chev) chev.classList.remove('open');
     }
   });
+}
+
+function navigateToSettingsSection(sectionId) {
+  navigateTo('settings');
+  // After settings renders, open the target section and scroll to it
+  setTimeout(function() {
+    const ids = ['sec-appearance','sec-history','sec-entry','sec-general'];
+    ids.forEach(function(sid) {
+      const body = document.getElementById(sid);
+      const chev = document.getElementById('chev-' + sid);
+      if (!body) return;
+      if (sid === sectionId) {
+        body.classList.add('open');
+        if (chev) chev.classList.add('open');
+        if (sid === 'sec-appearance') setTimeout(renderCardPicker, 20);
+        // Scroll the section into view
+        const hdr = body.previousElementSibling;
+        if (hdr) hdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        body.classList.remove('open');
+        if (chev) chev.classList.remove('open');
+      }
+    });
+    // Focus the Performance Breakdown Categories heading if targeting sec-history
+    if (sectionId === 'sec-history') {
+      setTimeout(function() {
+        const perfCard = document.querySelector('#sec-history .settings-sub-card:last-of-type');
+        if (perfCard) perfCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+  }, 80);
 }
 
 function settingsUpdatePreview() {
@@ -4855,13 +5415,186 @@ function settingsPerfCatChange() {
   }
 }
 
-async function saveDisplaySettings() {
+// ── Dashboard Card Picker ────────────────────────────────────────────────────
+function renderCardPicker() {
+  var container = document.getElementById('card-picker-container');
+  if (!container) return;
+  var selected = getDashboardCardOrder();
+  var dragSrc = null;
+
+  function getPreviewData(id) {
+    var great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
+    var poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
+    var W = allMatches.filter(function(m){ return m.result==='W'; }).length;
+    var L = allMatches.filter(function(m){ return m.result==='L'; }).length;
+    var r = W+L>0 ? W/(W+L) : null;
+    var col = r===null ? 'var(--muted)' : (r>great ? 'var(--win)' : r<poor ? 'var(--loss)' : 'var(--warn)');
+    switch(id) {
+      case 'overall':   return { val: W+'-'+L, sub: rPct(r)+' win rate', col: col };
+      case 'year': {
+        var cy=new Date().getFullYear();
+        var cym=allMatches.filter(function(m){ return m.year===cy; });
+        var cw=cym.filter(function(m){ return m.result==='W'; }).length;
+        var cl=cym.filter(function(m){ return m.result==='L'; }).length;
+        var cr=cw+cl>0?cw/(cw+cl):null;
+        var cc=cr===null?'var(--muted)':cr>great?'var(--win)':cr<poor?'var(--loss)':'var(--warn)';
+        return {val:(cr!==null?rPct(cr):'--'), sub:cw+'-'+cl+' record', col:cc};
+      }
+      case 'streak': {
+        var s=calcStreak(allMatches.slice().sort(function(a,b){return parseDate(b.date)-parseDate(a.date);}));
+        var n=Math.abs(s.current), iw=s.current>0;
+        return {val:s.current===0?'--':n===1?(iw?'1 Win':'1 Loss'):(iw?n+' Wins':n+' Losses'), sub:'Current streak', col:s.current>0?'var(--win)':s.current<0?'var(--loss)':'var(--muted)'};
+      }
+      case 'last10': {
+        var last=allMatches.slice().sort(function(a,b){return parseDate(b.date)-parseDate(a.date);}).slice(0,10);
+        var lw=last.filter(function(m){return m.result==='W';}).length;
+        var ll=last.filter(function(m){return m.result==='L';}).length;
+        var lr=lw+ll>0?lw/(lw+ll):null;
+        var lc=lr===null?'var(--muted)':lr>great?'var(--win)':lr<poor?'var(--loss)':'var(--warn)';
+        return {val:lw+'-'+ll, sub:rPct(lr)+' win rate', col:lc};
+      }
+      case 'firstset': {
+        var ws=allMatches.filter(function(m){return num(m.s1w)!==null&&num(m.s1l)!==null;});
+        var fw=ws.filter(function(m){return num(m.s1w)>num(m.s1l);});
+        var fr=ws.length>0?fw.length/ws.length:null;
+        return {val:rPct(fr), sub:'First-set win rate', col:fr===null?'var(--muted)':fr>great?'var(--win)':fr<poor?'var(--loss)':'var(--warn)'};
+      }
+      case 'comeback': {
+        var fl=allMatches.filter(function(m){return num(m.s1w)!==null&&num(m.s1l)!==null&&num(m.s1w)<num(m.s1l);});
+        var cw2=fl.filter(function(m){return m.result==='W';}).length;
+        var cr2=fl.length>0?cw2/fl.length:null;
+        return {val:rPct(cr2), sub:cw2+' of '+fl.length+' deficits', col:'var(--text)'};
+      }
+      case 'tiebreak': {
+        var tw2=0,tl2=0;
+        allMatches.forEach(function(m){[[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(p){var nw=num(p[0]),nl=num(p[1]);if(nw!==null&&nl!==null&&nw+nl>=12&&Math.abs(nw-nl)<=2&&(nw===7||nl===7)){if(nw>nl)tw2++;else tl2++;}});});
+        var tr2=tw2+tl2>0?tw2/(tw2+tl2):null;
+        return {val:tw2+'-'+tl2, sub:rPct(tr2)+' win rate', col:tr2===null?'var(--muted)':tr2>great?'var(--win)':tr2<poor?'var(--loss)':'var(--warn)'};
+      }
+      case 'singles_v_doubles': {
+        var sm2=allMatches.filter(function(m){var t=(m.type||'').toLowerCase();return t.includes('singles')||(!m.partner&&!t.includes('doubles'));});
+        var sw2=sm2.filter(function(m){return m.result==='W';}).length,sl2=sm2.filter(function(m){return m.result==='L';}).length;
+        var sr2=sw2+sl2>0?sw2/(sw2+sl2):null;
+        return {val:rPct(sr2), sub:'Singles win rate', col:sr2===null?'var(--muted)':sr2>great?'var(--win)':sr2<poor?'var(--loss)':'var(--warn)'};
+      }
+      case 'playoff': {
+        var pm=allMatches.filter(function(m){return m.playoff===true||m.playoff==='TRUE';});
+        var pw=pm.filter(function(m){return m.result==='W';}).length,pl=pm.filter(function(m){return m.result==='L';}).length;
+        var pr=pw+pl>0?pw/(pw+pl):null;
+        return {val:pw+'-'+pl, sub:rPct(pr)+' in playoffs', col:pr===null?'var(--muted)':pr>great?'var(--win)':pr<poor?'var(--loss)':'var(--warn)'};
+      }
+      case 'best_partner': {
+        var pm2={};
+        allMatches.forEach(function(m){if(!m.partner)return;if(!pm2[m.partner])pm2[m.partner]={w:0,l:0};if(m.result==='W')pm2[m.partner].w++;else pm2[m.partner].l++;});
+        var best=null,br=-1;
+        Object.keys(pm2).forEach(function(n){var d=pm2[n];if(d.w+d.l<5)return;var rv=d.w/(d.w+d.l);if(rv>br){br=rv;best={name:n,w:d.w,l:d.l};}});
+        return {val:best?formatPartnerName(best.name):'--', sub:best?best.w+'-'+best.l+' record':'No partners (min 5)', col:best&&br>great?'var(--win)':best&&br<poor?'var(--loss)':'var(--warn)'};
+      }
+      case 'active_league': {
+        var lm2={};
+        allMatches.forEach(function(m){if(!m.league)return;if(!lm2[m.league])lm2[m.league]=0;lm2[m.league]++;});
+        var al2=null;
+        Object.keys(lm2).forEach(function(n){if(!al2||lm2[n]>lm2[al2])al2=n;});
+        return {val:al2||'--', sub:al2?lm2[al2]+' matches':'No league data', col:'var(--accent2)'};
+      }
+      default: return {val:'--', sub:'', col:'var(--muted)'};
+    }
+  }
+
+  function render() {
+    if (!window._pickerSelected) window._pickerSelected = selected.slice();
+    var sel = window._pickerSelected;
+
+    var html = KPI_CARD_DEFS.map(function(def) {
+      var idx = sel.indexOf(def.id);
+      var isSelected = idx !== -1;
+      var preview = getPreviewData(def.id);
+      var badge = isSelected ? '<div class="picker-badge">' + (idx+1) + '</div>' : '';
+      return '<div class="card-picker-item' + (isSelected ? ' selected' : '') + '"'
+        + ' draggable="true"'
+        + ' data-id="' + def.id + '"'
+        + ' ondragstart="pickerDragStart(event)"'
+        + ' ondragover="pickerDragOver(event)"'
+        + ' ondrop="pickerDrop(event)"'
+        + ' ondragend="pickerDragEnd(event)"'
+        + ' onclick="pickerToggle(\'' + def.id + '\')">'
+        + badge
+        + '<div class="picker-label">' + def.label + '</div>'
+        + '<div class="picker-value" style="color:' + preview.col + '">' + preview.val + '</div>'
+        + '<div class="picker-sub">' + preview.sub + '</div>'
+        + '</div>';
+    }).join('');
+
+    container.innerHTML = '<div class="card-picker-grid">' + html + '</div>'
+      + '<div style="font-size:12px;color:var(--muted)">' + sel.length + ' of 4 selected'
+      + (sel.length === 0 ? ' \u00b7 KPI section will be hidden' : '')
+      + '</div>';
+  }
+
+  window.pickerToggle = function(id) {
+    var sel = window._pickerSelected;
+    var idx = sel.indexOf(id);
+    if (idx !== -1) {
+      sel.splice(idx, 1);
+    } else {
+      if (sel.length >= 4) { showToast('Max 4 cards. Deselect one first.', true); return; }
+      sel.push(id);
+    }
+    settingsDirty = true;
+    render();
+  };
+
+  window.pickerDragStart = function(e) {
+    dragSrc = e.currentTarget.getAttribute('data-id');
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  window.pickerDragOver = function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.card-picker-item').forEach(function(el){ el.classList.remove('drag-over'); });
+    e.currentTarget.classList.add('drag-over');
+  };
+  window.pickerDrop = function(e) {
+    e.preventDefault();
+    var dropId = e.currentTarget.getAttribute('data-id');
+    if (!dragSrc || dragSrc === dropId) return;
+    var sel = window._pickerSelected;
+    var srcIdx = sel.indexOf(dragSrc);
+    var dstIdx = sel.indexOf(dropId);
+    if (srcIdx !== -1 && dstIdx !== -1) {
+      sel.splice(srcIdx, 1);
+      sel.splice(dstIdx, 0, dragSrc);
+      settingsDirty = true;
+      render();
+    }
+  };
+  window.pickerDragEnd = function(e) {
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('.card-picker-item').forEach(function(el){ el.classList.remove('drag-over'); });
+  };
+
+  window._pickerSelected = selected.slice();
+  render();
+}
+
+async function saveDashboardCards(silent) {
+  const btn = document.getElementById('save-cards-btn');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  const sel = window._pickerSelected !== undefined ? window._pickerSelected : getDashboardCardOrder();
+  localStorage.setItem('dashboardCards', JSON.stringify(sel));
+  try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:{dashboardCards: sel.join(',')}})}); } catch(e) {}
+  if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
+  if (!silent) { settingsDirty = false; showToast('✓ Dashboard cards saved!'); }
+}
+
+async function saveDisplaySettings(silent) {
   const btn = document.getElementById('save-thresh-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const great = parseInt(document.getElementById('settings-t-great')?.value);
   const poor  = parseInt(document.getElementById('settings-t-poor')?.value);
-  if (isNaN(great) || isNaN(poor)) { showToast('Invalid threshold values', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
-  if (great <= poor) { showToast('Great threshold must be higher than Poor', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
+  if (isNaN(great) || isNaN(poor)) { if (!silent) showToast('Invalid threshold values', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
+  if (great <= poor) { if (!silent) showToast('Great threshold must be higher than Poor', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
   const nameFormat = document.querySelector('input[name="partner-name-format"]:checked')?.value || 'firstLastInitial';
   localStorage.setItem('thresholdGreat', great);
   localStorage.setItem('thresholdPoor',  poor);
@@ -4872,24 +5605,23 @@ async function saveDisplaySettings() {
     await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})});
   } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false; showToast('✓ Display settings saved!');
+  if (!silent) { settingsDirty = false; showToast('✓ Display settings saved!'); }
 }
 
-async function saveHistorySettings() {
+async function saveHistorySettings(silent) {
   const btn = document.getElementById('save-cats-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const checked = Array.from(document.querySelectorAll('[data-cat]:checked')).map(el => el.dataset.cat);
-  if (checked.length === 0) { showToast('Please enable at least one category', true); if (btn) { btn.textContent = 'Save'; btn.disabled = false; } return; }
   const pageSize = document.querySelector('input[name="hist-page-size"]:checked')?.value || '25';
   savePerfCats(checked);
   localStorage.setItem('histPageSize', pageSize);
   const settingsToSave = { perfCats: checked.join(','), histPageSize: pageSize };
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false; showToast('✓ Match History settings saved!');
+  if (!silent) { settingsDirty = false; showToast('✓ Match History settings saved!'); }
 }
 
-async function saveDefaultSettings() {
+async function saveDefaultSettings(silent) {
   const btn = document.getElementById('save-defaults-btn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const defType     = document.getElementById('def-type')?.value     || '';
@@ -4912,7 +5644,7 @@ async function saveDefaultSettings() {
   });
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:settingsToSave})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false; showToast('✓ Defaults saved!');
+  if (!silent) { settingsDirty = false; showToast('✓ Defaults saved!'); }
 }
 
 document.addEventListener('change', function(e) {
@@ -6664,10 +7396,7 @@ function buildBadgeShelf() {
   BADGE_DEFS_TIERED.forEach(def => { if (getHighestEarnedTier(def, earned)) earnedDisplayCount++; });
 
   if (earned.length === 0) {
-    return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>
-      <div class="badge-shelf-footer"><span></span>
-        <button class="badge-shelf-link" onclick="slideToAchievements()">View all achievements →</button>
-      </div>`;
+    return `<div class="badge-shelf-empty">Log matches to start earning badges.</div>`;
   }
   const recent = earned.slice(-3).reverse();
   const shelfItems = recent.map(id => {
@@ -6718,7 +7447,6 @@ function buildBadgeShelf() {
   return `<div class="badge-shelf">${shelfItems}</div>${nextUpHtml}
     <div class="badge-shelf-footer">
       <span class="badge-shelf-progress">${earnedDisplayCount} of ${totalBadges} badges earned</span>
-      <button class="badge-shelf-link" onclick="slideToAchievements()">View all →</button>
     </div>`;
 }
 </script>
