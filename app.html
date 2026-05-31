@@ -5103,6 +5103,25 @@ function markSettingsDirty() {
   settingsDirty = true;
   const banner = document.getElementById('settings-dirty-banner');
   if (banner) banner.style.display = 'flex';
+  initBannerScroll();
+}
+
+function initBannerScroll() {
+  const main = document.querySelector('main.main');
+  if (!main || main._bannerScrollBound) return;
+  main._bannerScrollBound = true;
+  const topbarHeight = window.innerWidth <= 768 ? 52 : 56;
+  main.addEventListener('scroll', function() {
+    const banner = document.getElementById('settings-dirty-banner');
+    if (!banner || banner.style.display === 'none') return;
+    if (main.scrollTop >= topbarHeight) {
+      banner.style.top = '0';
+      banner.style.left = window.innerWidth <= 768 ? '0' : '240px';
+    } else {
+      banner.style.top = (window.innerWidth <= 768 ? 52 : 56) + 'px';
+      banner.style.left = window.innerWidth <= 768 ? '0' : '240px';
+    }
+  }, { passive: true });
 }
 
 async function saveAllSettings() {
@@ -5119,7 +5138,10 @@ async function saveAllSettings() {
       saveDefaultSettings(true),
     ]);
     settingsDirty = false;
-    if (banner) banner.style.display = 'none';
+    if (banner) {
+      banner.style.display = 'none';
+      banner.style.top = window.innerWidth <= 768 ? '52px' : '56px';
+    }
     showToast('✓ All settings saved!');
   } catch(e) {
     showToast('Save failed: ' + e.message, true);
