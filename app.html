@@ -2591,15 +2591,13 @@ function buildSplitsTable(matches, isDashboard, partnerContext, opponentContext)
 }
 
 function buildSplitsInsight(matches) {
+  // Legacy fallback — used outside partner drill context
   const W = m => m.result==='W';
   const totalW = matches.filter(W).length;
   const totalL = matches.filter(m=>m.result==='L').length;
   const total  = totalW + totalL;
   if (total < 5) return 'Not enough data to generate insights yet.';
-
   const overallPct = totalW / total;
-
-  // Build category win rates (matching spreadsheet O2:O7 / Q2:Q7 pattern)
   const cats = [
     { label: 'Home',         matches: matches.filter(m=>m.homeaway==='Home') },
     { label: 'Away',         matches: matches.filter(m=>m.homeaway==='Away') },
@@ -2613,27 +2611,131 @@ function buildSplitsInsight(matches) {
     const n = w + l;
     return { label: c.label, val: n >= 3 ? (w/n) - overallPct : null };
   }).filter(c => c.val !== null);
-
   if (!cats.length) return 'Keep logging matches for more insights.';
-
   const maxVal = Math.max(...cats.map(c=>c.val));
   const minVal = Math.min(...cats.map(c=>c.val));
   const strongest = cats.find(c=>c.val===maxVal);
   const weakest   = cats.find(c=>c.val===minVal);
-
-  const strongText = maxVal >= 0.05
-    ? `your strongest area is ${strongest.label} (+${(maxVal*100).toFixed(0)}%)`
-    : '';
-  const weakText = minVal <= -0.05
-    ? `your weakest area is ${weakest.label} (${(minVal*100).toFixed(0)}%).`
-    : '';
-
+  const strongText = maxVal >= 0.05 ? `your strongest area is ${strongest.label} (+${(maxVal*100).toFixed(0)}%)` : '';
+  const weakText   = minVal <= -0.05 ? `your weakest area is ${weakest.label} (${(minVal*100).toFixed(0)}%).` : '';
   const overallStr = (overallPct*100).toFixed(0) + '%';
-
   if (!strongText && !weakText) return `Compared to your overall winning % of ${overallStr}, your performance is consistent across categories.`;
-
   return `Compared to your overall winning % of <strong>${overallStr}</strong>, ` +
     (strongText && weakText ? `${strongText} and ${weakText}` : strongText + weakText);
+}
+
+function buildPartnerInsight(matches, name, careerMatches) {
+  const W = m => m.result === 'W';
+  const pW = matches.filter(W).length;
+  const pL = matches.filter(m => m.result === 'L').length;
+  const total = pW + pL;
+  if (total < 3) return '<em style="color:var(--muted)">Log a few more matches together to unlock insights.</em>';
+
+  const careerW = careerMatches.filter(W).length;
+  const careerL = careerMatches.filter(m => m.result === 'L').length;
+  const careerRate = careerW + careerL > 0 ? careerW / (careerW + careerL) : 0.5;
+  const partnerRate = pW / total;
+  const vsCareer = partnerRate - careerRate;
+  const firstName = formatPartnerName(name).split(' ')[0];
+
+  // ── Score each split category for interestingness ──────────────
+  const splitDefs = [
+    { key: 'night',    label: 'night matches',   ms: matches.filter(m => m.time === 'Night') },
+    { key: 'home',     label: 'home matches',    ms: matches.filter(m => m.homeaway === 'Home') },
+    { key: 'away',     label: 'away matches',    ms: matches.filter(m => m.homeaway === 'Away') },
+    { key: 'morning',  label: 'morning matches', ms: matches.filter(m => m.time === 'Morning') },
+    { key: 'afternoon',label: 'afternoon matches',ms: matches.filter(m => m.time === 'Afternoon') },
+    { key: 's2',       label: '2-set matches',   ms: matches.filter(m => countSets(m) === 2 && !m.oppRet && !m.weRet) },
+    { key: 's3',       label: '3-set matches',   ms: matches.filter(m => countSets(m) === 3) },
+    { key: 'playoffs', label: 'playoff matches', ms: matches.filter(m => m.playoff === true || m.playoff === 'TRUE') },
+    { key: 'tiebreak', label: 'tiebreak matches',ms: (function(){ const tb=[]; matches.forEach(m=>{ [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(p=>{const nw=num(p[0]),nl=num(p[1]);if(nw!==null&&nl!==null&&nw+nl>=12&&Math.abs(nw-nl)<=2&&(nw===7||nl===7))tb.push(m);}); }); return tb; })() },
+  ].map(s => {
+    const sw = s.ms.filter(W).length;
+    const sl = s.ms.filter(m => m.result === 'L').length;
+    const sn = sw + sl;
+    if (sn < 2) return null;
+    const sRate = sw / sn;
+    const diff = sRate - partnerRate;
+    return { ...s, sw, sl, sn, sRate, diff, isPerfect: sl === 0, isWinless: sw === 0 };
+  }).filter(Boolean);
+
+  // Sort by absolute deviation from partner rate
+  splitDefs.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+  const topPositive = splitDefs.find(s => s.diff >= 0.08 || s.isPerfect);
+  const topNegative = splitDefs.find(s => s.diff <= -0.10 || s.isWinless);
+
+  // ── Line 1: partnership tone + standout condition ──────────────
+  const partnershipTone = vsCareer >= 0.12
+    ? `You and ${firstName} are one of your strongest partnerships`
+    : vsCareer >= 0.04
+    ? `You and ${firstName} make a solid team`
+    : vsCareer >= -0.04
+    ? `You and ${firstName} are a reliable pairing`
+    : vsCareer >= -0.12
+    ? `You and ${firstName} are still finding your groove`
+    : `You and ${firstName} have room to grow as a team`;
+
+  let line1 = '';
+  if (topPositive && topPositive.isPerfect) {
+    line1 = `${partnershipTone} — and when it comes to ${topPositive.label}, you two are simply untouchable.`;
+  } else if (topPositive) {
+    const conditionPhrases = {
+      night:     'under the lights',
+      home:      'on home turf',
+      away:      'on the road',
+      morning:   'in the early matches',
+      afternoon: 'in afternoon play',
+      s2:        'when you close it out in straights',
+      s3:        'when the match goes the distance',
+      playoffs:  'when the stakes are highest',
+      tiebreak:  'in tiebreak situations',
+    };
+    const phrase = conditionPhrases[topPositive.key] || `in ${topPositive.label}`;
+    line1 = `${partnershipTone} — especially ${phrase}.`;
+  } else {
+    line1 = `${partnershipTone} with solid results across the board.`;
+  }
+
+  // ── Line 2: coaching observation ──────────────────────────────
+  const coachPhrases = {
+    night:     ['Night matches are clearly your time — lean into it.', 'If you can schedule more night matches together, do it.'],
+    home:      ['Home court advantage is real with this partnership.', 'You two thrive on familiar ground.'],
+    away:      ['Impressive road results — this pairing travels well.', 'You don\'t need home court with this partner.'],
+    morning:   ['Early matches suit this partnership — something to keep in mind.', 'Morning slots? No problem for this duo.'],
+    afternoon: ['Afternoon matches are a comfortable zone for this team.', 'Middle-of-the-day tennis clearly works for you two.'],
+    s2:        ['When you close matches out in two, you\'re nearly unstoppable.', 'The key is making sets one and two count.'],
+    s3:        ['You two have serious fight — going long suits this team.', 'Three-setters bring out the best in this partnership.'],
+    playoffs:  ['This is a partnership built for big moments.', 'Postseason pressure? This pairing handles it.'],
+    tiebreak:  ['Tiebreaks are a weakness to address — focus on staying composed at 6-6.', 'The tiebreak is where matches are slipping away. Work on that together.'],
+  };
+
+  let line2 = '';
+  if (topNegative && (topNegative.isWinless || topNegative.diff <= -0.15)) {
+    const weakPhrases = {
+      night:     'Night matches are a gap — something to work on together.',
+      home:      'Surprisingly, home matches are where the losses creep in. Worth examining.',
+      away:      'Road matches are a challenge for this duo — something to address.',
+      morning:   'Early start times don\'t suit this partnership yet.',
+      afternoon: 'Afternoon matches are the one area to shore up.',
+      s2:        'When matches go to two sets, the edge isn\'t there yet — closing out is something to work on.',
+      s3:        'Three-set matches are the weak point — conditioning and composure could be the fix.',
+      playoffs:  'Playoff experience is still building for this partnership — the opportunity will come.',
+      tiebreak:  'Tiebreaks are a real gap here. Practice set-point composure and it\'ll pay off.',
+    };
+    line2 = `Coach's take: ${weakPhrases[topNegative.key] || `${topNegative.label} are an area to improve.`}`;
+  } else if (topPositive) {
+    const arr = coachPhrases[topPositive.key] || [`Keep playing together — the chemistry is clearly there.`];
+    line2 = `Coach's take: ${arr[total % arr.length]}`;
+  } else if (vsCareer >= 0.08) {
+    line2 = `Coach's take: This is a partnership worth investing in. Keep logging matches together.`;
+  } else if (vsCareer <= -0.10) {
+    line2 = `Coach's take: Consider mixing up the strategy — what you're doing isn't clicking yet.`;
+  } else {
+    line2 = `Coach's take: Solid and consistent. The more matches together, the stronger this partnership gets.`;
+  }
+
+  return `<div style="font-size:13px;color:var(--text);line-height:1.6">${line1}</div>`
+       + `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;font-style:italic">${line2}</div>`;
 }
 
 function renderMonthChart(matches) {
@@ -3078,7 +3180,7 @@ function drillPartner(name) {
 
   document.getElementById('partners-drill-panel').innerHTML = `
     ${buildSplitsTable(matches, false, name)}
-    <div class="insight-blurb" style="margin-top:16px">${buildSplitsInsight(matches)}</div>
+    <div class="insight-blurb" style="margin-top:16px">${buildPartnerInsight(matches, name, allMatches)}</div>
   `;
   document.getElementById('partners-slide-inner').classList.add('drilled');
 }
