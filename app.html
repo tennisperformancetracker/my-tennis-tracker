@@ -219,7 +219,7 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .kpi2-mini-stat { flex: 1; display: flex; flex-direction: column; gap: 1px; }
 .kpi2-mini-stat + .kpi2-mini-stat { border-left: 1px solid var(--border); padding-left: 10px; }
 .kpi2-mini-label { font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
-.kpi2-mini-val { font-size: 13px; font-weight: 700; color: var(--text); }
+.kpi2-mini-val { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; }
 .kpi2-mini-val.green { color: var(--win); }
 .kpi2-mini-val.red   { color: var(--loss); }
 .kpi2-partner-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); line-height: 1.2; margin-top: -2px; }
@@ -2131,10 +2131,7 @@ function buildKPIs(matches, curYearMatches) {
 
   // Tiebreak record
   var tbW = 0, tbL = 0, tbSznW = 0, tbSznL = 0, tb3W = 0, tb3L = 0;
-  var seasonsList = [];
-  allMatches.forEach(function(m){ if(m.season && seasonsList.indexOf(m.season)===-1) seasonsList.push(m.season); });
-  var latestSzn = seasonsList.length ? seasonsList[seasonsList.length-1] : '';
-  var curSznMatches = latestSzn ? allMatches.filter(function(m){ return m.season===latestSzn; }) : [];
+  var curYrTBMatches = allMatches.filter(function(m){ return m.year === curYear; });
   function isTB(nw, nl) { return nw!==null && nl!==null && nw+nl>=12 && Math.abs(nw-nl)<=2 && (nw===7||nl===7); }
   matches.forEach(function(m) {
     [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
@@ -2142,7 +2139,7 @@ function buildKPIs(matches, curYearMatches) {
       if (isTB(nw,nl)) { if(nw>nl) tbW++; else tbL++; }
     });
   });
-  curSznMatches.forEach(function(m) {
+  curYrTBMatches.forEach(function(m) {
     [[m.s1w,m.s1l],[m.s2w,m.s2l]].forEach(function(pair) {
       var nw=num(pair[0]), nl=num(pair[1]);
       if (isTB(nw,nl)) { if(nw>nl) tbSznW++; else tbSznL++; }
@@ -2246,15 +2243,9 @@ function buildKPIs(matches, curYearMatches) {
         var lastRes = allSorted[0] ? allSorted[0].result : '—';
         var lastCol = lastRes==='W' ? 'var(--win)' : lastRes==='L' ? 'var(--loss)' : 'var(--text)';
         // current season record
-        var csnMatches = allSorted.filter(function(m){ return m.season; });
-        var csnName = csnMatches.length ? csnMatches[0].season : '';
-        var csnYear = csnMatches.length ? csnMatches[0].year : '';
-        var csnMs = csnName ? allSorted.filter(function(m){ return m.season===csnName && m.year===csnYear; }) : [];
-        var csnW = csnMs.filter(function(m){ return m.result==='W'; }).length;
-        var csnL = csnMs.filter(function(m){ return m.result==='L'; }).length;
         var mini = kpiMiniStats([
           ['Best streak', streak.longest ? streak.longest + ' wins' : '—', ''],
-          ['This season', csnW+csnL>0 ? csnW+'-'+csnL : '—', ''],
+          ['This year',   cyW+cyL>0 ? cyW+'-'+cyL : '—', ''],
           ['Career W%',   careerRate!==null ? rPct(careerRate) : '—', '']
         ]);
         return kpiCard('Current Streak', badge, valHtml, '',
@@ -2325,7 +2316,7 @@ function buildKPIs(matches, curYearMatches) {
         var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(tbRate,great,poor) + '">' + tbW + '–' + tbL + '</div>';
         var mini = kpiMiniStats([
           ['Win rate',    tbRate!==null ? rPct(tbRate) : '—', tbRate!==null ? (tbRate>great?'green':tbRate<poor?'red':'') : ''],
-          ['This season', tbSznW + '-' + tbSznL, ''],
+          ['This year', tbSznW + '-' + tbSznL, ''],
           ['3rd-set TBs', tb3W + '-' + tb3L, '']
         ]);
         return kpiCard('Tiebreak Record', badge, valHtml,
