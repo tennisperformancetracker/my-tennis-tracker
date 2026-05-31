@@ -5107,19 +5107,20 @@ function markSettingsDirty() {
 }
 
 function initBannerScroll() {
-  const main = document.querySelector('main.main');
-  if (!main || main._bannerScrollBound) return;
-  main._bannerScrollBound = true;
-  const topbarHeight = window.innerWidth <= 768 ? 52 : 56;
-  main.addEventListener('scroll', function() {
+  if (window._bannerScrollBound) return;
+  window._bannerScrollBound = true;
+  window.addEventListener('scroll', function() {
     const banner = document.getElementById('settings-dirty-banner');
     if (!banner || banner.style.display === 'none') return;
-    if (main.scrollTop >= topbarHeight) {
+    const isMobile = window.innerWidth <= 768;
+    const topbarHeight = isMobile ? 52 : 56;
+    const left = isMobile ? '0' : '240px';
+    if (window.scrollY >= topbarHeight) {
       banner.style.top = '0';
-      banner.style.left = window.innerWidth <= 768 ? '0' : '240px';
+      banner.style.left = left;
     } else {
-      banner.style.top = (window.innerWidth <= 768 ? 52 : 56) + 'px';
-      banner.style.left = window.innerWidth <= 768 ? '0' : '240px';
+      banner.style.top = topbarHeight + 'px';
+      banner.style.left = left;
     }
   }, { passive: true });
 }
@@ -5163,7 +5164,8 @@ function renderSettings() {
   if (mtr) mtr.innerHTML = saveBtnMobHtml;
   document.getElementById('mobile-filters').innerHTML = '';
   const dirtyBanner = document.getElementById('settings-dirty-banner');
-  if (dirtyBanner) dirtyBanner.style.display = 'none';
+  if (dirtyBanner) { dirtyBanner.style.display = 'none'; dirtyBanner.style.top = window.innerWidth <= 768 ? '52px' : '56px'; }
+  window._bannerScrollBound = false;
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
   const col2 = PERF_CATS_ALL.slice(7);
