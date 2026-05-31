@@ -1588,6 +1588,11 @@ async function loadAll() {
           localStorage.setItem('settingsOptInDone', 'true');
           settingsOptInSubmitted = true;
         }
+        // Dashboard card order
+        if (s.dashboardCards) {
+          const cards = s.dashboardCards.split(',').map(c => c.trim()).filter(Boolean);
+          if (cards.length > 0) localStorage.setItem('dashboardCards', JSON.stringify(cards));
+        }
         // Match Entry Defaults
         ['defaultType','defaultSeason','defaultLeague','defaultLevel','defaultSurface','defaultLocation'].forEach(k => {
           if (s[k] !== undefined) localStorage.setItem(k, s[k]);
