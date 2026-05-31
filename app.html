@@ -5102,7 +5102,16 @@ let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true
 function markSettingsDirty() {
   settingsDirty = true;
   const banner = document.getElementById('settings-dirty-banner');
-  if (banner) banner.style.display = 'flex';
+  if (banner) {
+    banner.style.display = 'flex';
+    // Set correct position immediately based on current scroll
+    const isMobile = window.innerWidth <= 768;
+    const topbarHeight = isMobile ? 52 : 56;
+    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+    const top = Math.max(0, topbarHeight - scrollY);
+    banner.style.top = top + 'px';
+    banner.style.left = isMobile ? '0' : '240px';
+  }
   initBannerScroll();
 }
 
