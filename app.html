@@ -718,6 +718,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   .topbar-title { font-size: 16px; font-weight: 700; color: #fff; }
   .topbar-right { display: none; }
   #mob-topbar-right { display: flex !important; }
+  #settings-dirty-banner { left: 0 !important; top: 52px !important; }
   .mob-hamburger { display: flex; color: #fff; }
 
   /* Mobile filters */
@@ -1355,7 +1356,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   <div class="mobile-filters" id="mobile-filters"></div>
 
   <!-- SETTINGS UNSAVED BANNER -->
-  <div id="settings-dirty-banner" style="display:none;align-items:center;justify-content:space-between;gap:12px;background:#fff8ec;border-bottom:1px solid #f0d080;padding:9px 20px;position:sticky;top:52px;z-index:88;box-sizing:border-box;width:100%">
+  <div id="settings-dirty-banner" style="display:none;align-items:center;justify-content:space-between;gap:12px;background:#fff8ec;border-bottom:1px solid #f0d080;padding:9px 20px;position:fixed;top:56px;left:240px;right:0;z-index:88;box-sizing:border-box;">
     <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#8a5c00;font-family:var(--font);font-weight:500">
       <span style="width:7px;height:7px;border-radius:50%;background:#d4820a;flex-shrink:0;display:inline-block"></span>
       You have unsaved changes
