@@ -6460,14 +6460,14 @@ async function submitEntry() {
           const el = document.getElementById(id);
           if (el && val) el.value = val;
         });
-        ['e-opp1','e-opp2','e-s1w','e-s1l','e-s2w','e-s2l','e-s3w','e-s3l'].forEach(id => {
+        ['e-opp1','e-opp2','e-s1w','e-s1l','e-s2w','e-s2l','e-s3w','e-s3l','e-notes'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
         onEntryTypeChange();
         const today = new Date();
         const dateEl = document.getElementById('e-date');
-        if (dateEl) dateEl.value = today.toISOString().split('T')[0];
+        if (dateEl) dateEl.value = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
       });
     } else {
       hideSaving();
