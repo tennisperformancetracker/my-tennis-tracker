@@ -5109,20 +5109,19 @@ function markSettingsDirty() {
 function initBannerScroll() {
   if (window._bannerScrollBound) return;
   window._bannerScrollBound = true;
-  window.addEventListener('scroll', function() {
+  function onScroll() {
     const banner = document.getElementById('settings-dirty-banner');
     if (!banner || banner.style.display === 'none') return;
     const isMobile = window.innerWidth <= 768;
     const topbarHeight = isMobile ? 52 : 56;
     const left = isMobile ? '0' : '240px';
-    if (window.scrollY >= topbarHeight) {
-      banner.style.top = '0';
-      banner.style.left = left;
-    } else {
-      banner.style.top = topbarHeight + 'px';
-      banner.style.left = left;
-    }
-  }, { passive: true });
+    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+    const top = Math.max(0, topbarHeight - scrollY);
+    banner.style.top = top + 'px';
+    banner.style.left = left;
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true });
 }
 
 async function saveAllSettings() {
