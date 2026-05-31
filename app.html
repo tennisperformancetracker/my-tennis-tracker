@@ -2643,6 +2643,18 @@ function buildPartnerInsight(matches, name, careerMatches) {
   const vsCareer = partnerRate - careerRate;
   const firstName = formatPartnerName(name).split(' ')[0];
 
+  // ── Recent streak with this partner ───────────────────────────
+  const recentMatches = [...matches].sort((a, b) => parseDate(b.date) - parseDate(a.date));
+  let streakCount = 0;
+  let streakType = null;
+  for (const m of recentMatches) {
+    const r = m.result;
+    if (streakType === null) { streakType = r; streakCount = 1; }
+    else if (r === streakType) streakCount++;
+    else break;
+  }
+  const recentStreak = streakCount >= 2 ? { type: streakType, count: streakCount } : null;
+
   // ── Score each split category for interestingness ──────────────
   const splitDefs = [
     { key: 'night',    label: 'night matches',   ms: matches.filter(m => m.time === 'Night') },
@@ -2670,35 +2682,82 @@ function buildPartnerInsight(matches, name, careerMatches) {
   const topNegative = splitDefs.find(s => s.diff <= -0.10 || s.isWinless);
 
   // ── Line 1: partnership tone + standout condition ──────────────
+  // Use a name-based index for variety that's consistent per partner
+  const nameIdx = firstName.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const pick = (arr) => arr[nameIdx % arr.length];
+
   const partnershipTone = vsCareer >= 0.12
-    ? `You and ${firstName} are one of your strongest partnerships`
+    ? pick([
+        `You and ${firstName} are one of your strongest partnerships`,
+        `You and ${firstName} are a genuinely elite pairing`,
+        `You and ${firstName} are about as good as it gets`,
+        `You and ${firstName} are a formidable team`,
+      ])
     : vsCareer >= 0.04
-    ? `You and ${firstName} make a solid team`
+    ? pick([
+        `You and ${firstName} make a really solid team`,
+        `You and ${firstName} clearly gel well together`,
+        `You and ${firstName} bring out the best in each other`,
+        `You and ${firstName} are a strong combination`,
+      ])
     : vsCareer >= -0.04
-    ? `You and ${firstName} are a reliable pairing`
+    ? pick([
+        `You and ${firstName} are a reliable pairing`,
+        `You and ${firstName} are a steady team`,
+        `You and ${firstName} are consistently competitive together`,
+        `You and ${firstName} hold your own as a duo`,
+      ])
     : vsCareer >= -0.12
-    ? `You and ${firstName} are still finding your groove`
-    : `You and ${firstName} have room to grow as a team`;
+    ? pick([
+        `You and ${firstName} are still finding your groove`,
+        `You and ${firstName} haven't quite clicked yet`,
+        `You and ${firstName} are a work in progress`,
+        `You and ${firstName} are still building chemistry`,
+      ])
+    : pick([
+        `You and ${firstName} have room to grow as a team`,
+        `You and ${firstName} haven't found your rhythm yet`,
+        `You and ${firstName} are still figuring each other out on court`,
+        `You and ${firstName} haven't hit your stride together yet`,
+      ]);
 
   let line1 = '';
   if (topPositive && topPositive.isPerfect) {
-    line1 = `${partnershipTone} — and when it comes to ${topPositive.label}, you two are simply untouchable.`;
+    const perfectPhrases = {
+      night:     [`${partnershipTone} — and under the lights? Simply untouchable.`, `${partnershipTone} — night matches are basically a guaranteed W for this duo.`, `${partnershipTone} — when the sun goes down, you two are unbeatable.`],
+      home:      [`${partnershipTone} — and on home turf, nobody touches you.`, `${partnershipTone} — at home, this partnership is flat-out dominant.`, `${partnershipTone} — home matches with ${firstName} are as close to a sure thing as it gets.`],
+      away:      [`${partnershipTone} — and on the road, you're actually untouchable.`, `${partnershipTone} — road matches don't faze this duo one bit.`, `${partnershipTone} — you travel well together. Really well.`],
+      morning:   [`${partnershipTone} — and morning matches? Flawless.`, `${partnershipTone} — early starts are no problem for this team.`, `${partnershipTone} — the early bird definitely wins with ${firstName}.`],
+      afternoon: [`${partnershipTone} — and in the afternoon, you're unbeatable together.`, `${partnershipTone} — afternoon tennis is this duo's sweet spot.`, `${partnershipTone} — mid-day matches with ${firstName} are a formality.`],
+      s2:        [`${partnershipTone} — and when you close in two sets, it's lights out.`, `${partnershipTone} — straight-set wins are basically the default with ${firstName}.`, `${partnershipTone} — in two-set matches together, you're perfect.`],
+      s3:        [`${partnershipTone} — and when it goes three, you two are simply relentless.`, `${partnershipTone} — three-set matches bring out something special in this team.`, `${partnershipTone} — the longer it goes, the more dangerous you become together.`],
+      playoffs:  [`${partnershipTone} — and in the playoffs, you're absolutely untouchable.`, `${partnershipTone} — big moments? This partnership was built for them.`, `${partnershipTone} — when it matters most, you and ${firstName} deliver every time.`],
+      tiebreak:  [`${partnershipTone} — and in tiebreaks, you two are ice cold.`, `${partnershipTone} — tiebreaks are where this partnership really shines.`, `${partnershipTone} — 6-6? No problem. This duo owns the tiebreak.`],
+    };
+    const arr = perfectPhrases[topPositive.key] || [`${partnershipTone} — and when it comes to ${topPositive.label}, you two are simply untouchable.`];
+    line1 = arr[nameIdx % arr.length];
   } else if (topPositive) {
     const conditionPhrases = {
-      night:     'under the lights',
-      home:      'on home turf',
-      away:      'on the road',
-      morning:   'in the early matches',
-      afternoon: 'in afternoon play',
-      s2:        'when you close it out in straights',
-      s3:        'when the match goes the distance',
-      playoffs:  'when the stakes are highest',
-      tiebreak:  'in tiebreak situations',
+      night:     ['especially under the lights.', 'night matches are clearly where this team clicks.', 'something about playing under the lights just works for you two.'],
+      home:      ['especially on home turf.', 'home matches bring out the best in this partnership.', 'there\'s something about playing at home that elevates this team.'],
+      away:      ['especially on the road.', 'this duo actually thrives away from home.', 'road matches seem to bring out something extra in you two.'],
+      morning:   ['especially in the early matches.', 'morning tennis suits this team surprisingly well.', 'early start times? Not a problem for this partnership.'],
+      afternoon: ['especially in afternoon play.', 'the afternoon slot is clearly this team\'s sweet spot.', 'mid-day matches are where this partnership really hums.'],
+      s2:        ['especially when you close it out in straights.', 'two-set matches are where this team is at its most dangerous.', 'when you keep it to two sets together, it\'s hard to stop you.'],
+      s3:        ['especially when the match goes the distance.', 'three-setters seem to fuel this partnership.', 'the deeper the match goes, the better you two get.'],
+      playoffs:  ['especially when the stakes are highest.', 'this team shows up in the big moments.', 'playoff pressure seems to bring out the best in this duo.'],
+      tiebreak:  ['especially in tiebreak situations.', 'tiebreaks are a real strength for this team.', 'when it gets tight at 6-6, this is a good partner to have next to you.'],
     };
-    const phrase = conditionPhrases[topPositive.key] || `in ${topPositive.label}`;
-    line1 = `${partnershipTone} — especially ${phrase}.`;
+    const arr = conditionPhrases[topPositive.key] || [`in ${topPositive.label}.`];
+    line1 = `${partnershipTone} — ${arr[nameIdx % arr.length]}`;
   } else {
-    line1 = `${partnershipTone} with solid results across the board.`;
+    const noStandoutPhrases = [
+      `${partnershipTone} with solid results across the board.`,
+      `${partnershipTone} — no glaring weaknesses, just consistent tennis together.`,
+      `${partnershipTone} — well-rounded results no matter the conditions.`,
+      `${partnershipTone} and it shows in just about every situation.`,
+    ];
+    line1 = noStandoutPhrases[nameIdx % noStandoutPhrases.length];
   }
 
   // ── Line 2: coaching observation ──────────────────────────────
@@ -2714,33 +2773,82 @@ function buildPartnerInsight(matches, name, careerMatches) {
     tiebreak:  ['Tiebreaks are a weakness to address — focus on staying composed at 6-6.', 'The tiebreak is where matches are slipping away. Work on that together.'],
   };
 
+  // ── Streak line (optional third line) ─────────────────────────
+  let streakLine = '';
+  if (recentStreak && recentStreak.count >= 2) {
+    const n = recentStreak.count;
+    const isWin = recentStreak.type === 'W';
+    if (isWin) {
+      const winStreakPhrases = [
+        `You two are really killing it lately — ${n} straight! 🔥`,
+        `${n} wins in a row together. You're on a roll. 🎾`,
+        `Hot streak alert — ${n} straight wins with ${firstName}. Don't stop now.`,
+        `${n} straight together. The momentum is real.`,
+        `You and ${firstName} are clicking right now — ${n} in a row.`,
+        `Back-to-back${n > 2 ? `-to-back${n > 3 ? ` (×${n})` : ''}` : ''} wins with ${firstName}. Keep riding it.`,
+      ];
+      streakLine = winStreakPhrases[n % winStreakPhrases.length];
+    } else {
+      const lossStreakPhrases = [
+        `Tough run lately — ${n} straight with ${firstName}. Time to shake something up.`,
+        `${n} in a row on the L side together. A reset might be exactly what this team needs.`,
+        `The recent results with ${firstName} aren't there — ${n} straight. Don't overthink it, just compete.`,
+        `Skid of ${n} with ${firstName}. Happens to every team — the turnaround starts next match.`,
+        `${n} consecutive losses together. Time to go back to basics and trust the process.`,
+      ];
+      streakLine = lossStreakPhrases[n % lossStreakPhrases.length];
+    }
+  }
+
+  // ── Coaching observation ───────────────────────────────────────
   let line2 = '';
   if (topNegative && (topNegative.isWinless || topNegative.diff <= -0.15)) {
     const weakPhrases = {
-      night:     'Night matches are a gap — something to work on together.',
-      home:      'Surprisingly, home matches are where the losses creep in. Worth examining.',
-      away:      'Road matches are a challenge for this duo — something to address.',
-      morning:   'Early start times don\'t suit this partnership yet.',
-      afternoon: 'Afternoon matches are the one area to shore up.',
-      s2:        'When matches go to two sets, the edge isn\'t there yet — closing out is something to work on.',
-      s3:        'Three-set matches are the weak point — conditioning and composure could be the fix.',
-      playoffs:  'Playoff experience is still building for this partnership — the opportunity will come.',
-      tiebreak:  'Tiebreaks are a real gap here. Practice set-point composure and it\'ll pay off.',
+      night:     ['Night matches are a gap — something to work on together.', 'The lights aren\'t doing this partnership any favors. Worth addressing.', 'Night tennis is where this team struggles — awareness is the first step.'],
+      home:      ['Surprisingly, home matches are where the losses creep in. Worth examining.', 'Home court isn\'t an advantage for this duo yet — something to look into.', 'The losses tend to come on familiar ground. That\'s worth a conversation.'],
+      away:      ['Road matches are a challenge for this duo — something to address.', 'This team hasn\'t found its road game yet. Routine and focus away from home could help.', 'Away matches are a real gap — try to treat them the same as home.'],
+      morning:   ['Early start times don\'t suit this partnership yet.', 'Morning matches are a weak spot — maybe a proper warm-up routine would help.', 'The early slots aren\'t working for this team. Worth noting for scheduling.'],
+      afternoon: ['Afternoon matches are the one area to shore up.', 'Mid-day tennis isn\'t clicking for this duo — could be energy, could be routine.', 'The afternoon losses are a pattern worth breaking.'],
+      s2:        ['When matches go to two sets, the edge isn\'t there yet — closing out is something to work on.', 'Straight-set matches are where this team loses ground. Focus on starting strong.', 'Two-set matches aren\'t going your way together. Work on dictating early.'],
+      s3:        ['Three-set matches are the weak point — conditioning and composure could be the fix.', 'When it goes long together, the results slip. Endurance and mental focus are the levers.', 'The third set is where things unravel for this duo. Fight for every game when it gets there.'],
+      playoffs:  ['Playoff experience is still building for this partnership — the opportunity will come.', 'The big moments haven\'t gone your way together yet. That experience will pay off.', 'Postseason results with this partner need work — treat every big match as a chance to build that muscle.'],
+      tiebreak:  ['Tiebreaks are a real gap here. Practice set-point composure and it\'ll pay off.', 'The tiebreak is where this team drops results. Seven points of focus — that\'s all it takes.', 'Tiebreak losses are piling up together. Calm, simple tennis at 6-6 is the answer.'],
     };
-    line2 = `Coach's take: ${weakPhrases[topNegative.key] || `${topNegative.label} are an area to improve.`}`;
+    const arr = weakPhrases[topNegative.key] || [`${topNegative.label} are an area to improve together.`];
+    line2 = `Coach's take: ${arr[total % arr.length]}`;
   } else if (topPositive) {
     const arr = coachPhrases[topPositive.key] || [`Keep playing together — the chemistry is clearly there.`];
     line2 = `Coach's take: ${arr[total % arr.length]}`;
   } else if (vsCareer >= 0.08) {
-    line2 = `Coach's take: This is a partnership worth investing in. Keep logging matches together.`;
+    const fallbacks = [
+      `This is a partnership worth investing in. Keep logging matches together.`,
+      `The results speak for themselves — prioritize getting on court with ${firstName}.`,
+      `A genuinely strong pairing. More matches together will only make it better.`,
+    ];
+    line2 = `Coach's take: ${fallbacks[total % fallbacks.length]}`;
   } else if (vsCareer <= -0.10) {
-    line2 = `Coach's take: Consider mixing up the strategy — what you're doing isn't clicking yet.`;
+    const fallbacks = [
+      `Consider mixing up the strategy — what you're doing isn't clicking yet.`,
+      `The results aren't there yet. Try changing up the formation or communication.`,
+      `Something isn't working — experiment. Different patterns, different energy.`,
+    ];
+    line2 = `Coach's take: ${fallbacks[total % fallbacks.length]}`;
   } else {
-    line2 = `Coach's take: Solid and consistent. The more matches together, the stronger this partnership gets.`;
+    const fallbacks = [
+      `Solid and consistent. The more matches together, the stronger this partnership gets.`,
+      `A dependable team. Keep showing up and the results will keep coming.`,
+      `Nothing flashy, just reliable. That's a good foundation to build on.`,
+    ];
+    line2 = `Coach's take: ${fallbacks[total % fallbacks.length]}`;
   }
 
+  const streakHtml = streakLine
+    ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6">${streakLine}</div>`
+    : '';
+
   return `<div style="font-size:13px;color:var(--text);line-height:1.6">${line1}</div>`
-       + `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;font-style:italic">${line2}</div>`;
+       + `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;font-style:italic">${line2}</div>`
+       + streakHtml;
 }
 
 function renderMonthChart(matches) {
