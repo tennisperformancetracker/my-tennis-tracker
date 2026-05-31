@@ -5792,7 +5792,7 @@ function renderCardPicker() {
       if (sel.length >= 4) { showToast('Max 4 cards. Deselect one first.', true); return; }
       sel.push(id);
     }
-    settingsDirty = true;
+    markSettingsDirty();
     render();
   };
 
@@ -5817,7 +5817,7 @@ function renderCardPicker() {
     if (srcIdx !== -1 && dstIdx !== -1) {
       sel.splice(srcIdx, 1);
       sel.splice(dstIdx, 0, dragSrc);
-      settingsDirty = true;
+      markSettingsDirty();
       render();
     }
   };
