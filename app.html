@@ -1354,6 +1354,15 @@ textarea:focus { border-color: var(--accent2) !important; }
   <!-- MOBILE FILTER BAR (populated by JS on mobile) -->
   <div class="mobile-filters" id="mobile-filters"></div>
 
+  <!-- SETTINGS UNSAVED BANNER -->
+  <div id="settings-dirty-banner" style="display:none;align-items:center;justify-content:space-between;gap:12px;background:#fff8ec;border-bottom:1px solid #f0d080;padding:9px 20px;position:sticky;top:52px;z-index:88;box-sizing:border-box;width:100%">
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#8a5c00;font-family:var(--font);font-weight:500">
+      <span style="width:7px;height:7px;border-radius:50%;background:#d4820a;flex-shrink:0;display:inline-block"></span>
+      You have unsaved changes
+    </div>
+    <button onclick="saveAllSettings()" id="settings-banner-save" style="background:#2f4157;color:#fff;border:none;border-radius:6px;font-family:var(--font);font-size:12px;font-weight:600;padding:6px 16px;cursor:pointer;white-space:nowrap;">Save now</button>
+  </div>
+
   <!-- CONTENT -->
   <div class="content" id="content">
     <div class="spinner-wrap"><div class="spinner"></div><div>Loading…</div></div>
@@ -1703,6 +1712,8 @@ function showPage(page) {
   closeSidebar();
   const mtr = document.getElementById('mob-topbar-right');
   if (mtr) mtr.innerHTML = '';
+  const dirtyBanner = document.getElementById('settings-dirty-banner');
+  if (dirtyBanner) dirtyBanner.style.display = 'none';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const map = { dashboard: 0, history: 1, entry: 2, validEntries: 3 };
   if (map[page] !== undefined) document.querySelectorAll('.nav-item')[map[page]].classList.add('active');
@@ -5087,12 +5098,18 @@ function onPerfCatToggle(el) {
 
 let settingsOptInSubmitted = localStorage.getItem('settingsOptInDone') === 'true';
 
-function markSettingsDirty() { settingsDirty = true; }
+function markSettingsDirty() {
+  settingsDirty = true;
+  const banner = document.getElementById('settings-dirty-banner');
+  if (banner) banner.style.display = 'flex';
+}
 
 async function saveAllSettings() {
   const btn = document.getElementById('settings-global-save');
   const mobBtn = document.getElementById('settings-global-save-mob');
-  [btn, mobBtn].forEach(b => { if (b) { b.textContent = 'Saving…'; b.disabled = true; } });
+  const bannerBtn = document.getElementById('settings-banner-save');
+  const banner = document.getElementById('settings-dirty-banner');
+  [btn, mobBtn, bannerBtn].forEach(b => { if (b) { b.textContent = 'Saving…'; b.disabled = true; } });
   try {
     await Promise.all([
       saveDashboardCards(true),
@@ -5101,11 +5118,12 @@ async function saveAllSettings() {
       saveDefaultSettings(true),
     ]);
     settingsDirty = false;
+    if (banner) banner.style.display = 'none';
     showToast('✓ All settings saved!');
   } catch(e) {
     showToast('Save failed: ' + e.message, true);
   }
-  [btn, mobBtn].forEach(b => { if (b) { b.textContent = '💾 Save'; b.disabled = false; } });
+  [btn, mobBtn, bannerBtn].forEach(b => { if (b) { b.textContent = 'Save now'; b.disabled = false; } });
 }
 
 function renderSettings() {
@@ -5121,6 +5139,8 @@ function renderSettings() {
   const mtr = document.getElementById('mob-topbar-right');
   if (mtr) mtr.innerHTML = saveBtnMobHtml;
   document.getElementById('mobile-filters').innerHTML = '';
+  const dirtyBanner = document.getElementById('settings-dirty-banner');
+  if (dirtyBanner) dirtyBanner.style.display = 'none';
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
   const col2 = PERF_CATS_ALL.slice(7);
