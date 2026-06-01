@@ -2270,7 +2270,7 @@ function buildKPIs(matches, curYearMatches) {
         var badge = streak.current !== 0 ? kpiBadge('Active', isW ? 'kpi2-badge-green' : 'kpi2-badge-red') : '';
         var valHtml = '<div class="kpi2-value" style="color:' + streakCol + '">' + streakWord + '</div>';
         var longestLabel = streak.longest
-          ? streak.longest + ' wins' + (streak.longestYears ? ' <span style="font-weight:400;color:var(--muted)">(' + streak.longestYears + ')</span>' : '')
+          ? streak.longest + ' wins' + (streak.longestYears ? ' <span style="font-weight:400;color:var(--muted);font-size:0.85em">(' + streak.longestYears + ')</span>' : '')
           : '—';
         var mini = kpiMiniStats([
           ['Best streak', longestLabel, ''],
@@ -2386,11 +2386,12 @@ function buildKPIs(matches, curYearMatches) {
         var bpRate = bestPartner ? bestPartner.w/(bestPartner.w+bestPartner.l) : null;
         var badge = bpRate !== null ? kpiBadge(bpRate>great?'75%+':'<75%', kpiBadgeClass(bpRate,great,poor)) : '';
         var nameStr = bestPartner ? escHtml(formatPartnerName(bestPartner.name)) : '—';
-        var valHtml = '<div class="kpi2-partner-name">' + nameStr + '</div>';
+        var streakSub = bestPartnerStreak > 1 ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">Best streak: ' + bestPartnerStreak + ' wins</div>' : '';
+        var valHtml = '<div class="kpi2-partner-name">' + nameStr + '</div>' + streakSub;
         var mini = kpiMiniStats([
-          ['Record',       bestPartner ? bestPartner.w+'-'+bestPartner.l : '—', ''],
-          ['Win rate',     bpRate!==null ? rPct(bpRate) : '—', bpRate!==null?(bpRate>great?'green':bpRate<poor?'red':''):''],
-          ['Best streak',  bestPartnerStreak > 0 ? bestPartnerStreak + ' wins' : '—', '']
+          ['Record',   bestPartner ? bestPartner.w+'-'+bestPartner.l : '—', ''],
+          ['Win rate', bpRate!==null ? rPct(bpRate) : '—', bpRate!==null?(bpRate>great?'green':bpRate<poor?'red':''):''],
+          ['Matches',  bestPartner ? String(bestPartner.w+bestPartner.l) : '—', '']
         ]);
         return kpiCard('Best Partner <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(min. 5)</span>', badge, valHtml, '', '', mini);
       }
@@ -2407,8 +2408,7 @@ function buildKPIs(matches, curYearMatches) {
         var sub = alRate!==null ? '<span style="color:' + kpiThreshColor(alRate,great,poor) + ';font-weight:600">' + rPct(alRate) + '</span> win rate · ' + (alW+alL) + ' matches' : '';
         var mini = kpiMiniStats([
           ['Record',  alW + '–' + alL, ''],
-          ['Seasons', String(alSeasons), ''],
-          ['Years',   alYears || '—', '']
+          ['Seasons', String(alSeasons), '']
         ]);
         return kpiCard('Most Active League', badge, valHtml, alRate!==null?kpiBar(alRate,great,poor):'', sub, mini);
       }
@@ -2523,7 +2523,7 @@ function calcStreak(sortedDesc) {
   if (bestStart && bestEnd) {
     var y1 = bestStart.year || (bestStart.date ? new Date(bestStart.date).getFullYear() : null);
     var y2 = bestEnd.year || (bestEnd.date ? new Date(bestEnd.date).getFullYear() : null);
-    if (y1 && y2) longestYears = y1 === y2 ? String(y1) : y1 + '–' + y2;
+    if (y1 && y2) longestYears = y1 === y2 ? String(y1) : y1 + '–' + String(y2).slice(-2);
   }
   return { current, longest, longestYears };
 }
