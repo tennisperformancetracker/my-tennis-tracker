@@ -2172,7 +2172,8 @@ function buildKPIs(matches, curYearMatches) {
   var plL = playoffMs.filter(function(m){ return m.result==='L'; }).length;
   var plRate = plW+plL > 0 ? plW/(plW+plL) : null;
 
-  // Best partner (min 5)
+  // Best partner (min matches from Top Partners threshold)
+  var bpMin = parseInt(localStorage.getItem('partnerMinMatches') || '5');
   var partnerMap = {};
   matches.forEach(function(m) {
     if (!m.partner) return;
@@ -2182,7 +2183,7 @@ function buildKPIs(matches, curYearMatches) {
   var bestPartner = null, bestRate = -1;
   Object.keys(partnerMap).forEach(function(name) {
     var d = partnerMap[name];
-    if (d.w+d.l < 5) return;
+    if (d.w+d.l < bpMin) return;
     var r = d.w/(d.w+d.l);
     if (r > bestRate) { bestRate = r; bestPartner = {name:name, w:d.w, l:d.l}; }
   });
@@ -2393,7 +2394,7 @@ function buildKPIs(matches, curYearMatches) {
           ['Win rate', bpRate!==null ? rPct(bpRate) : '—', bpRate!==null?(bpRate>great?'green':bpRate<poor?'red':''):''],
           ['Matches',  bestPartner ? String(bestPartner.w+bestPartner.l) : '—', '']
         ]);
-        return kpiCard('Best Partner <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(min. 5)</span>', badge, valHtml, '', '', mini);
+        return kpiCard('Best Partner <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(min. ' + bpMin + ')</span>', badge, valHtml, '', '', mini);
       }
 
       case 'active_league': {
