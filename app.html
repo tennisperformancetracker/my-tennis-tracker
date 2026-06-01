@@ -2173,7 +2173,7 @@ function buildKPIs(matches, curYearMatches) {
   var plRate = plW+plL > 0 ? plW/(plW+plL) : null;
 
   // Best partner (min matches from Top Partners threshold)
-  var bpMin = parseInt(localStorage.getItem('partnerMinMatches') || '5');
+  var bpMin = (typeof filterState !== 'undefined' && filterState.partners && filterState.partners.threshold) ? filterState.partners.threshold : 5;
   var partnerMap = {};
   matches.forEach(function(m) {
     if (!m.partner) return;
@@ -3215,6 +3215,13 @@ function refreshPartnersTable() {
   } else {
     filterState.partners.threshold = parseInt(document.getElementById('partners-threshold')?.value || '5');
     mainPanel.innerHTML = buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold);
+    // Re-render KPI grid so Best Partner card reflects new threshold
+    const kpiGrid = document.getElementById('kpi-grid-main');
+    if (kpiGrid) {
+      const curYearMatches = allMatches.filter(m => m.year === new Date().getFullYear());
+      kpiGrid.outerHTML = buildKPIs(allMatches.filter(m => !typeFilter || m.type === typeFilter), curYearMatches);
+      setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50);
+    }
   }
 }
 
