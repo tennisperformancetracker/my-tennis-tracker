@@ -2344,14 +2344,22 @@ function buildKPIs(matches, curYearMatches) {
         var diff = sRate!==null && dRate!==null ? Math.abs(sRate-dRate) : null;
         var better = sRate!==null && dRate!==null ? (sRate>=dRate?'singles':'doubles') : null;
         var sub = diff!==null ? 'You perform <strong>' + Math.round(diff*100) + '%</strong> better in ' + better : 'Not enough data';
-        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(sRate,great,poor) + '">' + rPct(sRate) + '</div>';
-        var mini = kpiMiniStats([
-          ['Singles', rPct(sRate),  sRate!==null?(sRate>great?'green':sRate<poor?'red':''):''],
-          ['Record',  sW + '–' + sL, ''],
-          ['Doubles', rPct(dRate),  dRate!==null?(dRate>great?'green':dRate<poor?'red':''):''],
-          ['Record',  dW + '–' + dL, '']
-        ]);
-        return kpiCard('Singles vs Doubles', '', valHtml, sRate!==null?kpiBar(sRate,great,poor):'', sub, mini);
+        var betterRate = better === 'singles' ? sRate : dRate;
+        var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(betterRate,great,poor) + '">' + rPct(betterRate) + '</div>'
+          + '<div class="kpi2-sub" style="margin-top:2px;margin-bottom:4px">' + (better ? better.charAt(0).toUpperCase() + better.slice(1) + ' win rate' : 'Win rate') + '</div>';
+        var sCol = sRate!==null?(sRate>great?'var(--win)':sRate<poor?'var(--loss)':'var(--text)'):'var(--muted)';
+        var dCol = dRate!==null?(dRate>great?'var(--win)':dRate<poor?'var(--loss)':'var(--text)'):'var(--muted)';
+        var mini = '<div class="kpi2-mini-row" style="gap:0">'
+          + '<div class="kpi2-mini-stat" style="flex:1;padding-right:12px">'
+          +   '<div class="kpi2-mini-label">Singles</div>'
+          +   '<div class="kpi2-mini-val" style="color:' + sCol + ';white-space:nowrap">' + sW + '–' + sL + ' <span style="font-weight:400;color:' + sCol + '">(' + rPct(sRate) + ')</span></div>'
+          + '</div>'
+          + '<div class="kpi2-mini-stat" style="flex:1;padding-left:12px;border-left:1px solid var(--border)">'
+          +   '<div class="kpi2-mini-label">Doubles</div>'
+          +   '<div class="kpi2-mini-val" style="color:' + dCol + ';white-space:nowrap">' + dW + '–' + dL + ' <span style="font-weight:400;color:' + dCol + '">(' + rPct(dRate) + ')</span></div>'
+          + '</div>'
+          + '</div>';
+        return kpiCard('Singles vs Doubles', '', valHtml, betterRate!==null?kpiBar(betterRate,great,poor):'', sub, mini);
       }
 
       case 'playoff': {
