@@ -2187,6 +2187,18 @@ function buildKPIs(matches, curYearMatches) {
     if (r > bestRate) { bestRate = r; bestPartner = {name:name, w:d.w, l:d.l}; }
   });
 
+  // Best partner streak
+  var bestPartnerStreak = 0;
+  if (bestPartner) {
+    var bpMatches = matches.filter(function(m){ return m.partner === bestPartner.name; })
+      .sort(function(a,b){ return parseDate(a.date)-parseDate(b.date); });
+    var bpRun = 0;
+    bpMatches.forEach(function(m){
+      if (m.result==='W') { bpRun++; bestPartnerStreak = Math.max(bestPartnerStreak, bpRun); }
+      else bpRun = 0;
+    });
+  }
+
   // Most active league
   var leagueMap = {};
   matches.forEach(function(m) {
@@ -2257,17 +2269,14 @@ function buildKPIs(matches, curYearMatches) {
           : (isW ? n + ' Wins' : n + ' Losses');
         var badge = streak.current !== 0 ? kpiBadge('Active', isW ? 'kpi2-badge-green' : 'kpi2-badge-red') : '';
         var valHtml = '<div class="kpi2-value" style="color:' + streakCol + '">' + streakWord + '</div>';
-        var lastRes = allSorted[0] ? allSorted[0].result : '—';
-        var lastCol = lastRes==='W' ? 'var(--win)' : lastRes==='L' ? 'var(--loss)' : 'var(--text)';
-        // current season record
+        var longestLabel = streak.longest
+          ? streak.longest + ' wins' + (streak.longestYears ? ' <span style="font-weight:400;color:var(--muted)">(' + streak.longestYears + ')</span>' : '')
+          : '—';
         var mini = kpiMiniStats([
-          ['Best streak', streak.longest ? streak.longest + ' wins' : '—', ''],
-          ['This year',   cyW+cyL>0 ? cyW+'-'+cyL : '—', ''],
-          ['Career W%',   careerRate!==null ? rPct(careerRate) : '—', '']
+          ['Best streak', longestLabel, ''],
+          ['This year',   cyW+cyL>0 ? cyW+'-'+cyL : '—', '']
         ]);
-        return kpiCard('Current Streak', badge, valHtml, '',
-          'Last result: <span style="color:' + lastCol + ';font-weight:600">' + lastRes + '</span>',
-          mini);
+        return kpiCard('Current Streak', badge, valHtml, '', '', mini);
       }
 
       case 'last10': {
@@ -2305,12 +2314,10 @@ function buildKPIs(matches, curYearMatches) {
       case 'firstset': {
         var badge = fsRate !== null ? kpiBadge(fsRate>great?'Strong':fsRate<poor?'Weak':'Average', kpiBadgeClass(fsRate,great,poor)) : '';
         var valHtml = '<div class="kpi2-value" style="color:' + kpiThreshColor(fsRate,great,poor) + '">' + rPct(fsRate) + '</div>';
-        var sub = 'vs <strong>' + rPct(careerRate) + '</strong> overall'
-          + (fsThenWinRate!==null ? ' · Win 1st set → win match <span style="color:var(--win);font-weight:600">' + rPct(fsThenWinRate) + '</span>' : '');
+        var sub = (fsThenWinRate!==null ? 'Win 1st set → win match <span style="color:var(--win);font-weight:600">' + rPct(fsThenWinRate) + '</span> of the time' : '');
         var mini = kpiMiniStats([
-          ['1st set W', String(fsWins.length), ''],
-          ['1st set L', String(withSets.length - fsWins.length), ''],
-          ['Matches',    String(withSets.length), '']
+          ['1st Set Wins',   String(fsWins.length), ''],
+          ['1st Set Losses', String(withSets.length - fsWins.length), '']
         ]);
         return kpiCard('First-Set Win Rate', badge, valHtml,
           fsRate!==null ? kpiBar(fsRate,great,poor) : '', sub, mini);
@@ -2381,22 +2388,29 @@ function buildKPIs(matches, curYearMatches) {
         var nameStr = bestPartner ? escHtml(formatPartnerName(bestPartner.name)) : '—';
         var valHtml = '<div class="kpi2-partner-name">' + nameStr + '</div>';
         var mini = kpiMiniStats([
-          ['Record',  bestPartner ? bestPartner.w+'-'+bestPartner.l : '—', ''],
-          ['Win rate', bpRate!==null ? rPct(bpRate) : '—', bpRate!==null?(bpRate>great?'green':bpRate<poor?'red':''):''],
-          ['Matches',  bestPartner ? String(bestPartner.w+bestPartner.l) : '—', '']
+          ['Record',       bestPartner ? bestPartner.w+'-'+bestPartner.l : '—', ''],
+          ['Win rate',     bpRate!==null ? rPct(bpRate) : '—', bpRate!==null?(bpRate>great?'green':bpRate<poor?'red':''):''],
+          ['Best streak',  bestPartnerStreak > 0 ? bestPartnerStreak + ' wins' : '—', '']
         ]);
         return kpiCard('Best Partner <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(min. 5)</span>', badge, valHtml, '', '', mini);
       }
 
       case 'active_league': {
         var badge = activeLeague ? kpiBadge(escHtml(activeLeague), 'kpi2-badge-navy') : '';
-        var valHtml = '<div class="kpi2-partner-name">' + escHtml(alTopType || '—') + '</div>';
+        var alYears = alData ? (function(){
+          var ys = {}; alData.matches.forEach(function(m){ if(m.year) ys[m.year]=1; });
+          var sorted = Object.keys(ys).map(Number).sort();
+          return sorted.length > 1 ? sorted[0] + '–' + sorted[sorted.length-1] : sorted.length ? String(sorted[0]) : '';
+        })() : '';
+        var alTypeLabel = alTopType ? escHtml(alTopType) : '—';
+        var valHtml = '<div class="kpi2-partner-name">' + alTypeLabel + '</div>';
+        var sub = alRate!==null ? '<span style="color:' + kpiThreshColor(alRate,great,poor) + ';font-weight:600">' + rPct(alRate) + '</span> win rate · ' + (alW+alL) + ' matches' : '';
         var mini = kpiMiniStats([
-          ['Matches',  String(alW+alL), ''],
-          ['Win rate', alRate!==null ? rPct(alRate) : '—', alRate!==null?(alRate>great?'green':alRate<poor?'red':''):''],
-          ['Seasons',  String(alSeasons), '']
+          ['Record',  alW + '–' + alL, ''],
+          ['Seasons', String(alSeasons), ''],
+          ['Years',   alYears || '—', '']
         ]);
-        return kpiCard('Most Active League', badge, valHtml, '', '', mini);
+        return kpiCard('Most Active League', badge, valHtml, alRate!==null?kpiBar(alRate,great,poor):'', sub, mini);
       }
 
       default: return '';
@@ -2483,7 +2497,7 @@ function initSparkTooltips() {
 
 
 function calcStreak(sortedDesc) {
-  if (!sortedDesc.length) return { current: 0, longest: 0 };
+  if (!sortedDesc.length) return { current: 0, longest: 0, longestYears: '' };
   const first = sortedDesc[0].result;
   let current = 0;
   for (const m of sortedDesc) {
@@ -2491,12 +2505,27 @@ function calcStreak(sortedDesc) {
     else break;
   }
   if (first === 'L') current = -current;
-  let longest = 0, run = 0;
-  for (const m of sortedDesc) {
-    if (m.result === 'W') { run++; longest = Math.max(longest, run); }
-    else run = 0;
+  let longest = 0, run = 0, runStart = null, bestStart = null, bestEnd = null;
+  // sortedDesc is newest-first, so we iterate oldest-first for streak tracking
+  const asc = sortedDesc.slice().reverse();
+  for (const m of asc) {
+    if (m.result === 'W') {
+      run++;
+      if (run === 1) runStart = m;
+      if (run > longest) {
+        longest = run;
+        bestStart = runStart;
+        bestEnd = m;
+      }
+    } else { run = 0; runStart = null; }
   }
-  return { current, longest };
+  var longestYears = '';
+  if (bestStart && bestEnd) {
+    var y1 = bestStart.year || (bestStart.date ? new Date(bestStart.date).getFullYear() : null);
+    var y2 = bestEnd.year || (bestEnd.date ? new Date(bestEnd.date).getFullYear() : null);
+    if (y1 && y2) longestYears = y1 === y2 ? String(y1) : y1 + '–' + y2;
+  }
+  return { current, longest, longestYears };
 }
 
 function buildSplitsTable(matches, isDashboard, partnerContext, opponentContext) {
