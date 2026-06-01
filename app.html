@@ -3215,11 +3215,15 @@ function refreshPartnersTable() {
   } else {
     filterState.partners.threshold = parseInt(document.getElementById('partners-threshold')?.value || '5');
     mainPanel.innerHTML = buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold);
-    // Re-render KPI grid so Best Partner card reflects new threshold
+    // Re-render only the KPI cards so Best Partner card reflects new threshold
     const kpiGrid = document.getElementById('kpi-grid-main');
     if (kpiGrid) {
+      const kpiMatches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
       const curYearMatches = allMatches.filter(m => m.year === new Date().getFullYear());
-      kpiGrid.outerHTML = buildKPIs(allMatches.filter(m => !typeFilter || m.type === typeFilter), curYearMatches);
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = buildKPIs(kpiMatches, curYearMatches);
+      const newGrid = tempDiv.querySelector('#kpi-grid-main');
+      if (newGrid) kpiGrid.replaceWith(newGrid);
       setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50);
     }
   }
