@@ -1193,8 +1193,8 @@ textarea:focus { border-color: var(--accent2) !important; }
 .yir-overlay {
   position: fixed; inset: 0; z-index: 500;
   background: rgba(10,18,28,0.72);
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 32px 16px 48px; overflow-y: auto;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px 16px;
   opacity: 0; transition: opacity 0.2s; pointer-events: none;
 }
 .yir-overlay.open { opacity: 1; pointer-events: auto; }
@@ -1204,6 +1204,8 @@ textarea:focus { border-color: var(--accent2) !important; }
   box-shadow: 0 24px 60px rgba(0,0,0,0.25);
   transform: translateY(20px); transition: transform 0.25s;
   overflow: hidden; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  max-height: calc(100vh - 48px);
 }
 .yir-overlay.open .yir-modal { transform: translateY(0); }
 .yir-modal-header {
@@ -1234,7 +1236,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   transition: background 0.15s; line-height: 1;
 }
 .yir-close-btn:hover { background: rgba(255,255,255,0.22); }
-.yir-modal-body { padding: 6px 36px 32px; }
+.yir-modal-body { padding: 6px 36px 32px; overflow-y: auto; flex: 1; }
 .yir-para {
   font-size: 14px; line-height: 1.8; color: var(--text);
   padding: 20px 0; border-bottom: 1px solid var(--border);
@@ -1251,7 +1253,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 .yir-locked-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .yir-locked-desc  { font-size: 13px; color: var(--muted); line-height: 1.65; }
 @media (max-width: 768px) {
-  .yir-overlay { padding: 16px 12px 40px; }
+  .yir-overlay { padding: 12px; }
   .yir-modal-header { padding: 24px 20px 20px; }
   .yir-modal-body   { padding: 4px 20px 24px; }
   .yir-modal-footer { padding: 14px 20px; }
@@ -2705,7 +2707,7 @@ var YIR_P = {
   },
 
   // Section 6 — conditions (opens para 5)
-  condBest:  ["You played your best tennis {cond} — {w}–{l} ({pct}%) in those matches.", "The clearest sweet spot this period: {cond} matches, where you went {w}–{l} ({pct}%).", "{pct}% in {cond} matches ({w}–{l}) — a noticeable edge in that context."],
+  condBest:  ["You played your best tennis {cond} — {w}–{l} ({pct}%) in those matches.", "The clearest sweet spot this period: {cond} matches, where you went {w}–{l} ({pct}%).", "Your edge was clearest {cond} — {w}–{l} ({pct}%) in those matches."],
   condWorst: [" {cond} was a different story — {w}–{l} ({pct}%), a stretch worth watching.", " The tougher context was {cond}, where you went {w}–{l} ({pct}%).", " {cond} matches were harder — {w}–{l} ({pct}%) on the period."],
 
   // Section 7 — partners (opens para 6)
