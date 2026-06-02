@@ -2682,17 +2682,17 @@ var YIR_P = {
 
   // Comeback detail woven into para 3 (replaces end of setsStat sentence when note found)
   comebackDoubles: [
-    "The {cbk}% comeback rate includes at least one memorable one — you were down {score} against {o1} and {o2} on {date} and still found a way to win.",
-    "That comeback number includes a standout: down {score} against {o1} and {o2} on {date}, and you closed it out.",
+    "One of those came from a memorable spot — you were down {score} against {o1} and {o2} on {date} and still found a way to win.",
+    "That included a standout: down {score} against {o1} and {o2} on {date}, and you closed it out.",
     "A remarkable turnaround on {date} — down {score} against {o1} and {o2} and you came back to win."
   ],
   comebackSingles: [
-    "The {cbk}% comeback rate includes at least one memorable one — you were down {score} against {o1} on {date} and still found a way to win.",
-    "That comeback number includes a standout: down {score} against {o1} on {date}, and you closed it out.",
+    "One of those came from a memorable spot — you were down {score} against {o1} on {date} and still found a way to win.",
+    "That included a standout: down {score} against {o1} on {date}, and you closed it out.",
     "A remarkable turnaround on {date} — down {score} against {o1} and you came back to win."
   ],
   comebackNoScore: [
-    "That comeback rate includes at least one worth remembering — against {o1} on {date}.",
+    "One of those came from behind against {o1} on {date}.",
     "You fought back to win against {o1} on {date} — at least one of those came from behind."
   ],
 
@@ -2769,9 +2769,15 @@ function yirOpeningTier(winRate, careerRate, isFirst) {
 
 function yirParseScore(notes) {
   if (!notes) return null;
-  var m = notes.match(/down\s+(\d+\s*[-–]\s*\d+(?:\s+in\s+(?:both|the\s+\w+)\s+sets?)?)/i) ||
-          notes.match(/(\d+\s*[-–]\s*\d+\s+down)/i);
-  if (m) return m[1].replace(/\s+/g,'');
+  // Match "down 1-4 in the third set" or "down 1-4 in both sets"
+  var m = notes.match(/down\s+(\d+)\s*[-–]\s*(\d+)\s+(in\s+(?:both|the\s+\w+)\s+sets?)/i);
+  if (m) return m[1] + '–' + m[2] + ' ' + m[3].replace(/\s+/g,' ').trim();
+  // Match plain "down 1-4"
+  var m2 = notes.match(/down\s+(\d+)\s*[-–]\s*(\d+)/i);
+  if (m2) return m2[1] + '–' + m2[2];
+  // Match "1-4 down"
+  var m3 = notes.match(/(\d+)\s*[-–]\s*(\d+)\s+down/i);
+  if (m3) return m3[1] + '–' + m3[2];
   return null;
 }
 
@@ -3043,43 +3049,43 @@ function yirBuildParas(yearMatches, seed, isYearly) {
       // Full sets paragraph
       p3 = yirPick(YIR_P.setsOpener, seed+5) + ' ';
 
-      if (comebackMatch) {
-        // Weave comeback into the stat sentence
+      // Build cbkLine first — used in setsStat regardless of comeback
+      var cbkLine = fsCbk === 0
+        ? "You didn't win a single match after losing the first set."
+        : fsCbk < 15
+        ? "When you lost it, you came back just " + fsCbk + "% of the time."
+        : "When you dropped it, you came back " + fsCbk + "% of the time.";
+      var cbkLineLower = fsCbk === 0
+        ? "you didn't win a single match from there"
+        : fsCbk < 15
+        ? "you came back just " + fsCbk + "% of the time"
+        : "you came back " + fsCbk + "% of the time";
+
+      // Always put the stat sentence first — gives context before any comeback detail
+      p3 += yirPick(YIR_P.setsStat, seed+6)
+        .replace('{cvt}', fsCvt)
+        .replace('{cbkLine}', cbkLine)
+        .replace('{cbkLineLower}', cbkLineLower)
+        .replace('{cbk}', fsCbk);
+
+      // Append comeback note only when comeback rate > 0 and we have a flagged match
+      if (comebackMatch && fsCbk > 0) {
         var cDate = yirFmtDate(comebackMatch.date);
-        var cO1   = escHtml(comebackMatch.opponent1||comebackMatch.opponent||'your opponent');
+        var cO1   = escHtml(comebackMatch.opponent1 || comebackMatch.opponent || 'your opponent');
         var cO2   = comebackMatch.opponent2 ? escHtml(comebackMatch.opponent2) : null;
-        var isDbl = !!(comebackMatch.partner||(comebackMatch.type||'').toLowerCase().includes('doubles'));
+        var isDbl = !!(comebackMatch.partner || (comebackMatch.type||'').toLowerCase().includes('doubles'));
         if (comebackScore && isDbl && cO2) {
-          p3 += yirPick(YIR_P.comebackDoubles, seed+13)
-            .replace('{cbk}', fsCbk).replace('{score}', comebackScore)
+          p3 += ' ' + yirPick(YIR_P.comebackDoubles, seed+13)
+            .replace('{score}', comebackScore)
             .replace('{o1}', cO1).replace('{o2}', cO2).replace('{date}', cDate);
         } else if (comebackScore) {
-          p3 += yirPick(YIR_P.comebackSingles, seed+13)
-            .replace('{cbk}', fsCbk).replace('{score}', comebackScore)
+          p3 += ' ' + yirPick(YIR_P.comebackSingles, seed+13)
+            .replace('{score}', comebackScore)
             .replace('{o1}', cO1).replace('{date}', cDate);
         } else {
-          // No score — use standard stat then append no-score note
-          p3 += yirPick(YIR_P.setsStat, seed+6)
-            .replace('{cvt}', fsCvt).replace('{cbk}', fsCbk);
           p3 += ' ' + yirPick(YIR_P.comebackNoScore, seed+13)
             .replace('{o1}', cO1).replace('{date}', cDate);
         }
-      } else {
-        var cbkLine = fsCbk === 0
-          ? "You didn't win a single match after losing the first set."
-          : fsCbk < 15
-          ? "When you lost it, you came back just " + fsCbk + "% of the time."
-          : "When you dropped it, you came back " + fsCbk + "% of the time.";
-        var cbkLineLower = fsCbk === 0
-          ? "you didn't win a single match from there"
-          : fsCbk < 15
-          ? "you came back just " + fsCbk + "% of the time"
-          : "you came back " + fsCbk + "% of the time";
-        p3 += yirPick(YIR_P.setsStat, seed+6)
-          .replace('{cvt}', fsCvt)
-          .replace('{cbkLine}', cbkLine)
-          .replace('{cbkLineLower}', cbkLineLower)
-          .replace('{cbk}', fsCbk);
       }
 
       // Three-set character
