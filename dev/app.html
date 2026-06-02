@@ -1168,25 +1168,24 @@ textarea:focus { border-color: var(--accent2) !important; }
 
 /* ── Year in Review banner ───────────────────────────────── */
 .yir-banner {
-  margin-top: 20px; background: var(--accent);
-  border-radius: 12px; padding: 20px 28px;
+  margin-top: 16px; background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 20px;
   display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; cursor: pointer; transition: opacity 0.15s;
+  gap: 16px; cursor: pointer; transition: background 0.15s;
   box-shadow: var(--shadow);
 }
-.yir-banner:hover { opacity: 0.88; }
-.yir-banner-left { display: flex; flex-direction: column; gap: 3px; }
-.yir-banner-eyebrow {
-  font-size: 10px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: rgba(255,255,255,0.45);
-}
-.yir-banner-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-.yir-banner-sub   { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 1px; }
-.yir-banner-arrow { font-size: 20px; color: rgba(255,255,255,0.4); flex-shrink: 0; transition: transform 0.15s; }
-.yir-banner:hover .yir-banner-arrow { transform: translateX(4px); }
+.yir-banner:hover { background: var(--surface2); }
+.yir-banner-left { display: flex; align-items: center; gap: 12px; }
+.yir-banner-eyebrow { display: none; }
+.yir-banner-title { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0; }
+.yir-banner-sub   { font-size: 12px; color: var(--muted); margin-top: 0; }
+.yir-banner-text  { display: flex; flex-direction: column; gap: 2px; }
+.yir-banner-icon  { font-size: 18px; flex-shrink: 0; }
+.yir-banner-arrow { font-size: 14px; color: var(--muted); flex-shrink: 0; transition: transform 0.15s; }
+.yir-banner:hover .yir-banner-arrow { transform: translateX(3px); }
 @media (max-width: 768px) {
-  .yir-banner { margin-top: 12px; padding: 16px 20px; }
-  .yir-banner-title { font-size: 15px; }
+  .yir-banner { margin-top: 12px; padding: 12px 16px; }
 }
 
 /* ── Year in Review modal ────────────────────────────────── */
@@ -1219,10 +1218,11 @@ textarea:focus { border-color: var(--accent2) !important; }
   font-size: 30px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1.1;
 }
 .yir-modal-subtitle { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 5px; }
-.yir-modal-kicker { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+.yir-modal-kicker { display: flex; gap: 24px; margin-top: 14px; flex-wrap: wrap; }
+.yir-modal-header-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .yir-modal-stat   { display: flex; flex-direction: column; gap: 2px; }
 .yir-modal-stat-val {
-  font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1;
+  font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1;
 }
 .yir-modal-stat-lbl {
   font-size: 10px; font-weight: 600; text-transform: uppercase;
@@ -2730,7 +2730,7 @@ var YIR_P = {
 
   // Section 6 — conditions (opens para 5)
   condBest:  ["You played your best tennis {cond} — {w}–{l} ({pct}%) in those matches.", "The clearest sweet spot this period: {cond} matches, where you went {w}–{l} ({pct}%).", "Your edge was clearest {cond} — {w}–{l} ({pct}%) in those matches."],
-  condWorst: [" {cond} was a different story — {w}–{l} ({pct}%), a stretch worth watching.", " The tougher context was {cond}, where you went {w}–{l} ({pct}%).", " {cond} matches were harder — {w}–{l} ({pct}%) on the period."],
+  condWorst: [" {Cond} was a different story — {w}–{l} ({pct}%), a stretch worth watching.", " The tougher context was {cond}, where you went {w}–{l} ({pct}%).", " {Cond} matches were harder — {w}–{l} ({pct}%) on the period."],
 
   // Section 7 — partners (opens para 6)
   partnerOne: ["{name} was your most reliable partner this period — {w}–{l} in matches together.", "Your best pairing this period was with {name} — {w}–{l} together.", "{name} stood out as a partner — {w}–{l} in matches together."],
@@ -3126,9 +3126,11 @@ function yirBuildParas(yearMatches, seed, isYearly) {
       .replace('{cond}',condLabel(bestCond.name)).replace('{w}',bestCond.w)
       .replace('{l}',bestCond.l).replace('{pct}',bestCond.pct);
     if (worstCond) {
+      var wcLabel = condLabel(worstCond.name);
+      var wcLabelCap = wcLabel.charAt(0).toUpperCase() + wcLabel.slice(1);
       p5 += yirPick(YIR_P.condWorst, seed+15)
-        .replace('{cond}',condLabel(worstCond.name)).replace('{w}',worstCond.w)
-        .replace('{l}',worstCond.l).replace('{pct}',worstCond.pct);
+        .replace('{Cond}', wcLabelCap).replace('{cond}', wcLabel)
+        .replace('{w}',worstCond.w).replace('{l}',worstCond.l).replace('{pct}',worstCond.pct);
     }
     paras.push(p5);
   }
@@ -3183,9 +3185,11 @@ function buildYIRBanner() {
   var subTxt = yrMs.length < MIN ? 'Log '+(MIN-yrMs.length)+' more matches to unlock' : sub;
   return '<div class="yir-banner" onclick="openYIR()">' +
     '<div class="yir-banner-left">' +
-      '<div class="yir-banner-eyebrow">Year in Review</div>' +
-      '<div class="yir-banner-title">'+escHtml(label)+'</div>' +
-      '<div class="yir-banner-sub">'+escHtml(subTxt)+'</div>' +
+      '<div class="yir-banner-icon">🎾</div>' +
+      '<div class="yir-banner-text">' +
+        '<div class="yir-banner-title">'+escHtml(label)+'</div>' +
+        '<div class="yir-banner-sub">'+escHtml(subTxt)+'</div>' +
+      '</div>' +
     '</div>' +
     '<div class="yir-banner-arrow">→</div>' +
   '</div>';
@@ -8519,15 +8523,18 @@ function buildBadgeShelf() {
   <div class="yir-modal">
     <div class="yir-modal-header">
       <div class="yir-modal-eyebrow">Match Tracker Pro</div>
-      <div class="yir-modal-title" id="yir-modal-title">Year in Review</div>
-      <div class="yir-modal-subtitle" id="yir-modal-subtitle">Your tennis, by the numbers</div>
-      <div class="yir-modal-kicker" id="yir-modal-kicker"></div>
+      <div class="yir-modal-header-row">
+        <div>
+          <div class="yir-modal-title" id="yir-modal-title">Year in Review</div>
+          <div class="yir-modal-subtitle" id="yir-modal-subtitle">Your tennis, by the numbers</div>
+        </div>
+        <div class="yir-modal-kicker" id="yir-modal-kicker"></div>
+      </div>
       <button class="yir-close-btn" onclick="closeYIR()">✕</button>
     </div>
     <div class="yir-modal-body" id="yir-modal-body"></div>
     <div class="yir-modal-footer">
       <div class="yir-modal-footer-text">Powered by your match data</div>
-      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="closeYIR()">Close</button>
     </div>
   </div>
 </div>
