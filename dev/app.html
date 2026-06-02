@@ -1166,6 +1166,100 @@ textarea:focus { border-color: var(--accent2) !important; }
 .achievements-card { margin-top: 20px; }
 @media (max-width: 768px) { .achievements-card { margin-top: 12px; } }
 
+/* ── Year in Review banner ───────────────────────────────── */
+.yir-banner {
+  margin-top: 20px; background: var(--accent);
+  border-radius: 12px; padding: 20px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; cursor: pointer; transition: opacity 0.15s;
+  box-shadow: var(--shadow);
+}
+.yir-banner:hover { opacity: 0.88; }
+.yir-banner-left { display: flex; flex-direction: column; gap: 3px; }
+.yir-banner-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.45);
+}
+.yir-banner-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+.yir-banner-sub   { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+.yir-banner-arrow { font-size: 20px; color: rgba(255,255,255,0.4); flex-shrink: 0; transition: transform 0.15s; }
+.yir-banner:hover .yir-banner-arrow { transform: translateX(4px); }
+@media (max-width: 768px) {
+  .yir-banner { margin-top: 12px; padding: 16px 20px; }
+  .yir-banner-title { font-size: 15px; }
+}
+
+/* ── Year in Review modal ────────────────────────────────── */
+.yir-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(10,18,28,0.72);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 32px 16px 48px; overflow-y: auto;
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.yir-overlay.open { opacity: 1; pointer-events: auto; }
+.yir-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; width: 100%; max-width: 660px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  transform: translateY(20px); transition: transform 0.25s;
+  overflow: hidden; flex-shrink: 0;
+}
+.yir-overlay.open .yir-modal { transform: translateY(0); }
+.yir-modal-header {
+  background: var(--accent); padding: 32px 36px 28px; position: relative;
+}
+.yir-modal-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 6px;
+}
+.yir-modal-title {
+  font-size: 30px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1.1;
+}
+.yir-modal-subtitle { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 5px; }
+.yir-modal-kicker { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+.yir-modal-stat   { display: flex; flex-direction: column; gap: 2px; }
+.yir-modal-stat-val {
+  font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1;
+}
+.yir-modal-stat-lbl {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.8px; color: rgba(255,255,255,0.4);
+}
+.yir-close-btn {
+  position: absolute; top: 18px; right: 20px;
+  background: rgba(255,255,255,0.12); border: none; color: #fff;
+  font-size: 16px; width: 30px; height: 30px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s; line-height: 1;
+}
+.yir-close-btn:hover { background: rgba(255,255,255,0.22); }
+.yir-modal-body { padding: 6px 36px 32px; }
+.yir-para {
+  font-size: 14px; line-height: 1.8; color: var(--text);
+  padding: 20px 0; border-bottom: 1px solid var(--border);
+}
+.yir-para:last-child { border-bottom: none; }
+.yir-modal-footer {
+  background: var(--surface2); padding: 16px 36px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.yir-modal-footer-text { font-size: 12px; color: var(--muted); font-style: italic; }
+.yir-locked { padding: 48px 36px; text-align: center; }
+.yir-locked-icon  { font-size: 36px; margin-bottom: 14px; }
+.yir-locked-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.yir-locked-desc  { font-size: 13px; color: var(--muted); line-height: 1.65; }
+@media (max-width: 768px) {
+  .yir-overlay { padding: 16px 12px 40px; }
+  .yir-modal-header { padding: 24px 20px 20px; }
+  .yir-modal-body   { padding: 4px 20px 24px; }
+  .yir-modal-footer { padding: 14px 20px; }
+  .yir-modal-title  { font-size: 24px; }
+  .yir-modal-stat-val { font-size: 22px; }
+  .yir-para { font-size: 13px; line-height: 1.75; }
+}
+
 /* ── Page slide transition ───────────────────────────────── */
 @keyframes slideInRight  { from { transform: translateX(60px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes slideInLeft   { from { transform: translateX(-60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -1972,6 +2066,7 @@ function renderDashboard() {
       </div>
       <div id="badge-shelf-content">${buildBadgeShelf()}</div>
     </div>
+    ${buildYIRBanner()}
   `;
 
   renderMonthChart(getChartMatches());
@@ -2496,6 +2591,578 @@ function initSparkTooltips() {
   });
 }
 
+
+// ── Year in Review ────────────────────────────────────────────────────────────
+
+function yirRand(seed) { var x = Math.sin(seed + 1) * 10000; return x - Math.floor(x); }
+function yirPick(arr, seed) { return arr[Math.floor(yirRand(seed) * arr.length)]; }
+function yirSeed(year) { return year * 7 + 13; }
+function yirFmtDate(d) {
+  if (!d) return '';
+  var p = d.split('/'); return p.length >= 2 ? parseInt(p[0]) + '/' + parseInt(p[1]) : d;
+}
+
+// ── Phrase pools ──────────────────────────────────────────────────────────────
+
+var YIR_P = {
+
+  // Section 1 — opening line (standalone, sets tone)
+  opening: {
+    exceptional: ["This was one of those stretches where everything clicked.", "If there's a period you'll look back on, this might be it.", "The numbers don't lie — this was a standout run.", "By almost every measure, this was a career-best period.", "This was the kind of run that reminds you why you play."],
+    strong:      ["A solid stretch — the results were there more often than not.", "You showed up and competed well. The results reflect that.", "Not your best stretch ever, but comfortably above your own standard.", "A period to feel good about — consistent, reliable tennis.", "The wins came regularly and the losses were mostly close ones."],
+    onpar:       ["A period that looked a lot like you — steady, consistent, familiar.", "About what you'd expect from yourself — no major surprises either way.", "Right in your wheelhouse. Not a breakthrough, not a setback.", "You played to your level. The question is whether that level is where you want it.", "Solid but unremarkable — which isn't a bad thing."],
+    below:       ["Tougher than usual — the results didn't come as easily this stretch.", "A period where things didn't quite fall your way.", "The wins were there, just not as often as you're used to.", "Not your best tennis, but not a crisis — just a dip.", "The results were below your own standard this time around."],
+    difficult:   ["This was a tough stretch — no way around it.", "The numbers were hard to look at, but every player goes through it.", "A period to learn from rather than dwell on.", "It wasn't your stretch. Happens to everyone eventually.", "A humbling period — but those tend to be the ones that teach you the most."]
+  },
+
+  // Section 2 — volume (second sentence of para 1, flows from opening)
+  volume: {
+    first:    ["It's your first stretch on record — {n} matches to start building from.", "You're just getting started — {n} matches logged so far, and the trends will build from here.", "An early sample of {n} matches — not much to compare against yet, but it's a start."],
+    heavy:    ["You logged {n} matches — a busy stretch by your own standards.", "A heavy schedule this period — {n} matches, more than you typically carry.", "{n} matches on the books, which is a lot even for you."],
+    moderate: ["You logged {n} matches — a fairly typical workload.", "{n} matches this period, in line with your usual pace.", "A solid {n} matches logged — about what you'd expect from yourself."],
+    light:    ["A quieter stretch than usual — {n} matches, below your normal pace.", "You logged {n} matches, which is lighter than you typically carry.", "Fewer matches than usual this period — {n} total."]
+  },
+
+  // Type addendum — appended to para 1 only when both singles and doubles exist
+  typeAdd: [" {s} singles and {d} doubles — a mixed schedule.", " A mix of {s} singles and {d} doubles across the period.", " That split {s} singles and {d} doubles."],
+
+  // Section 3 — record sentence (opens para 2)
+  record: ["The headline is {rec} — a {pct}% win rate.", "Bottom line: {rec}, with {pct}% of matches won.", "Put simply: {rec} — you came away with the win {pct}% of the time."],
+  // Yearly-only variant at 55%+
+  recordStrong: ["{rec} — that's the record, and it tells the story on its own."],
+
+  // vs-career line (second sentence of para 2, always follows record)
+  vsCareer: {
+    above: [" Your career average is {career}% and this period ran {diff} percentage points ahead of that.", " That's {diff} percentage points above your career average of {career}%.", " For context, your career average is {career}% — this period beat it by {diff} percentage points."],
+    below: [" Your career average is {career}% and this period came in {diff} percentage points below that.", " That's {diff} percentage points under your career average of {career}%.", " For context, your career sits at {career}% — this period ran {diff} percentage points behind that."],
+    equal: [" That puts you right at your career average of {career}%.", " Your career average is {career}% — this period landed right on it.", " Exactly in line with your career average of {career}%."],
+    first: [" No career baseline yet — this is your opening number, the one everything else gets measured against going forward.", " With no prior data to compare against, this becomes your baseline — the number future periods will be measured against.", " This is your first year on record, so this is the number that sets the standard going forward."]
+  },
+
+  // Golden set note — appended to end of para 2 when it exists
+  golden: ["One match in particular stands out — a dominant 6–0, 6–0 win on {date} against {opp}.", "Worth noting in the record: a 6–0, 6–0 win on {date} against {opp}. Those don't happen often.", "You were untouchable on {date} — a 6–0, 6–0 win against {opp}."],
+
+  // Section 4 — sets paragraph openers (opens para 3)
+  setsOpener: ["There's a consistent thread in how matches played out.", "The pattern in how matches were won and lost is pretty clear.", "The way matches unfolded tells an interesting story."],
+
+  // First-set stat sentence (second sentence of para 3)
+  setsStat: [
+    "When you won the first set, you converted {cvt}% of those into match wins. When you dropped it, you came back {cbk}% of the time.",
+    "First-set wins turned into match wins {cvt}% of the time — and when you lost it, you came back {cbk}% of matches.",
+    "Win the first set and you closed it out {cvt}% of the time. Lose it and you recovered {cbk}%."
+  ],
+
+  // Small sample variant (replaces both opener and stat when 5–7 matches)
+  setsSmall: [
+    "Small sample this period, so take these numbers as directional — but when you won the first set you converted {cvt}% of those, and came back from a deficit {cbk}% of the time.",
+    "Only {n} matches with set data, so treat this loosely — first-set wins converted {cvt}% of the time, comebacks {cbk}%."
+  ],
+
+  // Comeback detail woven into para 3 (replaces end of setsStat sentence when note found)
+  comebackDoubles: [
+    "The {cbk}% comeback rate includes at least one memorable one — you were down {score} against {o1} and {o2} on {date} and still found a way to win.",
+    "That comeback number includes a standout: down {score} against {o1} and {o2} on {date}, and you closed it out.",
+    "A remarkable turnaround on {date} — down {score} against {o1} and {o2} and you came back to win."
+  ],
+  comebackSingles: [
+    "The {cbk}% comeback rate includes at least one memorable one — you were down {score} against {o1} on {date} and still found a way to win.",
+    "That comeback number includes a standout: down {score} against {o1} on {date}, and you closed it out.",
+    "A remarkable turnaround on {date} — down {score} against {o1} and you came back to win."
+  ],
+  comebackNoScore: [
+    "That comeback rate includes at least one worth remembering — against {o1} on {date}.",
+    "You fought back to win against {o1} on {date} — at least one of those came from behind."
+  ],
+
+  // Three-set character (third sentence of para 3)
+  threeSet: {
+    low:  ["Beyond the first-set numbers, three-setters were rare — you mostly closed things out in two.", "As for match length — you don't let them drag. Straight sets was the norm.", "Three-setters were rare. When you were up, you finished it."],
+    high: ["Beyond the first-set numbers, a lot of matches went the distance — you're comfortable in long ones.", "As for match length — three-setters were a recurring theme. Fitness clearly isn't a problem.", "You played a lot of deciding sets. Fitness and focus are clearly not a problem."],
+    mid:  ["As for the longer battles — three-setters accounted for {pct}% of matches, which is fairly typical.", "Three-setters accounted for {pct}% of matches — no strong pattern there, just part of the mix.", "Beyond the first-set numbers, {pct}% of matches went to a third set — about average for a period like this."]
+  },
+
+  // Coaching moment (closes para 3 when first-set conversion < 80% and 8+ matches)
+  coaching: [
+    "The first set isn't just important for you — it's almost the whole match.",
+    "The data is clear — your chances improve significantly when you take that first set.",
+    "First sets matter more than most players realize. Yours are no exception."
+  ],
+
+  // Section 5 — tiebreaks (opens para 4 when tb data exists)
+  tb: {
+    bad:  ["The tiebreaks tell a harder story: {w}–{l} on the year.", "In tiebreaks you went {w}–{l} — {pct}% when it came down to the wire.", "Tiebreaks were a weak spot — {w}–{l} across the period."],
+    good: ["The tiebreaks tell a brighter story: {w}–{l} on the year.", "In tiebreaks you went {w}–{l} — {pct}% when it came down to the wire.", "Tiebreaks were a bright spot — {w}–{l} across the period."],
+    mid:  ["In tiebreaks you went {w}–{l} — {pct}% when it came down to the wire.", "The tiebreak record was {w}–{l} — a mixed bag overall.", "Tiebreaks were {w}–{l} across the period — nothing dramatic either way."]
+  },
+
+  // Win streak (woven into para 4)
+  streak: ["At one point you won {n} in a row — the high-water mark of the period.", "A {n}-match winning streak was the standout run of the period.", "You strung together {n} consecutive wins at your peak — worth noting."],
+
+  // Playoff record (woven into para 4)
+  playoff: {
+    good: ["Playoffs were a bright spot — {w}–{l} when it counted.", "In playoff matches you went {w}–{l} — an encouraging note.", "When the stakes were higher — playoffs — you went {w}–{l}."],
+    bad:  ["Playoffs were tougher going — {w}–{l} when it counted.", "In playoff matches you went {w}–{l} — a harder story.", "When the stakes were higher — playoffs — you went {w}–{l}."]
+  },
+
+  // Section 6 — conditions (opens para 5)
+  condBest:  ["You played your best tennis {cond} — {w}–{l} ({pct}%) in those matches.", "The clearest sweet spot this period: {cond} matches, where you went {w}–{l} ({pct}%).", "{pct}% in {cond} matches ({w}–{l}) — a noticeable edge in that context."],
+  condWorst: [" {cond} was a different story — {w}–{l} ({pct}%), a stretch worth watching.", " The tougher context was {cond}, where you went {w}–{l} ({pct}%).", " {cond} matches were harder — {w}–{l} ({pct}%) on the period."],
+
+  // Section 7 — partners (opens para 6)
+  partnerOne: ["{name} was your most reliable partner this period — {w}–{l} in matches together.", "Your best pairing this period was with {name} — {w}–{l} together.", "{name} stood out as a partner — {w}–{l} in matches together."],
+  partnerTwo: ["{n1} was your best partner this period — {w1}–{l1} together. {n2} wasn't far behind — {w2}–{l2} in matches together.", "Two partners stood out this period. {n1} led the way at {w1}–{l1}, with {n2} close behind at {w2}–{l2}.", "Best pairing: {n1} at {w1}–{l1}. Worth mentioning: {n2} had a strong stretch with you too — {w2}–{l2}."],
+  partnerCareer: {
+    better: [" That's above your usual rate together.", " A stronger stretch than your typical numbers with {name}.", " Better than you two normally run together."],
+    worse:  [" A bit below your usual rate together — an off period for the pairing.", " Not your best stretch with {name} by the numbers, but a solid sample."],
+    first:  [" A new partnership — early returns look {adj}.", " First time logging matches together — interesting to watch how it develops."]
+  },
+
+  // Section 9 — opponent storylines (para 7)
+  oppFirstWin:  ["One personal milestone: your first win ever against {opp}, who you'd been {prev} against previously.", "A result worth marking — you finally beat {opp} after going {prev} against them.", "One to remember: {opp} had been {prev} against you before this period. Not anymore."],
+  oppNemesis:   ["{opp} had your number this period — {w}–{l} head to head.", "One name to circle: {opp}, who went {w}–{l} against you. Worth preparing for specifically.", "Against {opp} you went {w}–{l} — a clear pattern worth addressing."],
+  oppDominated: ["You handled {opp} comfortably — {w}–{l} in your favor.", "Against {opp} it was one-sided: {w}–{l}.", "{opp} you had covered this period — {w}–{l}."],
+  oppRematch:   ["A satisfying reversal against {opp} — they beat you earlier, you answered back.", "You avenged an earlier loss to {opp} with the rematch win.", "After dropping one to {opp} earlier, you came back and got the win."],
+
+  // Section 10 — closing (final para)
+  closing: {
+    positive: ["The foundation is solid. Keep logging, keep competing.", "Good tennis. The data's there — keep building on it.", "A strong body of work. The trend is pointing in the right direction.", "More of this. That's the whole message."],
+    neutral:  ["Keep logging every match — the patterns get clearer over time.", "Tennis is streaky. Keep competing and see where the next stretch takes you.", "Every match logged is another data point. The picture will get clearer.", "Consistent tennis. The question is what it takes to move the needle."],
+    negative: ["Every player hits a dip. Stay strong, stay focused — the numbers will follow.", "Hard periods are part of every player's story. Keep competing and trust the process.", "The data doesn't lie — but it also doesn't define you. Stay strong, stay focused.", "Log everything, even the tough ones. That's where the insights come from — and better stretches are always ahead."]
+  }
+};
+
+// ── Core logic ────────────────────────────────────────────────────────────────
+
+function yirOpeningTier(winRate, careerRate, isFirst) {
+  if (isFirst) return 'onpar';
+  var d = winRate - careerRate;
+  if (d > 0.10) return 'exceptional';
+  if (d > 0.04) return 'strong';
+  if (d > -0.04) return 'onpar';
+  if (d > -0.10) return 'below';
+  return 'difficult';
+}
+
+function yirParseScore(notes) {
+  if (!notes) return null;
+  var m = notes.match(/down\s+(\d+\s*[-–]\s*\d+(?:\s+in\s+(?:both|the\s+\w+)\s+sets?)?)/i) ||
+          notes.match(/(\d+\s*[-–]\s*\d+\s+down)/i);
+  if (m) return m[1].replace(/\s+/g,'');
+  return null;
+}
+
+function yirComputeTB(matches) {
+  // Detect tiebreaks from set scores (7-6 pattern or 1-0/0-1 match tiebreak)
+  function isTB(nw, nl) { return nw!==null && nl!==null && nw+nl>=12 && Math.abs(nw-nl)<=2 && (nw===7||nl===7); }
+  var w=0,l=0;
+  matches.forEach(function(m){
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(p){
+      var nw=num(p[0]),nl=num(p[1]);
+      if(isTB(nw,nl)){ if(nw>nl) w++; else l++; }
+    });
+  });
+  return {w:w, l:l};
+}
+
+function yirBuildParas(yearMatches, seed, isYearly) {
+  var curYear = new Date().getFullYear();
+
+  // ── Raw stats ──────────────────────────────────────────────────────────────
+  var sorted = yearMatches.slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+  var W = yearMatches.filter(function(m){ return m.result==='W'; }).length;
+  var L = yearMatches.filter(function(m){ return m.result==='L'; }).length;
+  var total = W + L;
+  var winRate = total > 0 ? W/total : 0;
+  var winPct  = Math.round(winRate * 100);
+
+  // Career baseline — prior years only
+  var prior = allMatches.filter(function(m){ return m.year && m.year < curYear; });
+  var isFirst = prior.length === 0;
+  var priorW = prior.filter(function(m){ return m.result==='W'; }).length;
+  var priorL = prior.filter(function(m){ return m.result==='L'; }).length;
+  var careerRate = (priorW+priorL) > 0 ? priorW/(priorW+priorL) : winRate;
+  var careerPct  = Math.round(careerRate * 100);
+  var diffPts    = Math.abs(winPct - careerPct);
+
+  var tier = yirOpeningTier(winRate, careerRate, isFirst);
+
+  // Volume tier
+  var priorByYear = {};
+  prior.forEach(function(m){ if(m.year) priorByYear[m.year]=(priorByYear[m.year]||0)+1; });
+  var priorCounts = Object.values(priorByYear);
+  var avgPerYear  = priorCounts.length > 0 ? priorCounts.reduce(function(a,b){return a+b;},0)/priorCounts.length : null;
+  var volTier;
+  if (isFirst || avgPerYear === null) volTier = 'first';
+  else if (total / avgPerYear > 1.2)  volTier = 'heavy';
+  else if (total / avgPerYear < 0.8)  volTier = 'light';
+  else                                 volTier = 'moderate';
+
+  // Singles / doubles split
+  var singles = yearMatches.filter(function(m){ var t=(m.type||'').toLowerCase(); return t.includes('singles')||(!m.partner&&!t.includes('doubles')); });
+  var doubles = yearMatches.filter(function(m){ var t=(m.type||'').toLowerCase(); return t.includes('doubles')||!!m.partner; });
+  var mixedTypes = singles.length > 0 && doubles.length > 0;
+
+  // First-set stats
+  var withSets = yearMatches.filter(function(m){ return num(m.s1w)!==null && num(m.s1l)!==null; });
+  var fs1W     = withSets.filter(function(m){ return num(m.s1w) > num(m.s1l); });
+  var fs1L     = withSets.filter(function(m){ return num(m.s1w) < num(m.s1l); });
+  var fsN      = withSets.length;
+  var fsCvt    = fs1W.length > 0 ? Math.round(100 * fs1W.filter(function(m){ return m.result==='W'; }).length / fs1W.length) : null;
+  var fsCbk    = fs1L.length > 0 ? Math.round(100 * fs1L.filter(function(m){ return m.result==='W'; }).length / fs1L.length) : null;
+
+  // Three-set
+  var s3matches = yearMatches.filter(function(m){ return num(m.s3w)!==null; });
+  var s3pct     = total > 0 ? Math.round(100 * s3matches.length / total) : 0;
+  var s3tier    = s3pct < 15 ? 'low' : s3pct > 35 ? 'high' : 'mid';
+
+  // Comeback note mining
+  var comebackMatch = null, comebackScore = null;
+  sorted.forEach(function(m){
+    if (comebackMatch || m.result !== 'W') return;
+    var note = m.notes || '';
+    if (!note) return;
+    if (/comeback|came back|down \d|fought back/i.test(note)) {
+      comebackMatch = m;
+      comebackScore = yirParseScore(note);
+    }
+  });
+
+  // Golden set detection
+  var goldenMatch = yearMatches.find(function(m){
+    return m.result==='W' && num(m.s1w)===6 && num(m.s1l)===0 &&
+           num(m.s2w)===6 && num(m.s2l)===0 && num(m.s3w)===null;
+  });
+
+  // Tiebreaks
+  var tb     = yirComputeTB(yearMatches);
+  var tbPct  = (tb.w+tb.l) > 0 ? Math.round(100*tb.w/(tb.w+tb.l)) : null;
+  var tbTier = tbPct===null ? null : tbPct < 40 ? 'bad' : tbPct > 60 ? 'good' : 'mid';
+
+  // Win streak
+  var maxStreak=0, curStreak=0;
+  sorted.forEach(function(m){ if(m.result==='W'){curStreak++;maxStreak=Math.max(maxStreak,curStreak);}else curStreak=0; });
+
+  // Playoffs
+  var playoffs = yearMatches.filter(function(m){ return m.playoff===true||m.playoff==='TRUE'; });
+  var plW = playoffs.filter(function(m){ return m.result==='W'; }).length;
+  var plL = playoffs.filter(function(m){ return m.result==='L'; }).length;
+
+  // Conditions — build map of {cond: {w,l}} across homeaway, time, surface
+  var condMap = {};
+  yearMatches.forEach(function(m){
+    [m.homeaway, m.time, m.surface].forEach(function(c){
+      if (!c) return;
+      if (!condMap[c]) condMap[c]={w:0,l:0};
+      if (m.result==='W') condMap[c].w++; else condMap[c].l++;
+    });
+  });
+  var bestCond=null, bestRate=-1, worstCond=null, worstRate=2;
+  Object.keys(condMap).forEach(function(c){
+    var d=condMap[c]; var t=d.w+d.l; if(t<4) return;
+    var r=d.w/t;
+    if(r>bestRate){bestRate=r;bestCond={name:c,w:d.w,l:d.l,pct:Math.round(r*100)};}
+    if(r<worstRate){worstRate=r;worstCond={name:c,w:d.w,l:d.l,pct:Math.round(r*100)};}
+  });
+  // Only show worst if losing record or under 40%, and different from best
+  if (worstCond && (worstRate >= 0.40 || (bestCond && worstCond.name===bestCond.name))) worstCond=null;
+
+  // Partners — weighted blend of win rate and volume
+  var minP = isYearly ? 5 : 3;
+  var pMap = {};
+  yearMatches.forEach(function(m){
+    if(!m.partner) return;
+    if(!pMap[m.partner]) pMap[m.partner]={w:0,l:0};
+    if(m.result==='W') pMap[m.partner].w++; else pMap[m.partner].l++;
+  });
+  var partnerList = Object.keys(pMap).map(function(name){
+    var d=pMap[name]; var t=d.w+d.l;
+    return {name:name, w:d.w, l:d.l, t:t, rate:t>0?d.w/t:0, score:t>=minP?(d.w/t)*Math.log(t+1):-1};
+  }).filter(function(p){ return p.t>=minP; }).sort(function(a,b){ return b.score-a.score; });
+  var bp  = partnerList[0] || null;
+  var bp2 = partnerList[1] && partnerList[1].rate>=0.60 && (bp.rate-partnerList[1].rate)<=0.15 ? partnerList[1] : null;
+
+  // Partner career comparison
+  var bpCareerTier=null, bpCareerAdj='';
+  if (bp) {
+    var bpPrior = allMatches.filter(function(m){ return m.partner===bp.name && m.year<curYear; });
+    var bpPW=bpPrior.filter(function(m){return m.result==='W';}).length;
+    var bpPL=bpPrior.filter(function(m){return m.result==='L';}).length;
+    if (bpPrior.length===0) {
+      bpCareerTier='first';
+      bpCareerAdj = bp.rate>0.65?'promising':bp.rate>0.45?'mixed':'tough';
+    } else {
+      var bpPRate=(bpPW+bpPL)>0?bpPW/(bpPW+bpPL):0;
+      bpCareerTier = bp.rate > bpPRate+0.05 ? 'better' : bp.rate < bpPRate-0.05 ? 'worse' : 'better';
+    }
+  }
+
+  // Opponents — priority: firstWin > nemesis > dominated > rematch, max 2
+  var oMap = {};
+  yearMatches.forEach(function(m){
+    var o=m.opponent1||m.opponent||''; if(!o) return;
+    if(!oMap[o]) oMap[o]={w:0,l:0,ms:[]};
+    if(m.result==='W') oMap[o].w++; else oMap[o].l++;
+    oMap[o].ms.push(m);
+  });
+
+  var stories = [];
+
+  // First-ever win: ≥2 prior losses, 0 prior wins
+  Object.keys(oMap).forEach(function(name){
+    if(stories.length>=1) return;
+    var d=oMap[name]; if(d.w===0) return;
+    var p=allMatches.filter(function(m){return (m.opponent1||m.opponent||'')===name&&m.year<curYear;});
+    var pW=p.filter(function(m){return m.result==='W';}).length;
+    var pL=p.filter(function(m){return m.result==='L';}).length;
+    if(pW===0&&pL>=2) stories.push({type:'firstwin',opp:name,prev:'0–'+pL});
+  });
+
+  // Nemesis: ≥2 losses this period, losing record
+  Object.keys(oMap).forEach(function(name){
+    if(stories.length>=2) return;
+    var d=oMap[name]; var t=d.w+d.l;
+    if(t>=2&&d.l>d.w&&d.l>=2) stories.push({type:'nemesis',opp:name,w:d.w,l:d.l});
+  });
+
+  // Dominated: ≥2 wins this period, winning record
+  Object.keys(oMap).forEach(function(name){
+    if(stories.length>=2) return;
+    var d=oMap[name]; var t=d.w+d.l;
+    if(t>=2&&d.w>d.l&&d.w>=2) stories.push({type:'dominated',opp:name,w:d.w,l:d.l});
+  });
+
+  // Rematch: lost first encounter, won later; need ≥2 prior matches in career
+  if(stories.length<2) {
+    Object.keys(oMap).forEach(function(name){
+      if(stories.length>=2) return;
+      var d=oMap[name]; if(d.ms.length<2) return;
+      var career=allMatches.filter(function(m){return (m.opponent1||m.opponent||'')===name;});
+      if(career.length<2) return;
+      var ps=d.ms.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
+      if(ps[0].result==='L'&&ps.slice(1).some(function(m){return m.result==='W';}))
+        stories.push({type:'rematch',opp:name});
+    });
+  }
+
+  var closingTone = (tier==='exceptional'||tier==='strong') ? 'positive' : (tier==='difficult'||tier==='below') ? 'negative' : 'neutral';
+
+  // ── Assemble paragraphs ───────────────────────────────────────────────────
+
+  var paras = [];
+
+  // ── Para 1: Opening + volume + optional type addendum ────────────────────
+  var p1 = yirPick(YIR_P.opening[tier], seed);
+  p1 += ' ' + yirPick(YIR_P.volume[volTier], seed+1).replace('{n}', total);
+  if (mixedTypes) {
+    p1 += yirPick(YIR_P.typeAdd, seed+2).replace('{s}', singles.length).replace('{d}', doubles.length);
+  }
+  paras.push(p1);
+
+  // ── Para 2: Record + vs-career + optional golden set ─────────────────────
+  var recPool = (isYearly && winPct>=55) ? YIR_P.record.concat(YIR_P.recordStrong) : YIR_P.record;
+  var p2 = yirPick(recPool, seed+3).replace('{rec}', W+'–'+L).replace('{pct}', winPct);
+
+  if (isFirst) {
+    p2 += yirPick(YIR_P.vsCareer.first, seed+4);
+  } else {
+    var vsKey = winPct > careerPct ? 'above' : winPct < careerPct ? 'below' : 'equal';
+    p2 += yirPick(YIR_P.vsCareer[vsKey], seed+4)
+      .replace('{career}', careerPct).replace('{diff}', diffPts);
+  }
+
+  if (goldenMatch) {
+    var gOpp = escHtml(goldenMatch.opponent1||goldenMatch.opponent||'your opponent');
+    if (goldenMatch.opponent2) gOpp += ' and ' + escHtml(goldenMatch.opponent2);
+    p2 += ' ' + yirPick(YIR_P.golden, seed+14)
+      .replace('{date}', yirFmtDate(goldenMatch.date)).replace('{opp}', gOpp);
+  }
+  paras.push(p2);
+
+  // ── Para 3: Sets + comeback note + three-set character + coaching ─────────
+  if (fsN >= 5) {
+    var p3;
+
+    if (fsN < 8) {
+      // Small sample — single sentence, no coaching
+      p3 = yirPick(YIR_P.setsSmall, seed+5)
+        .replace('{cvt}', fsCvt).replace('{cbk}', fsCbk).replace('{n}', fsN);
+    } else {
+      // Full sets paragraph
+      p3 = yirPick(YIR_P.setsOpener, seed+5) + ' ';
+
+      if (comebackMatch) {
+        // Weave comeback into the stat sentence
+        var cDate = yirFmtDate(comebackMatch.date);
+        var cO1   = escHtml(comebackMatch.opponent1||comebackMatch.opponent||'your opponent');
+        var cO2   = comebackMatch.opponent2 ? escHtml(comebackMatch.opponent2) : null;
+        var isDbl = !!(comebackMatch.partner||(comebackMatch.type||'').toLowerCase().includes('doubles'));
+        if (comebackScore && isDbl && cO2) {
+          p3 += yirPick(YIR_P.comebackDoubles, seed+13)
+            .replace('{cbk}', fsCbk).replace('{score}', comebackScore)
+            .replace('{o1}', cO1).replace('{o2}', cO2).replace('{date}', cDate);
+        } else if (comebackScore) {
+          p3 += yirPick(YIR_P.comebackSingles, seed+13)
+            .replace('{cbk}', fsCbk).replace('{score}', comebackScore)
+            .replace('{o1}', cO1).replace('{date}', cDate);
+        } else {
+          // No score — use standard stat then append no-score note
+          p3 += yirPick(YIR_P.setsStat, seed+6)
+            .replace('{cvt}', fsCvt).replace('{cbk}', fsCbk);
+          p3 += ' ' + yirPick(YIR_P.comebackNoScore, seed+13)
+            .replace('{o1}', cO1).replace('{date}', cDate);
+        }
+      } else {
+        p3 += yirPick(YIR_P.setsStat, seed+6)
+          .replace('{cvt}', fsCvt).replace('{cbk}', fsCbk);
+      }
+
+      // Three-set character
+      p3 += ' ' + yirPick(YIR_P.threeSet[s3tier], seed+7).replace('{pct}', s3pct);
+
+      // Coaching moment — only when conversion < 80%
+      if (fsCvt !== null && fsCvt < 80) {
+        p3 += ' ' + yirPick(YIR_P.coaching, seed+8);
+      }
+    }
+    paras.push(p3);
+  }
+
+  // ── Para 4: Tiebreaks + streak + playoffs ─────────────────────────────────
+  var p4parts = [];
+  if (tbTier && (tb.w+tb.l) >= 3) {
+    p4parts.push(yirPick(YIR_P.tb[tbTier], seed+9)
+      .replace('{w}',tb.w).replace('{l}',tb.l).replace('{pct}',tbPct));
+  }
+  if (maxStreak >= 5) {
+    p4parts.push(yirPick(YIR_P.streak, seed+10).replace('{n}', maxStreak));
+  }
+  if (playoffs.length > 0) {
+    var plTier = plW >= plL ? 'good' : 'bad';
+    p4parts.push(yirPick(YIR_P.playoff[plTier], seed+11)
+      .replace('{w}',plW).replace('{l}',plL));
+  }
+  if (p4parts.length > 0) paras.push(p4parts.join(' '));
+
+  // ── Para 5: Conditions ────────────────────────────────────────────────────
+  if (bestCond) {
+    var p5 = yirPick(YIR_P.condBest, seed+12)
+      .replace('{cond}',bestCond.name).replace('{w}',bestCond.w)
+      .replace('{l}',bestCond.l).replace('{pct}',bestCond.pct);
+    if (worstCond) {
+      p5 += yirPick(YIR_P.condWorst, seed+15)
+        .replace('{cond}',worstCond.name).replace('{w}',worstCond.w)
+        .replace('{l}',worstCond.l).replace('{pct}',worstCond.pct);
+    }
+    paras.push(p5);
+  }
+
+  // ── Para 6: Partners ──────────────────────────────────────────────────────
+  if (bp) {
+    var p6;
+    if (bp2) {
+      p6 = yirPick(YIR_P.partnerTwo, seed+16)
+        .replace('{n1}',bp.name).replace('{w1}',bp.w).replace('{l1}',bp.l)
+        .replace('{n2}',bp2.name).replace('{w2}',bp2.w).replace('{l2}',bp2.l);
+    } else {
+      p6 = yirPick(YIR_P.partnerOne, seed+16)
+        .replace('{name}',bp.name).replace('{w}',bp.w).replace('{l}',bp.l);
+      // Career comparison only for single-partner mention
+      if (bpCareerTier) {
+        p6 += yirPick(YIR_P.partnerCareer[bpCareerTier], seed+17)
+          .replace('{name}',bp.name).replace('{adj}',bpCareerAdj);
+      }
+    }
+    paras.push(p6);
+  }
+
+  // ── Para 7: Opponent storylines ───────────────────────────────────────────
+  if (stories.length > 0) {
+    var p7 = stories.map(function(s, i){
+      var si = seed+18+i;
+      if (s.type==='firstwin')  return yirPick(YIR_P.oppFirstWin,  si).replace('{opp}',s.opp).replace('{prev}',s.prev);
+      if (s.type==='nemesis')   return yirPick(YIR_P.oppNemesis,   si).replace('{opp}',s.opp).replace('{w}',s.w).replace('{l}',s.l);
+      if (s.type==='dominated') return yirPick(YIR_P.oppDominated, si).replace('{opp}',s.opp).replace('{w}',s.w).replace('{l}',s.l);
+      if (s.type==='rematch')   return yirPick(YIR_P.oppRematch,   si).replace('{opp}',s.opp);
+      return '';
+    }).join(' ');
+    paras.push(p7);
+  }
+
+  // ── Para 8: Closing ───────────────────────────────────────────────────────
+  paras.push(yirPick(YIR_P.closing[closingTone], seed+20));
+
+  return paras;
+}
+
+// ── Banner ────────────────────────────────────────────────────────────────────
+
+function buildYIRBanner() {
+  var now = new Date(), month = now.getMonth()+1, yr = now.getFullYear();
+  var isMid = month>=5&&month<=8, isEarly = month<=4;
+  var label = (isEarly||isMid) ? yr+' so far' : yr+' Year in Review';
+  var sub   = isEarly ? 'Early season check-in' : isMid ? 'Mid-season checkpoint' : 'Full year retrospective';
+  var yrMs  = allMatches.filter(function(m){ return m.year===yr; });
+  var MIN   = 15;
+  var subTxt = yrMs.length < MIN ? 'Log '+(MIN-yrMs.length)+' more matches to unlock' : sub;
+  return '<div class="yir-banner" onclick="openYIR()">' +
+    '<div class="yir-banner-left">' +
+      '<div class="yir-banner-eyebrow">Year in Review</div>' +
+      '<div class="yir-banner-title">'+escHtml(label)+'</div>' +
+      '<div class="yir-banner-sub">'+escHtml(subTxt)+'</div>' +
+    '</div>' +
+    '<div class="yir-banner-arrow">→</div>' +
+  '</div>';
+}
+
+// ── Open / close ──────────────────────────────────────────────────────────────
+
+function openYIR() {
+  var overlay = document.getElementById('yir-overlay');
+  if (!overlay) return;
+  var now = new Date(), month = now.getMonth()+1, yr = now.getFullYear();
+  var isMid = month>=5&&month<=8, isEarly = month<=4;
+  var title = (isEarly||isMid) ? yr+' so far' : yr+' Year in Review';
+  var sub   = isEarly ? 'Early season check-in' : isMid ? 'Mid-season checkpoint' : 'Full year retrospective';
+  document.getElementById('yir-modal-title').textContent    = title;
+  document.getElementById('yir-modal-subtitle').textContent = sub;
+
+  var yrMs  = allMatches.filter(function(m){ return m.year===yr; });
+  var MIN   = 15;
+  var kickEl = document.getElementById('yir-modal-kicker');
+  var bodyEl = document.getElementById('yir-modal-body');
+
+  if (yrMs.length < MIN) {
+    if (kickEl) kickEl.innerHTML = '';
+    bodyEl.innerHTML =
+      '<div class="yir-locked">' +
+        '<div class="yir-locked-icon">🔒</div>' +
+        '<div class="yir-locked-title">Not enough matches yet</div>' +
+        '<div class="yir-locked-desc">Log at least '+MIN+' matches in '+yr+
+        ' to unlock your Year in Review. You\'re at '+yrMs.length+
+        ' — '+(MIN-yrMs.length)+' more to go.</div>'+
+      '</div>';
+  } else {
+    var W   = yrMs.filter(function(m){ return m.result==='W'; }).length;
+    var L   = yrMs.filter(function(m){ return m.result==='L'; }).length;
+    var pct = Math.round(100*W/(W+L));
+    if (kickEl) kickEl.innerHTML =
+      '<div class="yir-modal-stat"><div class="yir-modal-stat-val">'+W+'–'+L+'</div><div class="yir-modal-stat-lbl">Record</div></div>' +
+      '<div class="yir-modal-stat"><div class="yir-modal-stat-val">'+pct+'%</div><div class="yir-modal-stat-lbl">Win rate</div></div>' +
+      '<div class="yir-modal-stat"><div class="yir-modal-stat-val">'+(W+L)+'</div><div class="yir-modal-stat-lbl">Matches</div></div>';
+
+    var paras = yirBuildParas(yrMs, yirSeed(yr), true);
+    bodyEl.innerHTML = paras.map(function(p){ return '<div class="yir-para">'+p+'</div>'; }).join('');
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeYIR() {
+  var el = document.getElementById('yir-overlay');
+  if (el) el.classList.remove('open');
+  document.body.style.overflow = '';
+}
 
 function calcStreak(sortedDesc) {
   if (!sortedDesc.length) return { current: 0, longest: 0, longestYears: '' };
@@ -7767,6 +8434,23 @@ function buildBadgeShelf() {
     <div class="confirm-actions">
       <button class="btn btn-ghost" onclick="settingsUnsavedLeave()">Leave anyway</button>
       <button class="btn btn-primary" onclick="settingsUnsavedStay()">Stay & save</button>
+    </div>
+  </div>
+</div>
+<!-- ── Year in Review Modal ──────────────────────────────── -->
+<div id="yir-overlay" class="yir-overlay" onclick="if(event.target===this)closeYIR()">
+  <div class="yir-modal">
+    <div class="yir-modal-header">
+      <div class="yir-modal-eyebrow">Match Tracker Pro</div>
+      <div class="yir-modal-title" id="yir-modal-title">Year in Review</div>
+      <div class="yir-modal-subtitle" id="yir-modal-subtitle">Your tennis, by the numbers</div>
+      <div class="yir-modal-kicker" id="yir-modal-kicker"></div>
+      <button class="yir-close-btn" onclick="closeYIR()">✕</button>
+    </div>
+    <div class="yir-modal-body" id="yir-modal-body"></div>
+    <div class="yir-modal-footer">
+      <div class="yir-modal-footer-text">Powered by your match data</div>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="closeYIR()">Close</button>
     </div>
   </div>
 </div>
