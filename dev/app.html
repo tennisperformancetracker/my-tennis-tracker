@@ -2661,8 +2661,14 @@ var YIR_P = {
     first: [" No career baseline yet — this is your opening number, the one everything else gets measured against going forward.", " With no prior data to compare against, this becomes your baseline — the number future periods will be measured against.", " This is your first year on record, so this is the number that sets the standard going forward."]
   },
 
-  // Golden set note — appended to end of para 2 when it exists
-  golden: ["One match in particular stands out — a dominant 6–0, 6–0 win on {date} against {opp}.", "Worth noting in the record: a 6–0, 6–0 win on {date} against {opp}. Those don't happen often.", "You were untouchable on {date} — a 6–0, 6–0 win against {opp}."],
+  // Double bagel — detected from scores (6-0, 6-0 win)
+  doubleBagel: ["One match in particular stands out — a dominant 6–0, 6–0 win on {date} against {opp}.", "Worth noting in the record: a 6–0, 6–0 win on {date} against {opp}. Those don't happen often.", "You were untouchable on {date} — a 6–0, 6–0 win against {opp}."],
+
+  // Golden set — detected from notes keyword
+  goldenSet: ["One highlight worth mentioning: you played a golden set on {date} against {opp} — not a single point dropped.", "A golden set on {date} against {opp}. That's as close to perfect as tennis gets.", "You didn't drop a point in a set on {date} against {opp}. A golden set — worth remembering."],
+
+  // Heartbreak — detected from notes keywords, woven into opponent section or closing
+  heartbreak: ["One that got away: against {opp} on {date} — up and couldn't close it.", "A tough one to forget: {opp} on {date}, a match you had and let slip.", "Not every story ends well — against {opp} on {date} you had it and it slipped away."],
 
   // Section 4 — sets paragraph openers (opens para 3)
   setsOpener: ["There's a consistent thread in how matches played out.", "The pattern in how matches were won and lost is pretty clear.", "The way matches unfolded tells an interesting story."],
@@ -2871,16 +2877,34 @@ function yirBuildParas(yearMatches, seed, isYearly) {
     if (comebackMatch || m.result !== 'W') return;
     var note = m.notes || '';
     if (!note) return;
-    if (/comeback|came back|down \d|fought back/i.test(note)) {
+    if (/comeback|came back|down \d|fought back|clawed back|rallied|was losing/i.test(note)) {
       comebackMatch = m;
       comebackScore = yirParseScore(note);
     }
   });
 
-  // Golden set detection
-  var goldenMatch = yearMatches.find(function(m){
+  // Double bagel — from scores only (6-0, 6-0 win, no third set)
+  var doubleBagelMatch = yearMatches.find(function(m){
     return m.result==='W' && num(m.s1w)===6 && num(m.s1l)===0 &&
            num(m.s2w)===6 && num(m.s2l)===0 && num(m.s3w)===null;
+  });
+
+  // Golden set — from notes only (won a set without losing a point)
+  var goldenSetMatch = null;
+  sorted.forEach(function(m){
+    if (goldenSetMatch) return;
+    var note = (m.notes||'').toLowerCase();
+    if (/golden set|golden-set/.test(note)) goldenSetMatch = m;
+  });
+
+  // Heartbreak — from notes (had a match and lost it)
+  var heartbreakMatch = null;
+  sorted.forEach(function(m){
+    if (heartbreakMatch || m.result !== 'L') return;
+    var note = (m.notes||'').toLowerCase();
+    if (/choked|blew|let it slip|lost (the )?lead|had it|threw it away|gave it away/.test(note)) {
+      heartbreakMatch = m;
+    }
   });
 
   // Tiebreaks
@@ -3029,11 +3053,16 @@ function yirBuildParas(yearMatches, seed, isYearly) {
       .replace('{career}', careerPct).replace('{diff}', diffPts);
   }
 
-  if (goldenMatch) {
-    var gOpp = escHtml(goldenMatch.opponent1||goldenMatch.opponent||'your opponent');
-    if (goldenMatch.opponent2) gOpp += ' and ' + escHtml(goldenMatch.opponent2);
-    p2 += ' ' + yirPick(YIR_P.golden, seed+14)
-      .replace('{date}', yirFmtDate(goldenMatch.date)).replace('{opp}', gOpp);
+  if (doubleBagelMatch) {
+    var dbOpp = escHtml(doubleBagelMatch.opponent1||doubleBagelMatch.opponent||'your opponent');
+    if (doubleBagelMatch.opponent2) dbOpp += ' and ' + escHtml(doubleBagelMatch.opponent2);
+    p2 += ' ' + yirPick(YIR_P.doubleBagel, seed+14)
+      .replace('{date}', yirFmtDate(doubleBagelMatch.date)).replace('{opp}', dbOpp);
+  } else if (goldenSetMatch) {
+    var gsOpp = escHtml(goldenSetMatch.opponent1||goldenSetMatch.opponent||'your opponent');
+    if (goldenSetMatch.opponent2) gsOpp += ' and ' + escHtml(goldenSetMatch.opponent2);
+    p2 += ' ' + yirPick(YIR_P.goldenSet, seed+14)
+      .replace('{date}', yirFmtDate(goldenSetMatch.date)).replace('{opp}', gsOpp);
   }
   paras.push(p2);
 
@@ -3068,8 +3097,10 @@ function yirBuildParas(yearMatches, seed, isYearly) {
         .replace('{cbkLineLower}', cbkLineLower)
         .replace('{cbk}', fsCbk);
 
-      // Append comeback note only when comeback rate > 0 and we have a flagged match
-      if (comebackMatch && fsCbk > 0) {
+      // Append comeback note if found — this is independent of fsCbk since it
+      // describes something that happened inside a match (e.g. down in the third set),
+      // not necessarily a first-set deficit comeback
+      if (comebackMatch) {
         var cDate = yirFmtDate(comebackMatch.date);
         var cO1   = escHtml(comebackMatch.opponent1 || comebackMatch.opponent || 'your opponent');
         var cO2   = comebackMatch.opponent2 ? escHtml(comebackMatch.opponent2) : null;
@@ -3160,18 +3191,24 @@ function yirBuildParas(yearMatches, seed, isYearly) {
     paras.push(p6);
   }
 
-  // ── Para 7: Opponent storylines ───────────────────────────────────────────
+  // ── Para 7: Opponent storylines + heartbreak ─────────────────────────────
+  var p7parts = [];
   if (stories.length > 0) {
-    var p7 = stories.map(function(s, i){
+    stories.forEach(function(s, i){
       var si = seed+18+i;
-      if (s.type==='firstwin')  return yirPick(YIR_P.oppFirstWin,  si).replace('{opp}',s.opp).replace('{prev}',s.prev);
-      if (s.type==='nemesis')   return yirPick(YIR_P.oppNemesis,   si).replace('{opp}',s.opp).replace('{w}',s.w).replace('{l}',s.l);
-      if (s.type==='dominated') return yirPick(YIR_P.oppDominated, si).replace('{opp}',s.opp).replace('{w}',s.w).replace('{l}',s.l);
-      if (s.type==='rematch')   return yirPick(YIR_P.oppRematch,   si).replace('{opp}',s.opp);
-      return '';
-    }).join(' ');
-    paras.push(p7);
+      if (s.type==='firstwin')  p7parts.push(yirPick(YIR_P.oppFirstWin,  si).replace('{opp}',s.opp).replace('{prev}',s.prev));
+      if (s.type==='nemesis')   p7parts.push(yirPick(YIR_P.oppNemesis,   si).replace('{opp}',s.opp).replace('{w}',s.w).replace('{l}',s.l));
+      if (s.type==='dominated') p7parts.push(yirPick(YIR_P.oppDominated, si).replace('{opp}',s.opp).replace('{w}',s.w).replace('{l}',s.l));
+      if (s.type==='rematch')   p7parts.push(yirPick(YIR_P.oppRematch,   si).replace('{opp}',s.opp));
+    });
   }
+  if (heartbreakMatch) {
+    var hbOpp = escHtml(heartbreakMatch.opponent1||heartbreakMatch.opponent||'your opponent');
+    if (heartbreakMatch.opponent2) hbOpp += ' and ' + escHtml(heartbreakMatch.opponent2);
+    p7parts.push(yirPick(YIR_P.heartbreak, seed+22)
+      .replace('{opp}', hbOpp).replace('{date}', yirFmtDate(heartbreakMatch.date)));
+  }
+  if (p7parts.length > 0) paras.push(p7parts.join(' '));
 
   // ── Para 8: Closing ───────────────────────────────────────────────────────
   paras.push(yirPick(YIR_P.closing[closingTone], seed+20));
