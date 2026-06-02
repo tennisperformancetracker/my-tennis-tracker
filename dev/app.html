@@ -1239,8 +1239,9 @@ textarea:focus { border-color: var(--accent2) !important; }
 .yir-modal-body { padding: 6px 36px 32px; overflow-y: auto; flex: 1; }
 .yir-para {
   font-size: 14px; line-height: 1.8; color: var(--text);
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
+.yir-para:last-child { margin-bottom: 0; }
 .yir-modal-footer {
   background: var(--surface2); padding: 16px 36px;
   border-top: 1px solid var(--border);
@@ -2609,19 +2610,39 @@ var YIR_P = {
 
   // Section 1 — opening line (standalone, sets tone)
   opening: {
-    exceptional: ["This was one of those stretches where everything clicked.", "If there's a period you'll look back on, this might be it.", "The numbers don't lie — this was a standout run.", "By almost every measure, this was a career-best period.", "This was the kind of run that reminds you why you play."],
-    strong:      ["A solid stretch — the results were there more often than not.", "You showed up and competed well. The results reflect that.", "Not your best stretch ever, but comfortably above your own standard.", "A period to feel good about — consistent, reliable tennis.", "The wins came regularly and the losses were mostly close ones."],
-    onpar:       ["A period that looked a lot like you — steady, consistent, familiar.", "About what you'd expect from yourself — no major surprises either way.", "Right in your wheelhouse. Not a breakthrough, not a setback.", "You played to your level. The question is whether that level is where you want it.", "Solid but unremarkable — which isn't a bad thing."],
-    below:       ["Tougher than usual — the results didn't come as easily this stretch.", "A period where things didn't quite fall your way.", "The wins were there, just not as often as you're used to.", "Not your best tennis, but not a crisis — just a dip.", "The results were below your own standard this time around."],
-    difficult:   ["This was a tough stretch — no way around it.", "The numbers were hard to look at, but every player goes through it.", "A period to learn from rather than dwell on.", "It wasn't your stretch. Happens to everyone eventually.", "A humbling period — but those tend to be the ones that teach you the most."]
+    exceptional: {
+      mid:  ["This is shaping up to be one of those stretches where everything clicks.", "If there's a period you'll look back on, this might be it.", "The numbers don't lie — this has been a standout run.", "By almost every measure, this is a career-best stretch so far.", "This is the kind of run that reminds you why you play."],
+      end:  ["This was one of those stretches where everything clicked.", "If there's a period you'll look back on, this might be it.", "The numbers don't lie — this was a standout run.", "By almost every measure, this was a career-best period.", "This was the kind of run that reminds you why you play."]
+    },
+    strong: {
+      mid:  ["A solid stretch so far — the results are there more often than not.", "You're showing up and competing well. The results reflect that.", "Not your best stretch ever, but comfortably above your own standard.", "A period to feel good about — consistent, reliable tennis.", "The wins are coming regularly and the losses are mostly close ones."],
+      end:  ["A solid stretch — the results were there more often than not.", "You showed up and competed well. The results reflect that.", "Not your best stretch ever, but comfortably above your own standard.", "A period to feel good about — consistent, reliable tennis.", "The wins came regularly and the losses were mostly close ones."]
+    },
+    onpar: {
+      mid:  ["A period that's looking a lot like you — steady, consistent, familiar.", "About what you'd expect from yourself so far — no major surprises either way.", "Right in your wheelhouse. Not a breakthrough, not a setback.", "You're playing to your level. The question is whether that level is where you want it.", "Solid but unremarkable so far — which isn't a bad thing."],
+      end:  ["A period that looked a lot like you — steady, consistent, familiar.", "About what you'd expect from yourself — no major surprises either way.", "Right in your wheelhouse. Not a breakthrough, not a setback.", "You played to your level. The question is whether that level is where you want it.", "Solid but unremarkable — which isn't a bad thing."]
+    },
+    below: {
+      mid:  ["Tougher than usual so far — the results aren't coming as easily this stretch.", "A period where things haven't quite fallen your way.", "The wins are there, just not as often as you're used to.", "Not your best tennis, but not a crisis — just a dip.", "The results are below your own standard so far."],
+      end:  ["Tougher than usual — the results didn't come as easily this stretch.", "A period where things didn't quite fall your way.", "The wins were there, just not as often as you're used to.", "Not your best tennis, but not a crisis — just a dip.", "The results were below your own standard this time around."]
+    },
+    difficult: {
+      mid:  ["This has been a tough stretch — no way around it.", "The numbers are hard to look at, but every player goes through it.", "A stretch to learn from rather than dwell on.", "It hasn't been your stretch. Happens to everyone eventually.", "A humbling period so far — but those tend to be the ones that teach you the most."],
+      end:  ["This was a tough stretch — no way around it.", "The numbers were hard to look at, but every player goes through it.", "A period to learn from rather than dwell on.", "It wasn't your stretch. Happens to everyone eventually.", "A humbling period — but those tend to be the ones that teach you the most."]
+    }
   },
 
   // Section 2 — volume (second sentence of para 1, flows from opening)
   volume: {
     first:    ["It's your first stretch on record — {n} matches to start building from.", "You're just getting started — {n} matches logged so far, and the trends will build from here.", "An early sample of {n} matches — not much to compare against yet, but it's a start."],
-    heavy:    ["You logged {n} matches — a busy stretch by your own standards.", "A heavy schedule this period — {n} matches, more than you typically carry.", "{n} matches on the books, which is a lot even for you."],
-    moderate: ["You logged {n} matches — a fairly typical workload.", "{n} matches this period, in line with your usual pace.", "A solid {n} matches logged — about what you'd expect from yourself."],
-    light:    ["A quieter stretch than usual — {n} matches, below your normal pace.", "You logged {n} matches, which is lighter than you typically carry.", "Fewer matches than usual this period — {n} total."]
+    heavy:    ["You've logged {n} matches — a busy stretch by your own standards.", "A heavy schedule this period — {n} matches, more than you typically carry.", "{n} matches on the books, which is a lot even for you."],
+    heavyEnd: ["You logged {n} matches — a busy stretch by your own standards.", "A heavy schedule this period — {n} matches, more than you typically carry.", "{n} matches on the books, which is a lot even for you."],
+    moderate: ["You've logged {n} matches — a fairly typical pace so far.", "{n} matches this period, in line with your usual pace.", "A solid {n} matches logged — about what you'd expect from yourself."],
+    moderateEnd: ["You logged {n} matches — a fairly typical workload.", "{n} matches this period, in line with your usual pace.", "A solid {n} matches logged — about what you'd expect from yourself."],
+    lightMid: ["{n} matches logged so far — you're {behind} behind last year's pace at this point.", "Through the same stretch last year you had {prev} matches — this year you're at {n}."],
+    lightEnd: ["A quieter stretch than usual — {n} matches, below your normal pace.", "You logged {n} matches, which is lighter than you typically carry.", "Fewer matches than usual this period — {n} total."],
+    lightFirst: ["{n} matches logged so far this year.", "You're at {n} matches on the year — still early days."],
+    neutralMid: ["{n} matches logged so far this year.", "You're at {n} matches on the year."]
   },
 
   // Type addendum — appended to para 1 only when both singles and doubles exist
@@ -2648,9 +2669,9 @@ var YIR_P = {
 
   // First-set stat sentence (second sentence of para 3)
   setsStat: [
-    "When you won the first set, you converted {cvt}% of those into match wins. When you dropped it, you came back {cbk}% of the time.",
-    "First-set wins turned into match wins {cvt}% of the time — and when you lost it, you came back {cbk}% of matches.",
-    "Win the first set and you closed it out {cvt}% of the time. Lose it and you recovered {cbk}%."
+    "When you won the first set, you converted {cvt}% of those into match wins. {cbkLine}",
+    "First-set wins turned into match wins {cvt}% of the time — and when you lost it, {cbkLineLower}.",
+    "Win the first set and you closed it out {cvt}% of the time. {cbkLine}"
   ],
 
   // Small sample variant (replaces both opener and stat when 5–7 matches)
@@ -2677,9 +2698,9 @@ var YIR_P = {
 
   // Three-set character (third sentence of para 3)
   threeSet: {
-    low:  ["Beyond the first-set numbers, three-setters were rare — you mostly closed things out in two.", "As for match length — you don't let them drag. Straight sets was the norm.", "Three-setters were rare. When you were up, you finished it."],
-    high: ["Beyond the first-set numbers, a lot of matches went the distance — you're comfortable in long ones.", "As for match length — three-setters were a recurring theme. Fitness clearly isn't a problem.", "You played a lot of deciding sets. Fitness and focus are clearly not a problem."],
-    mid:  ["As for the longer battles — three-setters accounted for {pct}% of matches, which is fairly typical.", "Three-setters accounted for {pct}% of matches — no strong pattern there, just part of the mix.", "Beyond the first-set numbers, {pct}% of matches went to a third set — about average for a period like this."]
+    low:  ["Beyond the first-set numbers, three-setters were rare — you mostly closed things out in two ({w3}–{l3} in deciding sets).", "As for match length — you don't let them drag. Straight sets was the norm, and when you did go three you went {w3}–{l3}.", "Three-setters were rare. When you were up, you finished it — {w3}–{l3} in the few that went the distance."],
+    high: ["Beyond the first-set numbers, a lot of matches went the distance — {w3}–{l3} in three-setters.", "As for match length — three-setters were a recurring theme and you went {w3}–{l3} in them. Fitness clearly isn't a problem.", "You played a lot of deciding sets and went {w3}–{l3} in them. Fitness and focus are clearly not a problem."],
+    mid:  ["As for the longer battles — three-setters accounted for {pct}% of matches and you went {w3}–{l3} in them.", "Three-setters accounted for {pct}% of matches — you went {w3}–{l3} in those.", "Beyond the first-set numbers, {pct}% of matches went to a third set and you went {w3}–{l3} in them."]
   },
 
   // Coaching moment (closes para 3 when first-set conversion < 80% and 8+ matches)
@@ -2696,8 +2717,10 @@ var YIR_P = {
     mid:  ["In tiebreaks you went {w}–{l} — {pct}% when it came down to the wire.", "The tiebreak record was {w}–{l} — a mixed bag overall.", "Tiebreaks were {w}–{l} across the period — nothing dramatic either way."]
   },
 
-  // Win streak (woven into para 4)
+  // Win streak standalone
   streak: ["At one point you won {n} in a row — the high-water mark of the period.", "A {n}-match winning streak was the standout run of the period.", "You strung together {n} consecutive wins at your peak — worth noting."],
+  // Win streak connected (follows a tiebreak sentence)
+  streakConnected: ["At one point you also strung together {n} wins in a row — the high-water mark of the period.", "A {n}-match winning streak was in there too — the standout run of the period.", "You also put together {n} consecutive wins at your peak."],
 
   // Playoff record (woven into para 4)
   playoff: {
@@ -2786,17 +2809,37 @@ function yirBuildParas(yearMatches, seed, isYearly) {
   var diffPts    = Math.abs(winPct - careerPct);
 
   var tier = yirOpeningTier(winRate, careerRate, isFirst);
+  var isEndOfYear = new Date().getMonth() >= 8;
+  var tenseKey = isEndOfYear ? 'end' : 'mid';
 
   // Volume tier
   var priorByYear = {};
   prior.forEach(function(m){ if(m.year) priorByYear[m.year]=(priorByYear[m.year]||0)+1; });
   var priorCounts = Object.values(priorByYear);
   var avgPerYear  = priorCounts.length > 0 ? priorCounts.reduce(function(a,b){return a+b;},0)/priorCounts.length : null;
+  var isEndOfYear = new Date().getMonth() >= 8; // Sep–Dec
   var volTier;
-  if (isFirst || avgPerYear === null) volTier = 'first';
-  else if (total / avgPerYear > 1.2)  volTier = 'heavy';
-  else if (total / avgPerYear < 0.8)  volTier = 'light';
-  else                                 volTier = 'moderate';
+  if (isFirst || avgPerYear === null) {
+    volTier = isEndOfYear ? 'first' : 'first';
+  } else if (isEndOfYear) {
+    if (total / avgPerYear > 1.2)      volTier = 'heavyEnd';
+    else if (total / avgPerYear < 0.8) volTier = 'lightEnd';
+    else                               volTier = 'moderateEnd';
+  } else {
+    // Mid-year: compare to same point last year
+    var curMonth = new Date().getMonth() + 1;
+    var priorYearSamePoint = allMatches.filter(function(m){
+      return m.year === (curYear - 1) && m.date && parseInt(m.date.split('/')[0]) <= curMonth;
+    }).length;
+    if (total / avgPerYear > 1.2) volTier = 'heavy';
+    else if (priorYearSamePoint > 0 && total < priorYearSamePoint * 0.8) {
+      volTier = 'lightMid';
+    } else if (priorYearSamePoint === 0) {
+      volTier = 'neutralMid';
+    } else {
+      volTier = 'moderate';
+    }
+  }
 
   // Singles / doubles split
   var singles = yearMatches.filter(function(m){ var t=(m.type||'').toLowerCase(); return t.includes('singles')||(!m.partner&&!t.includes('doubles')); });
@@ -2952,8 +2995,17 @@ function yirBuildParas(yearMatches, seed, isYearly) {
   var paras = [];
 
   // ── Para 1: Opening + volume + optional type addendum ────────────────────
-  var p1 = yirPick(YIR_P.opening[tier], seed);
-  p1 += ' ' + yirPick(YIR_P.volume[volTier], seed+1).replace('{n}', total);
+  var p1 = yirPick(YIR_P.opening[tier][tenseKey], seed);
+  var volPhrase = yirPick(YIR_P.volume[volTier], seed+1).replace('{n}', total);
+  if (volTier === 'lightMid') {
+    var curMo = new Date().getMonth() + 1;
+    var prevSame = allMatches.filter(function(m){
+      return m.year===(curYear-1) && m.date && parseInt(m.date.split('/')[0]) <= curMo;
+    }).length;
+    var behind = prevSame - total;
+    volPhrase = volPhrase.replace('{prev}', prevSame).replace('{behind}', behind);
+  }
+  p1 += ' ' + volPhrase;
   if (mixedTypes) {
     p1 += yirPick(YIR_P.typeAdd, seed+2).replace('{s}', singles.length).replace('{d}', doubles.length);
   }
@@ -3013,12 +3065,28 @@ function yirBuildParas(yearMatches, seed, isYearly) {
             .replace('{o1}', cO1).replace('{date}', cDate);
         }
       } else {
+        var cbkLine = fsCbk === 0
+          ? "You didn't win a single match after losing the first set."
+          : fsCbk < 15
+          ? "When you lost it, you came back just " + fsCbk + "% of the time."
+          : "When you dropped it, you came back " + fsCbk + "% of the time.";
+        var cbkLineLower = fsCbk === 0
+          ? "you didn't win a single match from there"
+          : fsCbk < 15
+          ? "you came back just " + fsCbk + "% of the time"
+          : "you came back " + fsCbk + "% of the time";
         p3 += yirPick(YIR_P.setsStat, seed+6)
-          .replace('{cvt}', fsCvt).replace('{cbk}', fsCbk);
+          .replace('{cvt}', fsCvt)
+          .replace('{cbkLine}', cbkLine)
+          .replace('{cbkLineLower}', cbkLineLower)
+          .replace('{cbk}', fsCbk);
       }
 
       // Three-set character
-      p3 += ' ' + yirPick(YIR_P.threeSet[s3tier], seed+7).replace('{pct}', s3pct);
+      var s3W = s3matches.filter(function(m){ return m.result==='W'; }).length;
+      var s3L = s3matches.filter(function(m){ return m.result==='L'; }).length;
+      p3 += ' ' + yirPick(YIR_P.threeSet[s3tier], seed+7)
+        .replace('{pct}', s3pct).replace('{w3}', s3W).replace('{l3}', s3L);
 
       // Coaching moment — only when conversion < 80%
       if (fsCvt !== null && fsCvt < 80) {
@@ -3031,10 +3099,16 @@ function yirBuildParas(yearMatches, seed, isYearly) {
   // ── Para 4: Tiebreaks + streak + playoffs ─────────────────────────────────
   var p4parts = [];
   if (tbTier && (tb.w+tb.l) >= 3) {
-    p4parts.push(yirPick(YIR_P.tb[tbTier], seed+9)
-      .replace('{w}',tb.w).replace('{l}',tb.l).replace('{pct}',tbPct));
-  }
-  if (maxStreak >= 5) {
+    var tbStr = yirPick(YIR_P.tb[tbTier], seed+9)
+      .replace('{w}',tb.w).replace('{l}',tb.l).replace('{pct}',tbPct);
+    if (maxStreak >= 5) {
+      // Weave streak into tiebreak sentence as one thought
+      var streakStr = yirPick(YIR_P.streakConnected, seed+10).replace('{n}', maxStreak);
+      p4parts.push(tbStr + ' ' + streakStr);
+    } else {
+      p4parts.push(tbStr);
+    }
+  } else if (maxStreak >= 5) {
     p4parts.push(yirPick(YIR_P.streak, seed+10).replace('{n}', maxStreak));
   }
   if (playoffs.length > 0) {
@@ -3044,14 +3118,16 @@ function yirBuildParas(yearMatches, seed, isYearly) {
   }
   if (p4parts.length > 0) paras.push(p4parts.join(' '));
 
-  // ── Para 5: Conditions ────────────────────────────────────────────────────
+  // ── Para 5: Conditions — own paragraph, preposition map ──────────────────
+  var condPrep = { 'Home':'at home', 'Away':'away', 'Morning':'in the morning', 'Afternoon':'in the afternoon', 'Night':'at night' };
+  function condLabel(c) { return condPrep[c] || c.toLowerCase(); }
   if (bestCond) {
     var p5 = yirPick(YIR_P.condBest, seed+12)
-      .replace('{cond}',bestCond.name).replace('{w}',bestCond.w)
+      .replace('{cond}',condLabel(bestCond.name)).replace('{w}',bestCond.w)
       .replace('{l}',bestCond.l).replace('{pct}',bestCond.pct);
     if (worstCond) {
       p5 += yirPick(YIR_P.condWorst, seed+15)
-        .replace('{cond}',worstCond.name).replace('{w}',worstCond.w)
+        .replace('{cond}',condLabel(worstCond.name)).replace('{w}',worstCond.w)
         .replace('{l}',worstCond.l).replace('{pct}',worstCond.pct);
     }
     paras.push(p5);
