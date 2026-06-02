@@ -1168,21 +1168,21 @@ textarea:focus { border-color: var(--accent2) !important; }
 
 /* ── Year in Review banner ───────────────────────────────── */
 .yir-banner {
-  margin-top: 16px; background: var(--surface);
-  border: 1px solid var(--border);
+  margin-top: 16px; background: #d6e2ec;
+  border: 1px solid #c2d4e3;
   border-radius: 10px; padding: 14px 20px;
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; cursor: pointer; transition: background 0.15s;
   box-shadow: var(--shadow);
 }
-.yir-banner:hover { background: var(--surface2); }
+.yir-banner:hover { background: #c8d8e8; }
 .yir-banner-left { display: flex; align-items: center; gap: 12px; }
 .yir-banner-eyebrow { display: none; }
-.yir-banner-title { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0; }
-.yir-banner-sub   { font-size: 12px; color: var(--muted); margin-top: 0; }
+.yir-banner-title { font-size: 13px; font-weight: 600; color: #2f4157; letter-spacing: 0; }
+.yir-banner-sub   { font-size: 12px; color: #6385a2; margin-top: 0; }
 .yir-banner-text  { display: flex; flex-direction: column; gap: 2px; }
 .yir-banner-icon  { font-size: 18px; flex-shrink: 0; }
-.yir-banner-arrow { font-size: 14px; color: var(--muted); flex-shrink: 0; transition: transform 0.15s; }
+.yir-banner-arrow { font-size: 14px; color: #6385a2; flex-shrink: 0; transition: transform 0.15s; }
 .yir-banner:hover .yir-banner-arrow { transform: translateX(3px); }
 @media (max-width: 768px) {
   .yir-banner { margin-top: 12px; padding: 12px 16px; }
@@ -2688,18 +2688,18 @@ var YIR_P = {
 
   // Comeback detail woven into para 3 (replaces end of setsStat sentence when note found)
   comebackDoubles: [
-    "One of those came from a memorable spot — you were down {score} against {o1} and {o2} on {date} and still found a way to win.",
-    "That included a standout: down {score} against {o1} and {o2} on {date}, and you closed it out.",
+    "Worth noting though: on {date} you were down {score} against {o1} and {o2} and still found a way to win.",
+    "That said, on {date} against {o1} and {o2} you were down {score} and closed it out anyway.",
     "A remarkable turnaround on {date} — down {score} against {o1} and {o2} and you came back to win."
   ],
   comebackSingles: [
-    "One of those came from a memorable spot — you were down {score} against {o1} on {date} and still found a way to win.",
-    "That included a standout: down {score} against {o1} on {date}, and you closed it out.",
+    "Worth noting though: on {date} you were down {score} against {o1} and still found a way to win.",
+    "That said, on {date} against {o1} you were down {score} and closed it out anyway.",
     "A remarkable turnaround on {date} — down {score} against {o1} and you came back to win."
   ],
   comebackNoScore: [
-    "One of those came from behind against {o1} on {date}.",
-    "You fought back to win against {o1} on {date} — at least one of those came from behind."
+    "Worth noting though: you fought back to win against {o1} on {date}.",
+    "That said, at least one match this period had a comeback story — against {o1} on {date}."
   ],
 
   // Three-set character (third sentence of para 3)
@@ -2973,7 +2973,7 @@ function yirBuildParas(yearMatches, seed, isYearly) {
   // Opponents — priority: firstWin > nemesis > dominated > rematch, max 2
   var oMap = {};
   yearMatches.forEach(function(m){
-    var o=m.opponent1||m.opponent||''; if(!o) return;
+    var o=m.opp1||''; if(!o) return;
     if(!oMap[o]) oMap[o]={w:0,l:0,ms:[]};
     if(m.result==='W') oMap[o].w++; else oMap[o].l++;
     oMap[o].ms.push(m);
@@ -2985,7 +2985,7 @@ function yirBuildParas(yearMatches, seed, isYearly) {
   Object.keys(oMap).forEach(function(name){
     if(stories.length>=1) return;
     var d=oMap[name]; if(d.w===0) return;
-    var p=allMatches.filter(function(m){return (m.opponent1||m.opponent||'')===name&&m.year<curYear;});
+    var p=allMatches.filter(function(m){return (m.opp1||'')===name&&m.year<curYear;});
     var pW=p.filter(function(m){return m.result==='W';}).length;
     var pL=p.filter(function(m){return m.result==='L';}).length;
     if(pW===0&&pL>=2) stories.push({type:'firstwin',opp:name,prev:'0–'+pL});
@@ -3010,7 +3010,7 @@ function yirBuildParas(yearMatches, seed, isYearly) {
     Object.keys(oMap).forEach(function(name){
       if(stories.length>=2) return;
       var d=oMap[name]; if(d.ms.length<2) return;
-      var career=allMatches.filter(function(m){return (m.opponent1||m.opponent||'')===name;});
+      var career=allMatches.filter(function(m){return (m.opp1||'')===name;});
       if(career.length<2) return;
       var ps=d.ms.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
       if(ps[0].result==='L'&&ps.slice(1).some(function(m){return m.result==='W';}))
@@ -3054,13 +3054,13 @@ function yirBuildParas(yearMatches, seed, isYearly) {
   }
 
   if (doubleBagelMatch) {
-    var dbOpp = escHtml(doubleBagelMatch.opponent1||doubleBagelMatch.opponent||'your opponent');
-    if (doubleBagelMatch.opponent2) dbOpp += ' and ' + escHtml(doubleBagelMatch.opponent2);
+    var dbOpp = escHtml(doubleBagelMatch.opp1 || 'your opponent');
+    if (doubleBagelMatch.opp2) dbOpp += ' and ' + escHtml(doubleBagelMatch.opp2);
     p2 += ' ' + yirPick(YIR_P.doubleBagel, seed+14)
       .replace('{date}', yirFmtDate(doubleBagelMatch.date)).replace('{opp}', dbOpp);
   } else if (goldenSetMatch) {
-    var gsOpp = escHtml(goldenSetMatch.opponent1||goldenSetMatch.opponent||'your opponent');
-    if (goldenSetMatch.opponent2) gsOpp += ' and ' + escHtml(goldenSetMatch.opponent2);
+    var gsOpp = escHtml(goldenSetMatch.opp1 || 'your opponent');
+    if (goldenSetMatch.opp2) gsOpp += ' and ' + escHtml(goldenSetMatch.opp2);
     p2 += ' ' + yirPick(YIR_P.goldenSet, seed+14)
       .replace('{date}', yirFmtDate(goldenSetMatch.date)).replace('{opp}', gsOpp);
   }
@@ -3102,8 +3102,8 @@ function yirBuildParas(yearMatches, seed, isYearly) {
       // not necessarily a first-set deficit comeback
       if (comebackMatch) {
         var cDate = yirFmtDate(comebackMatch.date);
-        var cO1   = escHtml(comebackMatch.opponent1 || comebackMatch.opponent || 'your opponent');
-        var cO2   = comebackMatch.opponent2 ? escHtml(comebackMatch.opponent2) : null;
+        var cO1   = escHtml(comebackMatch.opp1 || 'your opponent');
+        var cO2   = comebackMatch.opp2 ? escHtml(comebackMatch.opp2) : null;
         var isDbl = !!(comebackMatch.partner || (comebackMatch.type||'').toLowerCase().includes('doubles'));
         if (comebackScore && isDbl && cO2) {
           p3 += ' ' + yirPick(YIR_P.comebackDoubles, seed+13)
@@ -3203,8 +3203,8 @@ function yirBuildParas(yearMatches, seed, isYearly) {
     });
   }
   if (heartbreakMatch) {
-    var hbOpp = escHtml(heartbreakMatch.opponent1||heartbreakMatch.opponent||'your opponent');
-    if (heartbreakMatch.opponent2) hbOpp += ' and ' + escHtml(heartbreakMatch.opponent2);
+    var hbOpp = escHtml(heartbreakMatch.opp1 || 'your opponent');
+    if (heartbreakMatch.opp2) hbOpp += ' and ' + escHtml(heartbreakMatch.opp2);
     p7parts.push(yirPick(YIR_P.heartbreak, seed+22)
       .replace('{opp}', hbOpp).replace('{date}', yirFmtDate(heartbreakMatch.date)));
   }
