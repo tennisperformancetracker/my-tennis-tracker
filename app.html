@@ -457,7 +457,9 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
   font-size: 13px; padding: 9px 12px; outline: none; transition: border-color 0.2s;
   appearance: none; -webkit-appearance: none; box-sizing: border-box; max-width: 100%;
+  height: 39px;
 }
+.field textarea { height: auto; }
 .field select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
@@ -6187,7 +6189,7 @@ function renderEntry() {
         <div class="entry-pair">
           <div class="field">
             <div class="field-label">Date</div>
-            <input type="date" id="e-date" style="color-scheme:light">
+            <input type="date" id="e-date" style="color-scheme:light;height:39px">
             <div class="field-error" id="err-date">Required</div>
           </div>
           <div class="field">
@@ -6219,7 +6221,7 @@ function renderEntry() {
         </div>
 
         <!-- Partner (doubles only) -->
-        <div id="e-doubles-fields" class="cond cond-hidden" style="margin-top:6px">
+        <div id="e-doubles-fields" class="cond cond-hidden" style="margin-top:10px">
           <div class="field">
             <div class="field-label">Partner <span class="required-dot"></span></div>
             <select id="e-partner" tabindex="-1" onchange="onEntryNewSelect('partner')">
