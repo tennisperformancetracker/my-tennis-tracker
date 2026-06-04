@@ -608,12 +608,15 @@ textarea:focus { border-color: var(--accent2) !important; }
 
 /* Toast */
 .toast {
-  position: fixed; bottom: 24px; right: 24px; background: var(--accent);
-  color: #fff; border-radius: 8px; padding: 12px 18px; font-size: 13px; font-weight: 500;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 700;
-  transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none;
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--accent); color: #fff; border-radius: 12px; padding: 16px 24px;
+  font-size: 15px; font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,0.25); z-index: 700;
+  opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
 }
-.toast.show { transform: translateY(0); opacity: 1; }
+@media (max-width: 600px) {
+  .toast { bottom: 80px; max-width: calc(100vw - 48px); white-space: normal; }
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 .toast.error { background: var(--danger); }
 
 /* Partner drilldown back btn */
@@ -1572,6 +1575,7 @@ async function loadAll() {
     if (validData.success) {
       validEntries = validData.validEntries;
       if (validData.entries)    veEntries    = validData.entries;
+      else if (validData.validEntries) veEntries = validData.validEntries;
       if (validData.thresholds) {
         veThresholds = validData.thresholds;
         localStorage.setItem('thresholdGreat', veThresholds.great);
@@ -1630,9 +1634,10 @@ async function loadAll() {
 // ── Navigation always stays in app.html ─────────────────────
 let settingsDirty = false;
 let settingsPendingPage = null;
+let isSaving = false;
 
 function navigateTo(page) {
-  if (currentPage === 'settings' && settingsDirty && page !== 'settings') {
+  if (currentPage === 'settings' && settingsDirty && !isSaving && page !== 'settings') {
     settingsPendingPage = page;
     document.getElementById('settings-unsaved-overlay').classList.add('visible');
     return;
@@ -1665,6 +1670,7 @@ function closeSidebar() {
 // NAVIGATION
 // 
 function showSaving(msg) {
+  isSaving = true;
   let el = document.getElementById('saving-overlay');
   if (!el) {
     el = document.createElement('div');
@@ -1676,6 +1682,7 @@ function showSaving(msg) {
   el.style.display = 'flex';
 }
 function hideSaving() {
+  isSaving = false;
   const el = document.getElementById('saving-overlay');
   if (el) el.style.display = 'none';
 }
@@ -6457,6 +6464,11 @@ function onEntryTypeChange() {
   // Tab order: disable tabbing into hidden doubles fields
   const doublesInputs = document.querySelectorAll('#e-doubles-fields input, #e-doubles-fields select, #e-opp2-field input, #e-opp2-field select');
   doublesInputs.forEach(el => { el.tabIndex = isDb ? 0 : -1; });
+  // Clear doubles-only validation errors when switching to singles
+  if (!isDb) {
+    setErr('partner', false);
+    setErr('opp2', false);
+  }
   applyDefaultPartner();
 }
 function onEntryPlayoffChange() {
