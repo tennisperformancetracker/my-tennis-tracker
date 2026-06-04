@@ -5198,6 +5198,7 @@ async function saveAllSettings() {
   const bannerBtn = document.getElementById('settings-banner-save');
   const banner = document.getElementById('settings-dirty-banner');
   [btn, mobBtn, bannerBtn].forEach(b => { if (b) { b.textContent = 'Saving…'; b.disabled = true; } });
+  showSaving('Saving settings…');
   try {
     await Promise.all([
       saveDashboardCards(true),
@@ -5213,8 +5214,10 @@ async function saveAllSettings() {
     showToast('✓ All settings saved!');
   } catch(e) {
     showToast('Save failed: ' + e.message, true);
+  } finally {
+    hideSaving();
+    [btn, mobBtn, bannerBtn].forEach(b => { if (b) { b.textContent = 'Save now'; b.disabled = false; } });
   }
-  [btn, mobBtn, bannerBtn].forEach(b => { if (b) { b.textContent = 'Save now'; b.disabled = false; } });
 }
 
 function renderSettings() {
