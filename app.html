@@ -5164,7 +5164,7 @@ function markSettingsDirty() {
     banner.style.display = 'flex';
     // Set correct position immediately based on current scroll
     const isMobile = window.innerWidth <= 768;
-    const topbarHeight = isMobile ? 52 : 56;
+    const topbarHeight = isMobile ? 53 : 57;
     const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
     const top = Math.max(0, topbarHeight - scrollY);
     banner.style.top = top + 'px';
@@ -5180,7 +5180,7 @@ function initBannerScroll() {
     const banner = document.getElementById('settings-dirty-banner');
     if (!banner || banner.style.display === 'none') return;
     const isMobile = window.innerWidth <= 768;
-    const topbarHeight = isMobile ? 52 : 56;
+    const topbarHeight = isMobile ? 53 : 57;
     const left = isMobile ? '0' : '240px';
     const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
     const top = Math.max(0, topbarHeight - scrollY);
@@ -5227,14 +5227,14 @@ function renderSettings() {
   const poor  = parseInt(localStorage.getItem('thresholdPoor')  || '45');
   const currentUrl = webAppUrl || '';
 
-  const saveBtnHtml = `<button id="settings-global-save" onclick="saveAllSettings()" style="background:#e8f0f7;color:#3b6ea8;border:1px solid #c2d3ef;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;padding:8px 20px;cursor:pointer;white-space:nowrap;">💾 Save</button>`;
+  const saveBtnHtml = `<button id="settings-global-save" onclick="saveAllSettings()" style="background:#e8f0f7;color:#3b6ea8;border:1px solid #c2d3ef;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;padding:7px 16px;cursor:pointer;white-space:nowrap;">Save now</button>`;
   const saveBtnMobHtml = `<button id="settings-global-save-mob" onclick="saveAllSettings()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;white-space:nowrap;">💾 Save</button>`;
   document.getElementById('topbar-right').innerHTML = saveBtnHtml;
   const mtr = document.getElementById('mob-topbar-right');
   if (mtr) mtr.innerHTML = saveBtnMobHtml;
   document.getElementById('mobile-filters').innerHTML = '';
   const dirtyBanner = document.getElementById('settings-dirty-banner');
-  if (dirtyBanner) { dirtyBanner.style.display = 'none'; dirtyBanner.style.top = window.innerWidth <= 768 ? '52px' : '56px'; }
+  if (dirtyBanner) { dirtyBanner.style.display = 'none'; dirtyBanner.style.top = window.innerWidth <= 768 ? '53px' : '57px'; }
   window._bannerScrollBound = false;
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
