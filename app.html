@@ -1361,7 +1361,7 @@ textarea:focus { border-color: var(--accent2) !important; }
   <div class="mobile-filters" id="mobile-filters"></div>
 
   <!-- SETTINGS UNSAVED BANNER -->
-  <div id="settings-dirty-banner" style="display:none;align-items:center;justify-content:space-between;gap:12px;background:#fff8ec;border-top:3px solid #f0d080;border-bottom:1px solid #f0d080;padding:9px 20px;position:fixed;top:65px;left:240px;right:0;z-index:89;box-sizing:border-box;">
+  <div id="settings-dirty-banner" style="display:none;align-items:center;justify-content:space-between;gap:12px;background:#fff8ec;border-bottom:2px solid #f0d080;padding:9px 20px;position:fixed;top:0;left:240px;right:0;z-index:95;box-sizing:border-box;">
     <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#8a5c00;font-family:var(--font);font-weight:500">
       <span style="width:7px;height:7px;border-radius:50%;background:#d4820a;flex-shrink:0;display:inline-block"></span>
       You have unsaved changes
@@ -5162,35 +5162,11 @@ function markSettingsDirty() {
   const banner = document.getElementById('settings-dirty-banner');
   if (banner) {
     banner.style.display = 'flex';
-    // Set correct position immediately based on current scroll
-    const isMobile = window.innerWidth <= 768;
-    const topbarHeight = isMobile ? 53 : 65;
-    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-    const top = Math.max(0, topbarHeight - scrollY);
-    banner.style.top = top + 'px';
-    banner.style.left = isMobile ? '0' : '240px';
+    banner.style.left = window.innerWidth <= 768 ? '0' : '240px';
   }
-  initBannerScroll();
 }
 
-function initBannerScroll() {
-  if (window._bannerScrollBound) return;
-  window._bannerScrollBound = true;
-  function onScroll() {
-    const banner = document.getElementById('settings-dirty-banner');
-    if (!banner || banner.style.display === 'none') return;
-    const isMobile = window.innerWidth <= 768;
-    const topbarHeight = isMobile ? 53 : 65;
-    const left = isMobile ? '0' : '240px';
-    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-    const top = Math.max(0, topbarHeight - scrollY);
-    banner.style.top = top + 'px';
-    banner.style.left = left;
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  document.addEventListener('scroll', onScroll, { passive: true });
-  document.body.addEventListener('scroll', onScroll, { passive: true });
-}
+function initBannerScroll() {}
 
 async function saveAllSettings() {
   const btn = document.getElementById('settings-global-save');
@@ -5209,7 +5185,7 @@ async function saveAllSettings() {
     settingsDirty = false;
     if (banner) {
       banner.style.display = 'none';
-      banner.style.top = window.innerWidth <= 768 ? '53px' : '65px';
+      banner.style.top = '0';
     }
     showToast('✓ All settings saved!');
   } catch(e) {
@@ -5234,7 +5210,7 @@ function renderSettings() {
   if (mtr) mtr.innerHTML = saveBtnMobHtml;
   document.getElementById('mobile-filters').innerHTML = '';
   const dirtyBanner = document.getElementById('settings-dirty-banner');
-  if (dirtyBanner) { dirtyBanner.style.display = 'none'; dirtyBanner.style.top = window.innerWidth <= 768 ? '53px' : '65px'; }
+  if (dirtyBanner) { dirtyBanner.style.display = 'none'; dirtyBanner.style.top = '0'; }
   window._bannerScrollBound = false;
 
   const col1 = PERF_CATS_ALL.slice(0, 7);
