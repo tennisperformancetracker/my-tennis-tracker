@@ -2158,20 +2158,27 @@ function buildKPIs(matches, curYearMatches) {
   // Tiebreak record
   var tbW = 0, tbL = 0, tbSznW = 0, tbSznL = 0, tb3W = 0, tb3L = 0;
   var curYrTBMatches = allMatches.filter(function(m){ return m.year === curYear; });
-  function isTB(nw, nl) { return nw!==null && nl!==null && nw+nl>=12 && Math.abs(nw-nl)<=2 && (nw===7||nl===7); }
+  function isTB(nw, nl, oppRet, weRet) {
+    if (nw===null || nl===null) return false;
+    if (nw===7 && nl===6) return true;
+    if (nw===6 && nl===7) return true;
+    if (!oppRet && !weRet && nw===1 && nl===0) return true;
+    if (!oppRet && !weRet && nw===0 && nl===1) return true;
+    return false;
+  }
   matches.forEach(function(m) {
     [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
       var nw=num(pair[0]), nl=num(pair[1]);
-      if (isTB(nw,nl)) { if(nw>nl) tbW++; else tbL++; }
+      if (isTB(nw,nl,m.oppRet,m.weRet)) { if(nw>nl) tbW++; else tbL++; }
     });
   });
   curYrTBMatches.forEach(function(m) {
-    [[m.s1w,m.s1l],[m.s2w,m.s2l]].forEach(function(pair) {
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
       var nw=num(pair[0]), nl=num(pair[1]);
-      if (isTB(nw,nl)) { if(nw>nl) tbSznW++; else tbSznL++; }
+      if (isTB(nw,nl,m.oppRet,m.weRet)) { if(nw>nl) tbSznW++; else tbSznL++; }
     });
     var nw=num(m.s3w), nl=num(m.s3l);
-    if (nw!==null && nl!==null && nw+nl>=12 && (nw===7||nl===7)) { if(nw>nl) tb3W++; else tb3L++; }
+    if (isTB(nw,nl,m.oppRet,m.weRet)) { if(nw>nl) tb3W++; else tb3L++; }
   });
   var tbRate = tbW+tbL > 0 ? tbW/(tbW+tbL) : null;
 
