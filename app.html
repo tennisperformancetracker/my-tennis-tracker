@@ -5963,7 +5963,10 @@ async function saveUrlSettings() {
     updateUrlDisplay();
   }
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
-  settingsDirty = false; showToast('✓ Connection saved!');
+  settingsDirty = false;
+  const banner = document.getElementById('settings-dirty-banner');
+  if (banner) banner.style.display = 'none';
+  showToast('✓ Connection saved!');
   if (urlVal && urlVal.startsWith('https://')) setTimeout(() => loadAll(), 600);
 }
 
