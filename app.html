@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6183,10 +6183,10 @@ function renderEntry() {
           </div>
           <div class="field">
             <div class="field-label">Type <span class="required-dot"></span></div>
-            <select id="e-type" onchange="onEntryTypeChange();onEntryNewSelect('type')">
+            <select id="e-type" onchange="if(this.value!=='__new__')onEntryTypeChange();onEntryNewSelect('type')">
               <option value="">— Select —</option>
-              <option value="__new__">+ Add new…</option>
               ${(validEntries.type||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
+              <option value="__new__">+ Add new…</option>
             </select>
             <div class="field-error" id="err-type">Required</div>
           </div>
