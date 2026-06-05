@@ -1599,6 +1599,7 @@ async function loadAll() {
           const cats = s.perfCats.split(',').map(c => c.trim()).filter(Boolean);
           if (cats.length > 0) localStorage.setItem('perfCats', JSON.stringify(cats));
         }
+        if (s.app_version) window.APP_VERSION = s.app_version;
         if (s.optInEmail)  localStorage.setItem('settingsOptInEmail', s.optInEmail);
         if (s.optInStatus === 'true') {
           localStorage.setItem('settingsOptInDone', 'true');
@@ -5549,6 +5550,11 @@ function renderSettings() {
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- ── VERSION ── -->
+      <div style="text-align:center;padding:12px 0 4px;">
+        <div style="font-size:11px;color:var(--muted)">© 2026 Match Tracker Pro · v${(window.APP_VERSION || '1.0.0')}</div>
       </div>
 
     </div>
