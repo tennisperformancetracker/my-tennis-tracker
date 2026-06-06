@@ -722,7 +722,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 
   /* Topbar — dark on mobile */
   .topbar { background: #2f4157; padding: 0 14px; height: 52px; border-bottom: none; }
-  .topbar-title { font-size: 16px; font-weight: 700; color: #fff; }
+  .topbar-title { font-size: 16px; font-weight: 700; color: #fff; overflow: hidden; word-break: break-word; }
   .topbar-right { display: none; }
   #mob-topbar-right { display: flex !important; }
   #settings-dirty-banner { left: 0 !important; }
@@ -1608,9 +1608,9 @@ async function loadAll() {
           settingsOptInSubmitted = true;
         }
         // Dashboard card order
-        if (s.dashboardCards) {
-          const cards = s.dashboardCards.split(',').map(c => c.trim()).filter(Boolean);
-          if (cards.length > 0) localStorage.setItem('dashboardCards', JSON.stringify(cards));
+        if (s.dashboardCards !== undefined && s.dashboardCards !== null) {
+          const cards = s.dashboardCards === '__empty__' ? [] : s.dashboardCards.split(',').map(c => c.trim()).filter(Boolean);
+          localStorage.setItem('dashboardCards', JSON.stringify(cards));
         }
         // Match Entry Defaults
         ['defaultType','defaultSeason','defaultLeague','defaultLevel','defaultSurface','defaultLocation'].forEach(k => {
@@ -2051,8 +2051,11 @@ const KPI_DEFAULT_ORDER = ['overall','year','streak','last10'];
 
 function getDashboardCardOrder() {
   try {
-    var saved = JSON.parse(localStorage.getItem('dashboardCards') || 'null');
-    if (Array.isArray(saved) && saved.length > 0) return saved.slice(0, 5);
+    var raw = localStorage.getItem('dashboardCards');
+    if (raw !== null) {
+      var saved = JSON.parse(raw);
+      if (Array.isArray(saved)) return saved.slice(0, 5);
+    }
   } catch(e) {}
   return KPI_DEFAULT_ORDER;
 }
@@ -2417,14 +2420,13 @@ function buildKPIs(matches, curYearMatches) {
       }
 
       case 'active_league': {
-        var badge = activeLeague ? kpiBadge(escHtml(activeLeague), 'kpi2-badge-navy') : '';
+        var badge = alTopType ? kpiBadge(escHtml(alTopType), 'kpi2-badge-navy') : '';
         var alYears = alData ? (function(){
           var ys = {}; alData.matches.forEach(function(m){ if(m.year) ys[m.year]=1; });
           var sorted = Object.keys(ys).map(Number).sort();
           return sorted.length > 1 ? sorted[0] + '–' + sorted[sorted.length-1] : sorted.length ? String(sorted[0]) : '';
         })() : '';
-        var alTypeLabel = alTopType ? escHtml(alTopType) : '—';
-        var valHtml = '<div class="kpi2-partner-name">' + alTypeLabel + '</div>';
+        var valHtml = '<div class="kpi2-partner-name">' + (activeLeague ? escHtml(activeLeague) : '—') + '</div>';
         var sub = alRate!==null ? '<span style="color:' + kpiThreshColor(alRate,great,poor) + ';font-weight:600">' + rPct(alRate) + '</span> win rate · ' + (alW+alL) + ' matches' : '';
         var mini = kpiMiniStats([
           ['Record',  alW + '–' + alL, ''],
@@ -3233,7 +3235,9 @@ function refreshPartnersTable() {
     mainPanel.innerHTML = buildOpponentsTable(matches, filterState.opponents.sortCol, filterState.opponents.threshold);
   } else {
     filterState.partners.threshold = parseInt(document.getElementById('partners-threshold')?.value || '5');
+    const wasExpanded = document.getElementById('partners-hidden-body')?.style.display !== 'none';
     mainPanel.innerHTML = buildPartnersTable(matches, filterState.partners.sortCol, filterState.partners.threshold);
+    if (wasExpanded) togglePartnersExpand();
     // Re-render only the KPI cards so Best Partner card reflects new threshold
     const kpiGrid = document.getElementById('kpi-grid-main');
     if (kpiGrid) {
@@ -3407,8 +3411,11 @@ function drillSplit(key, partner, opponent) {
 }
 
 function viewPartnerHistory(name) {
+  dashboardReturnState = null;
+  if (_histTimer) { clearTimeout(_histTimer); _histTimer = null; }
   dashboardReturnState = { scrollY: window.scrollY, drillPartner: name, drillOpponent: null };
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
+  filterState.history.partner = name;
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -3569,6 +3576,8 @@ function drillOpponent(name) {
 }
 
 function viewOpponentHistory(name) {
+  dashboardReturnState = null;
+  if (_histTimer) { clearTimeout(_histTimer); _histTimer = null; }
   dashboardReturnState = { scrollY: window.scrollY, drillPartner: null, drillOpponent: name };
   filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
   filterState.history.opponent = name.toLowerCase();
@@ -3665,18 +3674,18 @@ function renderHistory(page, preFilterPartner) {
       tb_w_all:'All Tiebreak Matches', close_w_all:'All Close Matches', playoff_w_all:'All Playoff Matches'
     };
     const baseLabel = sfLabels[filterState.history.splitFilter] || 'Match History';
-    if (partnerFilter) histTitle = `${baseLabel} with ${formatPartnerName(partnerFilter)}`;
-    else if (opponentFilter) histTitle = `${baseLabel} vs ${opponentFilter}`;
+    if (partnerFilter) histTitle = `${baseLabel}\nwith ${formatPartnerName(partnerFilter)}`;
+    else if (opponentFilter) histTitle = `${baseLabel}\nvs ${opponentFilter}`;
     else histTitle = baseLabel;
-  } else if (partnerFilter && opponentFilter) histTitle = `Match History with ${partnerFilter} against ${opponentFilter}`;
-  else if (partnerFilter)  histTitle = `Match History with ${partnerFilter}`;
-  else if (opponentFilter) histTitle = `Match History against ${opponentFilter}`;
-  document.getElementById('topbar-title').textContent = histTitle;
+  } else if (partnerFilter && opponentFilter) histTitle = `Match History\nwith ${partnerFilter} against ${opponentFilter}`;
+  else if (partnerFilter)  histTitle = `Match History\nwith ${partnerFilter}`;
+  else if (opponentFilter) histTitle = `Match History\nagainst ${opponentFilter}`;
+  document.getElementById('topbar-title').innerHTML = histTitle.replace(/\n/g, '<br>');
 
   document.getElementById('mobile-filters').innerHTML = '';
   const mobTopbarRight = document.getElementById('mob-topbar-right');
   if (mobTopbarRight) mobTopbarRight.innerHTML = (dashboardReturnState
-    ? `<button onclick="backToDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 10px;cursor:pointer;white-space:nowrap;height:30px;box-sizing:border-box;">← Back</button>`
+    ? `<button onclick="backToDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 10px;cursor:pointer;white-space:nowrap;height:30px;box-sizing:border-box;">Back</button>`
     : '')
     + `<select onchange="filterState.history.sort=this.value;renderHistory()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;height:30px;box-sizing:border-box;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;"><option value="newest" ${sortOrder==='newest'?'selected':''}>Newest</option><option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest</option></select>`;
   document.getElementById('topbar-right').innerHTML = `
@@ -3814,6 +3823,13 @@ function renderHistory(page, preFilterPartner) {
   // Use insertAdjacentHTML so the filter bar above is NOT destroyed/recreated
   content.insertAdjacentHTML('beforeend', `<div id="hist-results" style="max-width:100%;overflow:hidden;width:100%">${buildHistoryResults(filtered, sortOrder)}</div>`);
   autoOpenHistFilters();
+  if (window.innerWidth > 768 && histInsightsWasCollapsed) {
+    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    histInsightsWasCollapsed = false;
+  }
 }
 
 function buildHistoryResults(filtered, sortOrder) {
@@ -4010,10 +4026,13 @@ function buildHistoryResults(filtered, sortOrder) {
       '<div style="padding:5px 0;border-top:1px solid var(--border);font-size:12px;color:var(--label);line-height:1.6;">' + partnerText + '</div>'
     + partnerListHtml;
 
-  var tbRow = '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
-    + '<span style="font-size:12px;color:var(--label);white-space:nowrap">Tiebreaks</span>'
-    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap">' + tbW + '–' + tbL
-    + ' &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
+  var tbRow = (tbW === 0 && tbL === 0) ? '' :
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
+    + '<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;max-width:55%;">'
+    + '<span style="font-size:12px;color:var(--label);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Tiebreaks</span>'
+    + '</div>'
+    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap;flex-shrink:0">' + tbW + '–' + tbL
+    + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
     + '</div>';
 
   var enabledCats = getPerfCats();
@@ -4111,11 +4130,9 @@ function buildHistoryResults(filtered, sortOrder) {
   }
 
   // On desktop, collapse cards when navigating from a dashboard link
-  if (!isMob && histInsightsCollapsed) {
-    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
-      cardsHtml = cardsHtml.replace('id="' + id + '" style="display:block', 'id="' + id + '" style="display:none');
-    });
-  }
+  // (DOM manipulation happens after innerHTML is set — see setTimeout below)
+  var wasCollapsed = histInsightsCollapsed;
+  histInsightsWasCollapsed = wasCollapsed;
   histInsightsCollapsed = false; // reset after use
 
   var desktopToggle = isMob ? '' :
@@ -4123,7 +4140,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + '<button id="hist-cards-toggle-btn" onclick="toggleAllHistCards()" '
     + 'style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:3px 20px;'
     + 'font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);line-height:1">'
-    + (histInsightsCollapsed
+    + (wasCollapsed
       ? '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More'
       : '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 4L4.5 1L8 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Less')
     + '</button></div>';
@@ -4148,6 +4165,7 @@ function buildHistoryResults(filtered, sortOrder) {
 var _histTimer = null;
 var histFiltersOpen = false; // persists across re-renders
 var histInsightsCollapsed = false; // set true when navigating from dashboard links
+var histInsightsWasCollapsed = false; // preserved after reset for post-render DOM use
 var dashboardReturnState = null; // stores scroll + drill state for back-to-dashboard
 
 function onHistOpponentInput(val) {
@@ -4225,6 +4243,14 @@ function applyHistoryFilter() {
   resultsEl.style.overflow = 'hidden';
   resultsEl.style.width = '100%';
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
+  // Collapse insight cards via DOM after render — avoids fragile string replace
+  if (!isMob && histInsightsWasCollapsed) {
+    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    histInsightsWasCollapsed = false;
+  }
 }
 
 function toggleHistCard(id) {
@@ -5896,7 +5922,7 @@ async function saveDashboardCards(silent) {
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const sel = window._pickerSelected !== undefined ? window._pickerSelected : getDashboardCardOrder();
   localStorage.setItem('dashboardCards', JSON.stringify(sel));
-  try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:{dashboardCards: sel.join(',')}})}); } catch(e) {}
+  try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:{dashboardCards: sel.length > 0 ? sel.join(',') : '__empty__'}})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
   if (!silent) { settingsDirty = false; showToast('✓ Dashboard cards saved!'); }
 }
@@ -7272,9 +7298,10 @@ function getEarnedBadges() {
 function getEarnedDates() {
   try { return JSON.parse(localStorage.getItem('earnedBadgeDates') || '{}'); } catch(e) { return {}; }
 }
-async function persistEarnedBadges(ids, dates) {
+async function persistEarnedBadges(ids, dates, matchCount) {
   localStorage.setItem('earnedBadges', ids.join(','));
   localStorage.setItem('earnedBadgeDates', JSON.stringify(dates));
+  if (matchCount !== undefined) localStorage.setItem('earnedBadgeMatchCount', String(matchCount));
   try {
     await fetch(webAppUrl, {
       method: 'POST',
@@ -7347,14 +7374,22 @@ function replayBadgeHistory(matches) {
 async function computeBadges(matches) {
   const alreadyEarned = getEarnedBadges();
   const dates = getEarnedDates();
+  const lastMatchCount = parseInt(localStorage.getItem('earnedBadgeMatchCount') || '0', 10);
 
   // Fresh setup with no earned badges — run full historical replay
   if (alreadyEarned.length === 0 && matches.length > 0) {
     const { earned: replayEarned, dates: replayDates } = replayBadgeHistory(matches);
     if (replayEarned.length > 0) {
-      await persistEarnedBadges(replayEarned, replayDates);
+      await persistEarnedBadges(replayEarned, replayDates, matches.length);
     }
     // Don't show modals for replayed badges — just return empty
+    return [];
+  }
+
+  // Data was removed — rerun full replay to revoke badges no longer valid
+  if (matches.length < lastMatchCount) {
+    const { earned: replayEarned, dates: replayDates } = replayBadgeHistory(matches);
+    await persistEarnedBadges(replayEarned, replayDates, matches.length);
     return [];
   }
 
@@ -7392,14 +7427,14 @@ async function computeBadges(matches) {
     });
   });
 
-  if (newlyEarned.length > 0) await persistEarnedBadges(alreadyEarned, dates);
+  await persistEarnedBadges(alreadyEarned, dates, matches.length);
   return newlyEarned;
 }
 
 // Manual recalculate — wipes dates and reruns full replay
 async function recalcBadgeDates(matches) {
   const { earned: replayEarned, dates: replayDates } = replayBadgeHistory(matches);
-  await persistEarnedBadges(replayEarned, replayDates);
+  await persistEarnedBadges(replayEarned, replayDates, matches.length);
   showToast('✓ Badge dates recalculated from match history');
 }
 
