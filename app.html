@@ -3853,11 +3853,11 @@ function buildHistoryResults(filtered, sortOrder) {
     const tipIcon = label.match(/<span[^>]*class="tip-icon"[^>]*>[\s\S]*?<\/span>/)?.[0] || '';
     const plainLabel = label.replace(/<span[^>]*class="tip-icon"[^>]*>[\s\S]*?<\/span>/g, '').replace(/<[^>]*>/g, '').trim();
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
-      + '<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;max-width:55%;">'
+      + '<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;">'
       + '<span style="font-size:12px;color:var(--label);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">' + plainLabel + '</span>'
       + tipIcon
       + '</div>'
-      + '<span style="font-size:12px;font-weight:600;color:' + col + ';white-space:nowrap;flex-shrink:0">' + w + '–' + l
+      + '<span style="font-size:12px;font-weight:600;color:' + col + ';white-space:nowrap;flex-shrink:0;text-align:right;min-width:90px">' + w + '–' + l
       + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + p + '</span></span>'
       + '</div>';
   }
@@ -3956,8 +3956,8 @@ function buildHistoryResults(filtered, sortOrder) {
     var sorted = pQual.slice().sort((a,b) => b.pv - a.pv).slice(0,5);
     partnerListHtml = sorted.map(function(p) {
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
-          + '<span class="tip" data-tip="' + p.n + '" style="font-size:12px;color:var(--label);min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(formatPartnerName(p.n)) + '</span>'
-          + '<span style="font-size:12px;font-weight:600;color:' + wlColor(p.w,p.l) + ';white-space:nowrap">' + p.w + '–' + p.l
+          + '<span class="tip" data-tip="' + p.n + '" style="font-size:12px;color:var(--label);min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(formatPartnerName(p.n)) + '</span>'
+          + '<span style="font-size:12px;font-weight:600;color:' + wlColor(p.w,p.l) + ';white-space:nowrap;flex-shrink:0;text-align:right;min-width:90px">' + p.w + '–' + p.l
           + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(p.w,p.l) + '</span></span>'
           + '</div>';
       }).join('');
@@ -4028,10 +4028,10 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var tbRow = (tbW === 0 && tbL === 0) ? '' :
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:8px;min-width:0;">'
-    + '<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;max-width:55%;">'
+    + '<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;">'
     + '<span style="font-size:12px;color:var(--label);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Tiebreaks</span>'
     + '</div>'
-    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap;flex-shrink:0">' + tbW + '–' + tbL
+    + '<span style="font-size:12px;font-weight:600;color:' + tbColor + ';white-space:nowrap;flex-shrink:0;text-align:right;min-width:90px">' + tbW + '–' + tbL
     + '&nbsp;&nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">' + pct(tbW,tbL) + '</span></span>'
     + '</div>';
 
