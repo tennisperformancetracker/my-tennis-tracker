@@ -2178,11 +2178,15 @@ function buildKPIs(matches, curYearMatches) {
       if (isTB(nw,nl,m.oppRet,m.weRet)) { if(nw>nl) tbW++; else tbL++; }
     });
   });
+  // This year tiebreaks
   curYrTBMatches.forEach(function(m) {
     [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
       var nw=num(pair[0]), nl=num(pair[1]);
       if (isTB(nw,nl,m.oppRet,m.weRet)) { if(nw>nl) tbSznW++; else tbSznL++; }
     });
+  });
+  // 3rd-set TBs — all time, set 3 only
+  matches.forEach(function(m) {
     var nw=num(m.s3w), nl=num(m.s3l);
     if (isTB(nw,nl,m.oppRet,m.weRet)) { if(nw>nl) tb3W++; else tb3L++; }
   });
@@ -4020,14 +4024,12 @@ function buildHistoryResults(filtered, sortOrder) {
 
   var card3Header = '<div style="display:flex;align-items:center;gap:4px;margin-left:8px">'
     + '<span style="font-size:10px;color:var(--muted)">Min</span>'
-    + '<select onchange="filterState.histPartnerMin=parseInt(this.value);refreshHistPartnerCard()" onclick="event.stopPropagation()" style="font-size:11px;padding:2px 16px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);outline:none">'
+    + '<select onchange="filterState.histPartnerMin=parseInt(this.value);renderHistoryFiltered()" onclick="event.stopPropagation()" style="font-size:11px;padding:2px 16px 2px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);outline:none">'
     + minOpts + '</select></div>';
 
   var card3Body =
-      '<div id="hc-partner-body">'
-    + '<div style="padding:5px 0;border-top:1px solid var(--border);font-size:12px;color:var(--label);line-height:1.6;">' + partnerText + '</div>'
-    + partnerListHtml
-    + '</div>';
+      '<div style="padding:5px 0;border-top:1px solid var(--border);font-size:12px;color:var(--label);line-height:1.6;">' + partnerText + '</div>'
+    + partnerListHtml;
 
   var tbRow = (tbW === 0 && tbL === 0) ? '' :
     '<div style="display:flex;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:0;min-width:0;">'
@@ -4170,7 +4172,6 @@ function buildHistoryResults(filtered, sortOrder) {
 var _histTimer = null;
 var histFiltersOpen = false; // persists across re-renders
 var histInsightsCollapsed = false; // set true when navigating from dashboard links
-var _histFilteredMatches = []; // cached filtered matches for in-place partner card refresh
 var histInsightsWasCollapsed = false; // preserved after reset for post-render DOM use
 var dashboardReturnState = null; // stores scroll + drill state for back-to-dashboard
 
@@ -4195,80 +4196,6 @@ function onHistNotesInput(val) {
 function renderHistoryFiltered() {
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
-}
-
-// Refresh only the Partner Performance card body in-place (no full re-render)
-// Called when the min threshold select changes — avoids collapsing the insights panel on mobile
-function refreshHistPartnerCard() {
-  var bodyEl = document.getElementById('hc-partner-body');
-  if (!bodyEl) { renderHistoryFiltered(); return; }
-
-  var pMin = parseInt(filterState.histPartnerMin || 5);
-  var filtered = _histFilteredMatches.length ? _histFilteredMatches : allMatches;
-  var isMobView = window.innerWidth <= 768;
-
-  var great = parseFloat(localStorage.getItem('thresholdGreat') || '55') / 100;
-  var poor  = parseFloat(localStorage.getItem('thresholdPoor')  || '45') / 100;
-  function wlColor(w, l) {
-    var tot = w + l;
-    if (!tot) return 'var(--muted)';
-    var r = w / tot;
-    return r >= great ? 'var(--win)' : r < poor ? 'var(--loss)' : 'var(--warn)';
-  }
-  function pct(w, l) {
-    var tot = w + l;
-    return tot ? (w / tot * 100).toFixed(0) + '%' : '—';
-  }
-
-  var partnerMap = {};
-  filtered.filter(function(m) { return m.partner && m.partner !== 'None' && m.partner !== ''; }).forEach(function(m) {
-    if (!partnerMap[m.partner]) partnerMap[m.partner] = {w:0, l:0};
-    if (m.result === 'W') partnerMap[m.partner].w++; else partnerMap[m.partner].l++;
-  });
-  var pList = Object.entries(partnerMap).map(function(e) {
-    return {n: e[0], w: e[1].w, l: e[1].l, t: e[1].w + e[1].l, pv: e[1].w / (e[1].w + e[1].l) || 0};
-  });
-  var pQual = pList.filter(function(p) { return p.t >= pMin; });
-  var mostWins = pQual.length ? pQual.reduce(function(a,b) { return a.w > b.w ? a : b; }) : null;
-  var bestPct  = pQual.length ? pQual.reduce(function(a,b) { return a.pv > b.pv ? a : b; }) : null;
-
-  function tipName(n) {
-    if (isMobView) return '<strong>' + escHtml(n) + '</strong>';
-    var esc = escHtml(n);
-    var display = escHtml(formatPartnerName(n));
-    return '<strong class="tip" data-tip="' + esc + '" style="max-width:120px;display:inline-block;vertical-align:bottom">' + display + '</strong>';
-  }
-
-  var partnerText = '';
-  if (mostWins) {
-    if (isMobView) {
-      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + ').';
-      if (bestPct && bestPct.n !== mostWins.n)
-        partnerText += ' Highest % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%).';
-    } else {
-      partnerText = 'Most wins with ' + tipName(mostWins.n) + ' (' + mostWins.w + '–' + mostWins.l + ').';
-      if (bestPct && bestPct.n !== mostWins.n)
-        partnerText += ' Best % with ' + tipName(bestPct.n) + ' (' + (bestPct.pv * 100).toFixed(0) + '%, ' + bestPct.w + '–' + bestPct.l + ').';
-    }
-  } else {
-    partnerText = 'No partners with ' + pMin + '+ matches.';
-  }
-
-  var partnerListHtml = '';
-  if (pQual.length >= 1) {
-    var sorted = pQual.slice().sort(function(a,b) { return b.pv - a.pv; }).slice(0, 5);
-    partnerListHtml = sorted.map(function(p) {
-      return '<div style="display:flex;align-items:center;padding:5px 0;border-top:1px solid var(--border);gap:0;min-width:0;">'
-        + '<span class="tip" data-tip="' + p.n + '" style="font-size:12px;color:var(--label);min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(formatPartnerName(p.n)) + '</span>'
-        + '<span style="font-size:12px;font-weight:600;color:' + wlColor(p.w,p.l) + ';white-space:nowrap;flex-shrink:0;text-align:right;min-width:72px">' + p.w + '–' + p.l + '</span>'
-        + '<span style="font-size:11px;font-weight:400;color:var(--muted);white-space:nowrap;flex-shrink:0;text-align:right;min-width:46px">' + pct(p.w,p.l) + '</span>'
-        + '</div>';
-    }).join('');
-  }
-
-  bodyEl.innerHTML =
-      '<div style="padding:5px 0;border-top:1px solid var(--border);font-size:12px;color:var(--label);line-height:1.6;">' + partnerText + '</div>'
-    + partnerListHtml;
 }
 
 function applyHistoryFilter() {
@@ -4322,8 +4249,6 @@ function applyHistoryFilter() {
   resultsEl.style.maxWidth = '100%';
   resultsEl.style.overflow = 'hidden';
   resultsEl.style.width = '100%';
-  // Cache filtered matches for in-place partner card refresh
-  _histFilteredMatches = filtered;
   // Preserve mobile insights open/closed state before re-render
   var insightsEl = document.getElementById('hc-insights');
   var insightsWasOpen = insightsEl ? insightsEl.style.display !== 'none' : false;
@@ -5901,7 +5826,7 @@ function renderCardPicker() {
       }
       case 'tiebreak': {
         var tw2=0,tl2=0;
-        allMatches.forEach(function(m){[[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(p){var nw=num(p[0]),nl=num(p[1]);if(nw!==null&&nl!==null&&nw+nl>=12&&Math.abs(nw-nl)<=2&&(nw===7||nl===7)){if(nw>nl)tw2++;else tl2++;}});});
+        allMatches.forEach(function(m){[[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(p){var nw=num(p[0]),nl=num(p[1]);if(nw===null||nl===null)return;var isTB2=(nw===7&&nl===6)||(nw===6&&nl===7)||(!m.oppRet&&!m.weRet&&((nw===1&&nl===0)||(nw===0&&nl===1)));if(isTB2){if(nw>nl)tw2++;else tl2++;}});});
         var tr2=tw2+tl2>0?tw2/(tw2+tl2):null;
         return {val:tw2+'-'+tl2, sub:rPct(tr2)+' win rate', col:tr2===null?'var(--muted)':tr2>great?'var(--win)':tr2<poor?'var(--loss)':'var(--warn)'};
       }
