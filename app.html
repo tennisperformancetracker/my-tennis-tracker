@@ -2623,9 +2623,9 @@ function buildSplitsTable(matches, isDashboard, partnerContext, opponentContext)
   matches.forEach(m => {
     [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l]) => {
       const nw=num(w),nl=num(l);
-      if(nw===7&&nl===6) tbW++;
-      if(nw===6&&nl===7) tbL++;
-      if(!m.oppRet&&!m.weRet){ if(nw===1&&nl===0)tbW++; if(nw===0&&nl===1)tbL++; }
+      if (nw===null||nl===null) return;
+      const isTB = (nw===7&&nl===6)||(nw===6&&nl===7)||(!m.oppRet&&!m.weRet&&((nw===1&&nl===0)||(nw===0&&nl===1)));
+      if (isTB) { if(nw>nl) tbW++; else tbL++; }
     });
   });
 
@@ -3877,8 +3877,9 @@ function buildHistoryResults(filtered, sortOrder) {
   filtered.forEach(m => {
     [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
       var nw = num(pair[0]), nl = num(pair[1]);
-      if (nw === 7 && nl === 6) tbW++;
-      if (nw === 6 && nl === 7) tbL++;
+      if (nw===null||nl===null) return;
+      var isTB = (nw===7&&nl===6)||(nw===6&&nl===7)||(!m.oppRet&&!m.weRet&&((nw===1&&nl===0)||(nw===0&&nl===1)));
+      if (isTB) { if(nw>nl) tbW++; else tbL++; }
     });
   });
 
@@ -4013,9 +4014,9 @@ function buildHistoryResults(filtered, sortOrder) {
   filtered.forEach(function(m){ if (m.type) { if (!typeMap[m.type]) typeMap[m.type]={w:0,l:0}; if(m.result==='W') typeMap[m.type].w++; else typeMap[m.type].l++; } });
   var typeRows = Object.keys(typeMap).sort().map(function(t){ return insightRow(t, filtered.filter(function(m){ return m.type===t; })); }).join('');
 
-  var card1Body =
-      insightRow('Overall', filtered)
-    + typeRows;
+  var card1Body = filtered.length === 0
+    ? '<div style="font-size:13px;color:var(--muted);padding:8px 0">No matches found for the current filters.</div>'
+    : insightRow('Overall', filtered) + typeRows;
 
   var card3Header = '<div style="display:flex;align-items:center;gap:4px;margin-left:8px">'
     + '<span style="font-size:10px;color:var(--muted)">Min</span>'
@@ -4053,7 +4054,9 @@ function buildHistoryResults(filtered, sortOrder) {
     return s.some(function(v,i){ return i%2===0 && Math.abs(v-s[i+1])<=2; });
   }));
   if (enabledCats.includes('playoffs'))  card2Body += insightRow('Playoffs',      filtered.filter(function(m){ return m.playoff; }));
-  if (!card2Body) card2Body = '<div style="font-size:13px;color:var(--muted);padding:8px 0">No categories enabled. Enable them in Settings.</div>';
+  if (!card2Body) card2Body = filtered.length === 0
+    ? '<div style="font-size:13px;color:var(--muted);padding:8px 0">No matches found for the current filters.</div>'
+    : '<div style="font-size:13px;color:var(--muted);padding:8px 0">No categories enabled. <span style="text-decoration:underline;cursor:pointer" onclick="navigateToSettingsSection(\'sec-history\')">Enable them in Settings.</span></div>';
   
 
   // Table rows — wrap partner + score on mobile
