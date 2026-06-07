@@ -3947,8 +3947,8 @@ function buildHistoryResults(filtered, sortOrder) {
       var tbw = num(tbPairsH1[si][0]), tbl = num(tbPairsH1[si][1]);
       var useSup = '', oppSup = '';
       if (tbw !== null && tbl !== null) {
-        if (nw !== null && nl !== null && nw < nl) useSup = '<sup style="font-size:0.6em;vertical-align:super;font-weight:600">' + tbw + '</sup>';
-        if (nw !== null && nl !== null && nl < nw) oppSup = '<sup style="font-size:0.6em;vertical-align:super;font-weight:600">' + tbl + '</sup>';
+        if (nw !== null && nl !== null && nw < nl) useSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbw + '</sup>';
+        if (nw !== null && nl !== null && nl < nw) oppSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbl + '</sup>';
       }
       scoresHtml += '<span class="set-score ' + cls + '">' + w + useSup + '–' + l + oppSup + '</span>';
     });
@@ -4088,8 +4088,8 @@ function buildHistoryResults(filtered, sortOrder) {
       var tbw = num(tbPairsH2[si][0]), tbl = num(tbPairsH2[si][1]);
       var useSup = '', oppSup = '';
       if (tbw !== null && tbl !== null) {
-        if (nw !== null && nl !== null && nw < nl) useSup = '<sup style="font-size:0.6em;vertical-align:super;font-weight:600">' + tbw + '</sup>';
-        if (nw !== null && nl !== null && nl < nw) oppSup = '<sup style="font-size:0.6em;vertical-align:super;font-weight:600">' + tbl + '</sup>';
+        if (nw !== null && nl !== null && nw < nl) useSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbw + '</sup>';
+        if (nw !== null && nl !== null && nl < nw) oppSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbl + '</sup>';
       }
       scoresHtml += '<span class="set-score ' + cls + '">' + w + useSup + '–' + l + oppSup + '</span>';
     });
@@ -4424,8 +4424,8 @@ function openMatchDetail(idx) {
     // Show loser's tiebreak score as superscript on the loser's set score
     let useSup='', oppSup='';
     if (tbw!==null&&tbl!==null) {
-      if (nw!==null&&nl!==null&&nw<nl) useSup=`<sup style="font-size:0.55em;vertical-align:super;font-weight:600">${tbw}</sup>`;
-      if (nw!==null&&nl!==null&&nl<nw) oppSup=`<sup style="font-size:0.55em;vertical-align:super;font-weight:600">${tbl}</sup>`;
+      if (nw!==null&&nl!==null&&nw<nl) useSup=`<sup style="font-size:0.75em;vertical-align:super;font-weight:600">${tbw}</sup>`;
+      if (nw!==null&&nl!==null&&nl<nw) oppSup=`<sup style="font-size:0.75em;vertical-align:super;font-weight:600">${tbl}</sup>`;
     }
     scoresHtml += `<span class="detail-score-set ${cls}">${w}${useSup}–${l}${oppSup}</span>`;
   });
@@ -6315,16 +6315,16 @@ function renderEntry() {
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 1 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" oninput="scoreAutoAdvance('e-s1w','e-s1l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" oninput="scoreAutoAdvance('e-s1l','e-s2w')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" oninput="scoreAutoAdvance('e-s1l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
               <!-- Spacer matching Set 3 checkbox row height -->
-              <div style="height:22px;margin-top:5px"></div>
+              <div style="height:22px;margin-top:5px;margin-bottom:0"></div>
               <!-- Set 1 tiebreak reveal -->
               <div id="e-tb1-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score (optional)</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0;align-items:end">
                   <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb1w" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb1w','e-tb1l')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb1l" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb1l" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb1l','')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 </div>
               </div>
             </div>
@@ -6334,16 +6334,16 @@ function renderEntry() {
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" oninput="scoreAutoAdvance('e-s2w','e-s2l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" oninput="scoreAutoAdvance('e-s2l','e-s3w')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" oninput="scoreAutoAdvance('e-s2l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
               <!-- Spacer matching Set 3 checkbox row height -->
-              <div style="height:22px;margin-top:5px"></div>
+              <div style="height:22px;margin-top:5px;margin-bottom:0"></div>
               <!-- Set 2 tiebreak reveal -->
               <div id="e-tb2-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score (optional)</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0;align-items:end">
                   <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb2w" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb2w','e-tb2l')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb2l" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb2l" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb2l','')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 </div>
               </div>
             </div>
@@ -6353,7 +6353,7 @@ function renderEntry() {
               <div id="e-s3-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" oninput="scoreAutoAdvance('e-s3w','e-s3l')" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" oninput="scoreAutoAdvance('e-s3l','')" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
               <!-- Set 3: match tiebreak checkbox -->
               <div id="e-mtb-check-row" style="display:flex;margin-top:5px;align-items:center;gap:4px;cursor:pointer">
@@ -6365,15 +6365,15 @@ function renderEntry() {
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score (optional)</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0;align-items:end">
                   <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb3stdw" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb3stdw','e-tb3stdl')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb3stdl" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb3stdl" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb3stdl','')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 </div>
               </div>
               <!-- Set 3: match tiebreak score reveal -->
               <div id="e-tb3mtb-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Match tiebreak score</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0;align-items:end">
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb3w" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb3w','e-tb3l');onEntryMTBScoreChange()" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb3l" min="0" max="99" placeholder="" inputmode="numeric" oninput="onEntryMTBScoreChange()" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb3w" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAdvance2('e-tb3w','e-tb3l');onEntryMTBScoreChange()" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb3l" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAdvance2('e-tb3l','e-season');onEntryMTBScoreChange()" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 </div>
               </div>
             </div>
@@ -6686,10 +6686,48 @@ function onEntryMTBToggle() {
 function scoreAutoAdvance(currentId, nextId) {
   const el = document.getElementById(currentId);
   if (!el || el.value.length !== 1) return;
-  // Before advancing to s3, run score change to enable it if sets are split
+
+  // After Set 1 Opp: go to TB1 if tiebreak was entered, else Set 2 Us
+  if (currentId === 'e-s1l') {
+    onEntryScoreChange(); onEntryUpdateTBReveals();
+    const tb1 = document.getElementById('e-tb1-reveal');
+    if (tb1 && tb1.style.display !== 'none') {
+      const n = document.getElementById('e-tb1w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-s2w'); if (n) { n.focus(); n.select(); } return;
+  }
+
+  // After Set 2 Opp: go to TB2 if tiebreak, else Set 3 Us if needed, else Season
+  if (currentId === 'e-s2l') {
+    onEntryScoreChange(); onEntryUpdateTBReveals();
+    const tb2 = document.getElementById('e-tb2-reveal');
+    if (tb2 && tb2.style.display !== 'none') {
+      const n = document.getElementById('e-tb2w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const s3 = document.getElementById('e-s3-container');
+    if (s3 && s3.style.opacity !== '0.3') {
+      const n = document.getElementById('e-s3w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+
+  // After Set 3 Opp: go to TB3 if tiebreak or MTB, else Season
+  if (currentId === 'e-s3l') {
+    onEntryScoreChange(); onEntryUpdateTBReveals();
+    const tb3mtb = document.getElementById('e-tb3mtb-reveal');
+    if (tb3mtb && tb3mtb.style.display !== 'none') {
+      const n = document.getElementById('e-tb3w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const tb3std = document.getElementById('e-tb3std-reveal');
+    if (tb3std && tb3std.style.display !== 'none') {
+      const n = document.getElementById('e-tb3stdw'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+
+  // Set 3 Us → Set 3 Opp (need to enable s3 first)
   if (nextId === 'e-s3w') {
     onEntryScoreChange();
-    // Only advance if s3 is now enabled
     const s3 = document.getElementById('e-s3-container');
     if (!s3 || s3.style.opacity === '0.3') return;
   }
@@ -6700,6 +6738,31 @@ function scoreAutoAdvance(currentId, nextId) {
 function tbAutoAdvance(currentId, nextId) {
   const el = document.getElementById(currentId);
   if (!el || el.value.length !== 1) return;
+  // TB1 Opp → Set 2 Us
+  if (currentId === 'e-tb1l') {
+    const n = document.getElementById('e-s2w'); if (n) { n.focus(); n.select(); } return;
+  }
+  // TB2 Opp → Set 3 Us if needed, else Season
+  if (currentId === 'e-tb2l') {
+    const s3 = document.getElementById('e-s3-container');
+    if (s3 && s3.style.opacity !== '0.3') {
+      const n = document.getElementById('e-s3w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+  // TB3 std Opp → Season
+  if (currentId === 'e-tb3stdl') {
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+  // Default: advance to paired Opp field (Us inputs)
+  const next = document.getElementById(nextId);
+  if (next) { next.focus(); next.select(); }
+}
+
+// For match tiebreak fields that go to 10 — advance after 2 digits
+function tbAdvance2(currentId, nextId) {
+  const el = document.getElementById(currentId);
+  if (!el || el.value.length < 2) return;
   const next = document.getElementById(nextId);
   if (next) { next.focus(); next.select(); }
 }
@@ -7080,7 +7143,7 @@ function resetEntryForm() {
   document.querySelectorAll('#content .field-error').forEach(el => el.style.display = 'none');
   // Hide doubles fields and s3
   document.getElementById('e-doubles-fields')?.classList.add('cond-hidden');
-  document.getElementById('e-s3-container')?.setAttribute('style','opacity:0.3;pointer-events:none');
+  document.getElementById('e-s3-container')?.setAttribute('style','border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none');
   document.getElementById('e-playoff-row')?.classList.add('cond-hidden');
   // Hide all "new value" fields
   document.querySelectorAll('#content .field.hidden[id^="field-"]').forEach(el => {
@@ -7093,6 +7156,18 @@ function resetEntryForm() {
   if (dateEl) dateEl.value = `${y}-${mo}-${d}`;
   document.getElementById('entry-status') && (document.getElementById('entry-status').textContent = '');
   Object.keys(entryNewValues).forEach(k => delete entryNewValues[k]);
+  // Hide all tiebreak reveals
+  ['e-tb1-reveal','e-tb2-reveal','e-tb3std-reveal','e-tb3mtb-reveal'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  // Restore s3w/s3l if MTB had them locked
+  ['e-s3w','e-s3l'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.readOnly = false; el.style.color = ''; el.style.background = ''; }
+  });
+  // Reset Set 3 label
+  const s3label = document.getElementById('e-s3-label');
+  if (s3label) s3label.innerHTML = 'Set 3';
 }
 
 // 
