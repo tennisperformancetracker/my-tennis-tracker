@@ -6308,16 +6308,16 @@ function renderEntry() {
         <!-- Scores -->
         <div style="margin-top:10px">
           <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Score</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;min-width:0;align-items:stretch">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;min-width:0;align-items:start">
 
             <!-- Set 1 -->
-            <div id="e-s1-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);display:flex;flex-direction:column">
+            <div id="e-s1-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 1 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" oninput="scoreAutoAdvance('e-s1w','e-s1l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" oninput="scoreAutoAdvance('e-s1l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
-              <div style="flex:1;min-height:5px"></div>
+              
               <div id="e-tb1-reveal" style="display:none;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
@@ -6328,13 +6328,13 @@ function renderEntry() {
             </div>
 
             <!-- Set 2 -->
-            <div id="e-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);display:flex;flex-direction:column">
+            <div id="e-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" oninput="scoreAutoAdvance('e-s2w','e-s2l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" oninput="scoreAutoAdvance('e-s2l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
-              <div style="flex:1;min-height:5px"></div>
+              <div style="height:5px"></div>
               <div id="e-tb2-reveal" style="display:none;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
@@ -6345,18 +6345,14 @@ function renderEntry() {
             </div>
 
             <!-- Set 3 -->
-            <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none;display:flex;flex-direction:column">
+            <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
               <div id="e-s3-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" oninput="scoreAutoAdvance('e-s3w','e-s3l')" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" oninput="scoreAutoAdvance('e-s3l','')" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
-              <!-- flex:1 pushes checkbox to bottom, aligning TB reveals across all 3 cards -->
-              <div style="flex:1;min-height:5px"></div>
-              <div id="e-mtb-check-row" style="display:flex;align-items:center;gap:4px;cursor:pointer">
-                <input type="checkbox" id="e-mtb-check" style="width:12px;height:12px;cursor:pointer;accent-color:var(--navy,#2f4157);flex-shrink:0" onchange="onEntryMTBToggle()">
-                <label for="e-mtb-check" style="font-size:8px;color:var(--muted);cursor:pointer;line-height:1.3">Match tiebreak</label>
-              </div>
+              
+              
               <!-- Set 3: standard tiebreak reveal -->
               <div id="e-tb3std-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
@@ -6375,6 +6371,12 @@ function renderEntry() {
               </div>
             </div>
 
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:4px">
+            <div id="e-mtb-check-row" style="display:flex;align-items:center;gap:4px;cursor:pointer">
+              <input type="checkbox" id="e-mtb-check" style="width:12px;height:12px;cursor:pointer;accent-color:var(--navy,#2f4157);flex-shrink:0" onchange="onEntryMTBToggle()">
+              <label for="e-mtb-check" style="font-size:11px;color:var(--muted);cursor:pointer;line-height:1.3">Match tiebreak</label>
+            </div>
           </div>
           <div style="margin-top:4px">
             <div class="field-error" id="err-s1">Set 1 required</div>
