@@ -3938,12 +3938,19 @@ function buildHistoryResults(filtered, sortOrder) {
     const partner   = (m.partner && m.partner !== 'None' && m.partner !== '') ? escHtml(m.partner) : '—';
     const retired   = m.oppRet ? ' <span class="retired-tag">Ret.</span>' : m.weRet ? ' <span class="retired-tag">Ret.</span>' : '';
     var scoresHtml = '';
-    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
+    var tbPairsH1 = [[m.tb1w,m.tb1l],[m.tb2w,m.tb2l],[m.tb3w,m.tb3l]];
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair, si) {
       var w = pair[0], l = pair[1];
       if (w === '' && l === '') return;
       var nw = num(w), nl = num(l);
       var cls = (nw !== null && nl !== null) ? (nw > nl ? 'set-win' : 'set-loss') : '';
-      scoresHtml += '<span class="set-score ' + cls + '">' + w + '–' + l + '</span>';
+      var tbw = num(tbPairsH1[si][0]), tbl = num(tbPairsH1[si][1]);
+      var useSup = '', oppSup = '';
+      if (tbw !== null && tbl !== null) {
+        if (nw !== null && nl !== null && nw < nl) useSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbw + '</sup>';
+        if (nw !== null && nl !== null && nl < nw) oppSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbl + '</sup>';
+      }
+      scoresHtml += '<span class="set-score ' + cls + '">' + w + useSup + '–' + l + oppSup + '</span>';
     });
     var noteInd = m.notes ? '<span class="note-indicator" title="' + escHtml(m.notes) + '" style="cursor:help"></span>' : '';
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
@@ -4072,12 +4079,19 @@ function buildHistoryResults(filtered, sortOrder) {
     var partnerFull = partnerRaw ? escHtml(partnerRaw) : '';
     var retired   = m.oppRet || m.weRet ? ' <span class="retired-tag">Ret.</span>' : '';
     var scoresHtml = '';
-    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair) {
+    var tbPairsH2 = [[m.tb1w,m.tb1l],[m.tb2w,m.tb2l],[m.tb3w,m.tb3l]];
+    [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(function(pair, si) {
       var w = pair[0], l = pair[1];
       if (w === '' && l === '') return;
       var nw = num(w), nl = num(l);
       var cls = (nw !== null && nl !== null) ? (nw > nl ? 'set-win' : 'set-loss') : '';
-      scoresHtml += '<span class="set-score ' + cls + '">' + w + '–' + l + '</span>';
+      var tbw = num(tbPairsH2[si][0]), tbl = num(tbPairsH2[si][1]);
+      var useSup = '', oppSup = '';
+      if (tbw !== null && tbl !== null) {
+        if (nw !== null && nl !== null && nw < nl) useSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbw + '</sup>';
+        if (nw !== null && nl !== null && nl < nw) oppSup = '<sup style="font-size:0.75em;vertical-align:super;font-weight:600">' + tbl + '</sup>';
+      }
+      scoresHtml += '<span class="set-score ' + cls + '">' + w + useSup + '–' + l + oppSup + '</span>';
     });
     var noteInd = m.notes ? '<span class="note-indicator" title="' + escHtml(m.notes) + '" style="cursor:help"></span>' : '';
     var playoffStar = m.playoff ? '<span title="Playoff' + (m.playoffround ? ', Round: ' + escHtml(m.playoffround) : '') + '" style="color:#f59e0b;font-size:13px;margin-left:5px;cursor:help">★</span>' : '';
@@ -4399,13 +4413,21 @@ function openMatchDetail(idx) {
     <button class="btn btn-ghost" style="padding:4px 8px;font-size:16px;line-height:1;margin-left:10px" onclick="closeModal()">✕</button>
   `;
 
-  // Score row
+  // Score row — with tiebreak superscripts
   let scoresHtml = '';
-  [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l]) => {
+  const tbPairs = [[m.tb1w,m.tb1l],[m.tb2w,m.tb2l],[m.tb3w,m.tb3l]];
+  [[m.s1w,m.s1l],[m.s2w,m.s2l],[m.s3w,m.s3l]].forEach(([w,l], si) => {
     if (w===''&&l==='') return;
     const nw=num(w), nl=num(l);
     const cls = nw!==null&&nl!==null ? (nw>nl?'set-win':'set-loss') : '';
-    scoresHtml += `<span class="detail-score-set ${cls}">${w}–${l}</span>`;
+    const tbw=num(tbPairs[si][0]), tbl=num(tbPairs[si][1]);
+    // Show loser's tiebreak score as superscript on the loser's set score
+    let useSup='', oppSup='';
+    if (tbw!==null&&tbl!==null) {
+      if (nw!==null&&nl!==null&&nw<nl) useSup=`<sup style="font-size:0.75em;vertical-align:super;font-weight:600">${tbw}</sup>`;
+      if (nw!==null&&nl!==null&&nl<nw) oppSup=`<sup style="font-size:0.75em;vertical-align:super;font-weight:600">${tbl}</sup>`;
+    }
+    scoresHtml += `<span class="detail-score-set ${cls}">${w}${useSup}–${l}${oppSup}</span>`;
   });
   if (m.oppRet) scoresHtml += `<span class="retired-tag" style="font-size:12px">Opp. Ret.</span>`;
   if (m.weRet)  scoresHtml += `<span class="retired-tag" style="font-size:12px">We Ret.</span>`;
@@ -4644,6 +4666,9 @@ async function saveEdit(idx) {
     opponent1: get('opp1'), opponent2: get('opp2'), partner: get('partner'),
     set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
     set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
+    tb1wins: m.tb1w||'', tb1losses: m.tb1l||'',
+    tb2wins: m.tb2w||'', tb2losses: m.tb2l||'',
+    tb3wins: m.tb3w||'', tb3losses: m.tb3l||'',
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
     notes: (document.getElementById('edit-notes')?.value || '').trim()
   };
@@ -4677,6 +4702,9 @@ async function saveEdit(idx) {
         opp1: updated.opponent1, opp2: updated.opponent2, partner: updated.partner,
         s1w: updated.set1wins, s1l: updated.set1losses, s2w: updated.set2wins,
         s2l: updated.set2losses, s3w: updated.set3wins, s3l: updated.set3losses,
+        tb1w: updated.tb1wins, tb1l: updated.tb1losses,
+        tb2w: updated.tb2wins, tb2l: updated.tb2losses,
+        tb3w: updated.tb3wins, tb3l: updated.tb3losses,
         oppRet: updated.opponentretired, weRet: updated.weretired,
         result: eu_result, notes: updated.notes
       }};
@@ -6280,28 +6308,72 @@ function renderEntry() {
         <!-- Scores -->
         <div style="margin-top:10px">
           <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Score</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;min-width:0">
-            <div id="e-s1-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;min-width:0;align-items:start">
+
+            <!-- Set 1 -->
+            <div id="e-s1-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);display:flex;flex-direction:column">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 1 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s1w" oninput="scoreAutoAdvance('e-s1w','e-s1l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" oninput="scoreAutoAdvance('e-s1l','e-s2w')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" oninput="scoreAutoAdvance('e-s1l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+              </div>
+              <div style="height:5px"></div>
+              <div id="e-tb1-reveal" style="display:none;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb1w" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb1w','e-tb1l')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb1l" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb1l','')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                </div>
               </div>
             </div>
-            <div id="e-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2)">
+
+            <!-- Set 2 -->
+            <div id="e-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);display:flex;flex-direction:column">
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" oninput="scoreAutoAdvance('e-s2w','e-s2l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" oninput="scoreAutoAdvance('e-s2l','e-s3w')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" oninput="scoreAutoAdvance('e-s2l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+              </div>
+              <div style="height:5px"></div>
+              <div id="e-tb2-reveal" style="display:none;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb2w" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb2w','e-tb2l')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb2l" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb2l','')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                </div>
               </div>
             </div>
-            <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none">
+
+            <!-- Set 3 -->
+            <div id="e-s3-container" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none;display:flex;flex-direction:column">
               <div id="e-s3-label" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" oninput="scoreAutoAdvance('e-s3w','e-s3l')" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
-                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s3w" oninput="scoreAutoAdvance('e-s3w','e-s3l')" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s3l" tabindex="-1" min="0" max="99" placeholder="" inputmode="numeric" oninput="scoreAutoAdvance('e-s3l','')" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+              </div>
+              <div style="height:5px"></div>
+              <div id="e-mtb-check-row" style="display:flex;align-items:center;gap:4px;cursor:pointer">
+                <input type="checkbox" id="e-mtb-check" style="width:12px;height:12px;cursor:pointer;accent-color:var(--navy,#2f4157);flex-shrink:0" onchange="onEntryMTBToggle()">
+                <label for="e-mtb-check" style="font-size:8px;color:var(--muted);cursor:pointer;line-height:1.3">Match tiebreak</label>
+              </div>
+              <!-- Set 3: standard tiebreak reveal -->
+              <div id="e-tb3std-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb3stdw" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb3stdw','e-tb3stdl')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb3stdl" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAutoAdvance('e-tb3stdl','')" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                </div>
+              </div>
+              <!-- Set 3: match tiebreak score reveal -->
+              <div id="e-tb3mtb-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Match tiebreak score</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-tb3w" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAdvance2('e-tb3w','e-tb3l');onEntryMTBScoreChange()" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                  <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-tb3l" min="0" max="99" placeholder="" inputmode="numeric" oninput="tbAdvance2('e-tb3l','e-season');onEntryMTBScoreChange()" onchange="onEntryMTBScoreChange()" style="text-align:center;padding:4px 2px;font-size:13px;font-weight:600;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
+                </div>
               </div>
             </div>
+
           </div>
           <div style="margin-top:4px">
             <div class="field-error" id="err-s1">Set 1 required</div>
@@ -6520,18 +6592,182 @@ function onEntryPlayoffChange() {
   const checked = document.getElementById('e-playoff')?.checked;
   document.getElementById('e-playoff-row')?.classList.toggle('cond-hidden', !checked);
 }
-function onEntryRetiredChange() { onEntryScoreChange(); }
+function onEntryRetiredChange() { onEntryScoreChange(); onEntryUpdateTBReveals(); }
+
+// ── Tiebreak helpers ──────────────────────────────────────────────────────────
+function entryGetNum(id) { const v=parseInt(document.getElementById('e-'+id)?.value); return isNaN(v)?null:v; }
+function entryOppRet()  { return document.getElementById('e-opp-ret')?.checked||false; }
+function entryWeRet()   { return document.getElementById('e-we-ret')?.checked||false; }
+function entryAnyRet()  { return entryOppRet()||entryWeRet(); }
+function entryMTBOn()   { return document.getElementById('e-mtb-check')?.checked||false; }
+function entryIsStdTB(w,l) { return (w===7&&l===6)||(w===6&&l===7); }
+
+function onEntryUpdateTBReveals() {
+  const s1w=entryGetNum('s1w'), s1l=entryGetNum('s1l');
+  const s2w=entryGetNum('s2w'), s2l=entryGetNum('s2l');
+  const s3w=entryGetNum('s3w'), s3l=entryGetNum('s3l');
+  const retired=entryAnyRet();
+
+  // Set 1: show standard TB on 7-6/6-7 regardless of retirement
+  const show1 = s1w!==null&&s1l!==null && entryIsStdTB(s1w,s1l);
+  document.getElementById('e-tb1-reveal').style.display = show1?'block':'none';
+  if (!show1) { const w=document.getElementById('e-tb1w'),l=document.getElementById('e-tb1l'); if(w)w.value=''; if(l)l.value=''; }
+
+  // Set 2: same
+  const show2 = s2w!==null&&s2l!==null && entryIsStdTB(s2w,s2l);
+  document.getElementById('e-tb2-reveal').style.display = show2?'block':'none';
+  if (!show2) { const w=document.getElementById('e-tb2w'),l=document.getElementById('e-tb2l'); if(w)w.value=''; if(l)l.value=''; }
+
+  // Set 3 MTB checkbox visibility: always show when set 3 is active
+  const mtbCheckRow = document.getElementById('e-mtb-check-row');
+
+  if (entryMTBOn()) {
+    // MTB mode — hide standard TB reveal for set 3
+    document.getElementById('e-tb3std-reveal').style.display='none';
+    document.getElementById('e-tb3mtb-reveal').style.display='block';
+    const w=document.getElementById('e-tb3w'),l=document.getElementById('e-tb3l');
+    if(w)w.value=w.value||''; if(l)l.value=l.value||'';
+    entryMTBAutoFill();
+  } else {
+    // Normal mode — show standard TB reveal if 7-6/6-7 and not a retirement ambiguity on 1-0
+    document.getElementById('e-tb3mtb-reveal').style.display='none';
+    const retired10 = retired && s3w!==null&&s3l!==null && ((s3w===1&&s3l===0)||(s3w===0&&s3l===1));
+    const show3std = s3w!==null&&s3l!==null && entryIsStdTB(s3w,s3l) && !retired10;
+    document.getElementById('e-tb3std-reveal').style.display=show3std?'block':'none';
+    if (!show3std) { const w=document.getElementById('e-tb3stdw'),l=document.getElementById('e-tb3stdl'); if(w)w.value=''; if(l)l.value=''; }
+  }
+}
+
+function entryMTBAutoFill() {
+  const tbw=entryGetNum('tb3w'), tbl=entryGetNum('tb3l');
+  const s3wEl=document.getElementById('e-s3w'), s3lEl=document.getElementById('e-s3l');
+  if (!s3wEl||!s3lEl) return;
+
+  // Don't autofill if either value could still be incomplete (single digit 1-9
+  // might become 10-19). Only fire when both fields have committed values.
+  const tb3wEl=document.getElementById('e-tb3w'), tb3lEl=document.getElementById('e-tb3l');
+  const wLen = tb3wEl ? tb3wEl.value.length : 0;
+  const lLen = tb3lEl ? tb3lEl.value.length : 0;
+  // If the active element is a TB3 input and its value is a single digit, wait
+  const active = document.activeElement;
+  if (active && (active.id==='e-tb3w'||active.id==='e-tb3l') && active.value.length===1) return;
+
+  if (entryAnyRet()) {
+    s3wEl.value = entryWeRet()?'0':'1';
+    s3lEl.value = entryOppRet()?'0':'1';
+  } else if (tbw!==null&&tbl!==null&&tbw!==tbl) {
+    s3wEl.value = tbw>tbl?'1':'0';
+    s3lEl.value = tbl>tbw?'1':'0';
+  } else {
+    s3wEl.value=''; s3lEl.value='';
+  }
+}
+
+function onEntryMTBScoreChange() { if(entryMTBOn()) entryMTBAutoFill(); }
+
+function onEntryMTBToggle() {
+  const on=entryMTBOn();
+  const s3wEl=document.getElementById('e-s3w'), s3lEl=document.getElementById('e-s3l');
+  const s3c=document.getElementById('e-s3-container');
+  if (on) {
+    if(s3wEl){s3wEl.readOnly=true;s3wEl.style.color='var(--muted)';s3wEl.style.background='var(--surface2)';}
+    if(s3lEl){s3lEl.readOnly=true;s3lEl.style.color='var(--muted)';s3lEl.style.background='var(--surface2)';}
+    document.getElementById('e-tb3std-reveal').style.display='none';
+    document.getElementById('e-tb3mtb-reveal').style.display='block';
+    entryMTBAutoFill();
+    if(s3c) s3c.style.borderColor='var(--slate,#6385a2)';
+  } else {
+    if(s3wEl){s3wEl.readOnly=false;s3wEl.style.color='';s3wEl.style.background='';}
+    if(s3lEl){s3lEl.readOnly=false;s3lEl.style.color='';s3lEl.style.background='';}
+    s3wEl.value=''; s3lEl.value='';
+    document.getElementById('e-tb3mtb-reveal').style.display='none';
+    const tb3w=document.getElementById('e-tb3w'),tb3l=document.getElementById('e-tb3l');
+    if(tb3w)tb3w.value=''; if(tb3l)tb3l.value='';
+    if(s3c) s3c.style.borderColor='';
+    onEntryUpdateTBReveals();
+  }
+}
 
 function scoreAutoAdvance(currentId, nextId) {
   const el = document.getElementById(currentId);
   if (!el || el.value.length !== 1) return;
-  // Before advancing to s3, run score change to enable it if sets are split
+
+  // After Set 1 Opp: go to TB1 if tiebreak was entered, else Set 2 Us
+  if (currentId === 'e-s1l') {
+    onEntryScoreChange(); onEntryUpdateTBReveals();
+    const tb1 = document.getElementById('e-tb1-reveal');
+    if (tb1 && tb1.style.display !== 'none') {
+      const n = document.getElementById('e-tb1w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-s2w'); if (n) { n.focus(); n.select(); } return;
+  }
+
+  // After Set 2 Opp: go to TB2 if tiebreak, else Set 3 Us if needed, else Season
+  if (currentId === 'e-s2l') {
+    onEntryScoreChange(); onEntryUpdateTBReveals();
+    const tb2 = document.getElementById('e-tb2-reveal');
+    if (tb2 && tb2.style.display !== 'none') {
+      const n = document.getElementById('e-tb2w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const s3 = document.getElementById('e-s3-container');
+    if (s3 && s3.style.opacity !== '0.3') {
+      const n = document.getElementById('e-s3w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+
+  // After Set 3 Opp: go to TB3 if tiebreak or MTB, else Season
+  if (currentId === 'e-s3l') {
+    onEntryScoreChange(); onEntryUpdateTBReveals();
+    const tb3mtb = document.getElementById('e-tb3mtb-reveal');
+    if (tb3mtb && tb3mtb.style.display !== 'none') {
+      const n = document.getElementById('e-tb3w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const tb3std = document.getElementById('e-tb3std-reveal');
+    if (tb3std && tb3std.style.display !== 'none') {
+      const n = document.getElementById('e-tb3stdw'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+
+  // Set 3 Us → Set 3 Opp (need to enable s3 first)
   if (nextId === 'e-s3w') {
     onEntryScoreChange();
-    // Only advance if s3 is now enabled
     const s3 = document.getElementById('e-s3-container');
     if (!s3 || s3.style.opacity === '0.3') return;
   }
+  const next = document.getElementById(nextId);
+  if (next) { next.focus(); next.select(); }
+}
+
+function tbAutoAdvance(currentId, nextId) {
+  const el = document.getElementById(currentId);
+  if (!el || el.value.length !== 1) return;
+  // TB1 Opp → Set 2 Us
+  if (currentId === 'e-tb1l') {
+    const n = document.getElementById('e-s2w'); if (n) { n.focus(); n.select(); } return;
+  }
+  // TB2 Opp → Set 3 Us if needed, else Season
+  if (currentId === 'e-tb2l') {
+    const s3 = document.getElementById('e-s3-container');
+    if (s3 && s3.style.opacity !== '0.3') {
+      const n = document.getElementById('e-s3w'); if (n) { n.focus(); n.select(); } return;
+    }
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+  // TB3 std Opp → Season
+  if (currentId === 'e-tb3stdl') {
+    const n = document.getElementById('e-season'); if (n) { n.focus(); } return;
+  }
+  // Default: advance to paired Opp field (Us inputs)
+  const next = document.getElementById(nextId);
+  if (next) { next.focus(); next.select(); }
+}
+
+// For match tiebreak fields that go to 10 — advance after 2 digits
+function tbAdvance2(currentId, nextId) {
+  const el = document.getElementById(currentId);
+  if (!el || el.value.length < 2) return;
   const next = document.getElementById(nextId);
   if (next) { next.focus(); next.select(); }
 }
@@ -6633,7 +6869,12 @@ function onEntryScoreChange() {
     const s3l = document.getElementById('e-s3l');
     if (s3w) s3w.value = '';
     if (s3l) s3l.value = '';
+    // Reset MTB checkbox when set 3 is cleared
+    const mtbCheck = document.getElementById('e-mtb-check');
+    if (mtbCheck && mtbCheck.checked) { mtbCheck.checked=false; onEntryMTBToggle(); }
   }
+  // Update tiebreak reveal panels
+  onEntryUpdateTBReveals();
 }
 
 async function submitEntry() {
@@ -6748,6 +6989,10 @@ async function submitEntry() {
     partner: isDb?resolve('partner'):'',
     set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
     set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
+    tb1wins: get('tb1w'), tb1losses: get('tb1l'),
+    tb2wins: get('tb2w'), tb2losses: get('tb2l'),
+    tb3wins: entryMTBOn() ? get('tb3w') : get('tb3stdw'),
+    tb3losses: entryMTBOn() ? get('tb3l') : get('tb3stdl'),
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
     notes: document.getElementById('e-notes')?.value?.trim() || ''
   };
@@ -6792,6 +7037,9 @@ async function submitEntry() {
         s1w: match.set1wins, s1l: match.set1losses,
         s2w: match.set2wins, s2l: match.set2losses,
         s3w: match.set3wins, s3l: match.set3losses,
+        tb1w: match.tb1wins, tb1l: match.tb1losses,
+        tb2w: match.tb2wins, tb2l: match.tb2losses,
+        tb3w: match.tb3wins, tb3l: match.tb3losses,
         oppRet: match.opponentretired, weRet: match.weretired,
         result, notes: match.notes || ''
       });
@@ -6826,7 +7074,8 @@ async function submitEntry() {
           const el = document.getElementById(id);
           if (el && val) el.value = val;
         });
-        ['e-opp1','e-opp2','e-s1w','e-s1l','e-s2w','e-s2l','e-s3w','e-s3l','e-notes'].forEach(id => {
+        ['e-opp1','e-opp2','e-s1w','e-s1l','e-s2w','e-s2l','e-s3w','e-s3l',
+         'e-tb1w','e-tb1l','e-tb2w','e-tb2l','e-tb3w','e-tb3l','e-tb3stdw','e-tb3stdl','e-notes'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
@@ -6899,7 +7148,7 @@ function resetEntryForm() {
   document.querySelectorAll('#content .field-error').forEach(el => el.style.display = 'none');
   // Hide doubles fields and s3
   document.getElementById('e-doubles-fields')?.classList.add('cond-hidden');
-  document.getElementById('e-s3-container')?.setAttribute('style','opacity:0.3;pointer-events:none');
+  document.getElementById('e-s3-container')?.setAttribute('style','border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);opacity:0.3;pointer-events:none');
   document.getElementById('e-playoff-row')?.classList.add('cond-hidden');
   // Hide all "new value" fields
   document.querySelectorAll('#content .field.hidden[id^="field-"]').forEach(el => {
@@ -6912,6 +7161,18 @@ function resetEntryForm() {
   if (dateEl) dateEl.value = `${y}-${mo}-${d}`;
   document.getElementById('entry-status') && (document.getElementById('entry-status').textContent = '');
   Object.keys(entryNewValues).forEach(k => delete entryNewValues[k]);
+  // Hide all tiebreak reveals
+  ['e-tb1-reveal','e-tb2-reveal','e-tb3std-reveal','e-tb3mtb-reveal'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  // Restore s3w/s3l if MTB had them locked
+  ['e-s3w','e-s3l'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.readOnly = false; el.style.color = ''; el.style.background = ''; }
+  });
+  // Reset Set 3 label
+  const s3label = document.getElementById('e-s3-label');
+  if (s3label) s3label.innerHTML = 'Set 3';
 }
 
 // 
