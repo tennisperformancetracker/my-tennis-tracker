@@ -4245,7 +4245,20 @@ function applyHistoryFilter() {
   resultsEl.style.maxWidth = '100%';
   resultsEl.style.overflow = 'hidden';
   resultsEl.style.width = '100%';
+  // Preserve mobile insights open/closed state before re-render
+  var insightsEl = document.getElementById('hc-insights');
+  var insightsWasOpen = insightsEl ? insightsEl.style.display !== 'none' : false;
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
+  // Restore mobile insights open state after re-render
+  var insightsElNew = document.getElementById('hc-insights');
+  if (insightsElNew && insightsWasOpen) {
+    insightsElNew.style.display = 'flex';
+    insightsElNew.style.flexDirection = 'column';
+    insightsElNew.style.gap = '10px';
+    insightsElNew.style.padding = '10px 14px 14px';
+    var chev = document.getElementById('hc-insights-chev');
+    if (chev) chev.textContent = '▲';
+  }
   // Collapse insight cards via DOM after render — avoids fragile string replace
   if (!isMob && histInsightsWasCollapsed) {
     ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
