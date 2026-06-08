@@ -689,6 +689,94 @@ textarea:focus { border-color: var(--accent2) !important; }
   display: none; background: none; border: none; color: var(--text);
   font-size: 22px; cursor: pointer; padding: 0; line-height: 1; margin-right: 8px;
 }
+/* Mobile filter button (funnel icon in topbar) */
+.mob-filter-btn {
+  display: none; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 6px; color: #fff; cursor: pointer; padding: 5px 9px;
+  font-size: 14px; line-height: 1; position: relative; flex-shrink: 0;
+}
+.mob-filter-btn.has-active {
+  background: rgba(126,203,161,0.25); border-color: rgba(126,203,161,0.5);
+}
+.mob-filter-active-dot {
+  display: none; position: absolute; top: -3px; right: -3px;
+  width: 7px; height: 7px; border-radius: 50%; background: #7ecba1;
+  border: 1.5px solid #2f4157;
+}
+.mob-filter-btn.has-active .mob-filter-active-dot { display: block; }
+/* Bottom sheet overlay */
+.dash-filter-sheet-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 300; align-items: flex-end;
+}
+.dash-filter-sheet-overlay.open { display: flex; }
+.dash-filter-sheet {
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: 0 0 env(safe-area-inset-bottom,16px);
+  width: 100%; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+  animation: sheetSlideUp 0.22s ease;
+}
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.dash-filter-sheet-handle {
+  display: flex; justify-content: center; padding: 12px 0 4px;
+}
+.dash-filter-sheet-handle-bar {
+  width: 36px; height: 4px; border-radius: 2px; background: var(--border);
+}
+.dash-filter-sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 20px 16px; border-bottom: 1px solid var(--border);
+}
+.dash-filter-sheet-title {
+  font-size: 15px; font-weight: 700; color: var(--text);
+}
+.dash-filter-sheet-close {
+  background: none; border: none; font-size: 20px; color: var(--muted);
+  cursor: pointer; line-height: 1; padding: 4px;
+}
+.dash-filter-sheet-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 20px; }
+.dash-filter-row { display: flex; flex-direction: column; gap: 8px; }
+.dash-filter-row-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+}
+.dash-filter-row-label .tip-icon { cursor: default; font-style: normal; letter-spacing: 0; }
+.dash-filter-select {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-family: var(--font);
+  font-size: 14px; font-weight: 500; padding: 10px 32px 10px 12px; outline: none;
+  appearance: none; -webkit-appearance: none; width: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.dash-filter-seg {
+  display: flex; gap: 8px;
+}
+.dash-filter-seg-btn {
+  flex: 1; padding: 10px 8px; border-radius: 8px; font-family: var(--font);
+  font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;
+  border: 1.5px solid var(--border); background: var(--surface2); color: var(--muted);
+  transition: all 0.15s;
+}
+.dash-filter-seg-btn.active {
+  background: var(--navy); border-color: var(--navy); color: #fff;
+}
+.dash-filter-sheet-footer {
+  padding: 12px 20px 20px; display: flex; gap: 10px;
+}
+.dash-filter-sheet-footer .btn { flex: 1; justify-content: center; }
+@media (min-width: 769px) {
+  .mob-filter-btn { display: none !important; }
+  .dash-filter-sheet-overlay { display: none !important; }
+}
+@media (max-width: 768px) {
+  .mob-filter-btn { display: flex; }
+}
 /* Mobile filter bar (hidden on desktop) */
 .mobile-filters {
   display: none; background: var(--surface); border-bottom: 1px solid var(--border);
@@ -1512,7 +1600,7 @@ let chartInstance = null;
 
 // Persistent filter state — survives page navigation
 const filterState = {
-  dash: { type: '', year: '' },
+  dash: { type: '', year: '', competitive: false },
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5, mode: 'partners' },
@@ -1881,16 +1969,20 @@ function renderDashboard() {
   if (!isMobileView) {
     const dtEl = document.getElementById('dash-type-filter');
     if (dtEl) filterState.dash.type = dtEl.value;
+    const dcEl = document.getElementById('dash-competitive-filter');
+    if (dcEl) filterState.dash.competitive = dcEl.value === 'competitive';
     const cmEl = document.getElementById('chart-mode-filter');
     if (cmEl) filterState.chart.mode = cmEl.value;
     const cyEl = document.getElementById('chart-year-filter');
     if (cyEl) filterState.chart.year = cyEl.value;
   }
 
-  const typeFilter = filterState.dash.type;
-  const chartYear  = filterState.chart.year;
+  const typeFilter  = filterState.dash.type;
+  const compFilter  = filterState.dash.competitive;
+  const chartYear   = filterState.chart.year;
+  const hasActive   = typeFilter || compFilter;
 
-  // Build topbar — Type filter only (no global year filter)
+  // Build topbar — Type + Competitive filters (desktop)
   const types = ['', ...(validEntries.type || [])];
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
@@ -1899,21 +1991,34 @@ function renderDashboard() {
         ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
       </select>
     </div>
+    <div class="topbar-filter-group">
+      <span class="topbar-label">Matches:</span>
+      <select class="topbar-select" id="dash-competitive-filter" onchange="filterState.dash.competitive=this.value==='competitive';renderDashboard()" title="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">
+        <option value="all"         ${!compFilter?'selected':''}>All Matches</option>
+        <option value="competitive" ${compFilter?'selected':''}>Competitive Only</option>
+      </select>
+    </div>
   `;
 
   document.getElementById('mobile-filters').innerHTML = '';
   const mobTopbarRightDash = document.getElementById('mob-topbar-right');
   if (mobTopbarRightDash) mobTopbarRightDash.innerHTML = `
-    <select onchange="filterState.dash.type=this.value;renderDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;">
-      ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
-    </select>
+    <div style="display:flex;align-items:center;gap:8px">
+      <select onchange="filterState.dash.type=this.value;renderDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;">
+        ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
+      </select>
+      <button class="mob-filter-btn ${hasActive ? 'has-active' : ''}" onclick="openDashFilterSheet()" title="Filters">
+        <span style="font-size:13px">⚙︎</span>
+        <span class="mob-filter-active-dot"></span>
+      </button>
+    </div>
   `;
 
-  // Filter matches by type only
-  let matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+  // Filter matches by type and competitive setting
+  let matches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
 
   const curYear = new Date().getFullYear();
-  const curYearMatches = allMatches.filter(m => m.year === curYear && (!typeFilter || m.type === typeFilter));
+  const curYearMatches = allMatches.filter(m => m.year === curYear && (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
   const kpiHtml = buildKPIs(matches, curYearMatches);
 
   const chartYears = ['', ...new Set(allMatches.map(m => m.year).filter(Boolean))].sort((a,b) => b-a);
@@ -2005,7 +2110,8 @@ function updateSplits() {
   filterState.splits.month = document.getElementById('splits-month-filter')?.value || '';
   filterState.splits.year  = document.getElementById('splits-year-filter')?.value  || '';
   const typeFilter = filterState.dash.type;
-  const base = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+  const compFilter = filterState.dash.competitive;
+  const base = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
   const filtered = getSplitsMatches(base);
   const el = document.getElementById('splits-content');
   const ins = document.getElementById('splits-insight');
@@ -2015,10 +2121,12 @@ function updateSplits() {
 
 function getChartMatches() {
   const typeFilter = filterState.dash.type;
+  const compFilter = filterState.dash.competitive;
   const chartYear  = filterState.chart.year;
   const mode       = filterState.chart.mode;
   return allMatches.filter(m => {
     if (typeFilter && m.type !== typeFilter) return false;
+    if (compFilter && !isClose(m)) return false;
     if (mode === 'month' && chartYear && String(m.year) !== String(chartYear)) return false;
     return true;
   });
@@ -3217,7 +3325,8 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
   document.getElementById('partner-header-controls').innerHTML = buildPartnerOpponentControls();
 
   const typeFilter = filterState.dash.type;
-  const matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+  const compFilter = filterState.dash.competitive;
+  const matches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
   const mainPanel = document.getElementById('partners-main-panel');
   if (mainPanel) {
     const threshold = mode === 'opponents' ? filterState.opponents.threshold : filterState.partners.threshold;
@@ -3231,7 +3340,8 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
 function refreshPartnersTable() {
   const mode = filterState.partners.mode || 'partners';
   const typeFilter = filterState.dash.type;
-  const matches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+  const compFilter = filterState.dash.competitive;
+  const matches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
   const mainPanel = document.getElementById('partners-main-panel');
   if (!mainPanel) return;
   if (mode === 'opponents') {
@@ -3245,7 +3355,7 @@ function refreshPartnersTable() {
     // Re-render only the KPI cards so Best Partner card reflects new threshold
     const kpiGrid = document.getElementById('kpi-grid-main');
     if (kpiGrid) {
-      const kpiMatches = allMatches.filter(m => !typeFilter || m.type === typeFilter);
+      const kpiMatches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
       const curYearMatches = allMatches.filter(m => m.year === new Date().getFullYear());
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = buildKPIs(kpiMatches, curYearMatches);
@@ -3356,8 +3466,10 @@ function drillPartner(name) {
   const hidden = document.getElementById('partners-hidden-body');
   if (hidden) hidden.style.display = 'none';
   const typeFilter = filterState.dash.type;
+  const compFilter = filterState.dash.competitive;
   const matches = allMatches.filter(m => {
     if (typeFilter && m.type !== typeFilter) return false;
+    if (compFilter && !isClose(m)) return false;
     return m.partner === name;
   });
 
@@ -3534,10 +3646,12 @@ function drillOpponent(name) {
   const hidden = document.getElementById('opponents-hidden-body');
   if (hidden) hidden.style.display = 'none';
   const typeFilter = filterState.dash.type;
+  const compFilter = filterState.dash.competitive;
 
   // Collect all matches involving this opponent (opp1 or opp2)
   const matches = allMatches.filter(m => {
     if (typeFilter && m.type !== typeFilter) return false;
+    if (compFilter && !isClose(m)) return false;
     return m.opp1 === name || m.opp2 === name;
   });
 
@@ -4491,6 +4605,50 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 function closeModalOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
+
+// ── Dashboard Filter Bottom Sheet (mobile) ───────────────────────────────────
+function openDashFilterSheet() {
+  const types = ['', ...(validEntries.type || [])];
+  const typeFilter = filterState.dash.type;
+  const compFilter = filterState.dash.competitive;
+  // Populate type select
+  const sel = document.getElementById('sheet-type-filter');
+  if (sel) {
+    sel.innerHTML = types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('');
+  }
+  // Set segmented buttons
+  const btnAll  = document.getElementById('sheet-comp-all');
+  const btnComp = document.getElementById('sheet-comp-only');
+  if (btnAll)  btnAll.classList.toggle('active', !compFilter);
+  if (btnComp) btnComp.classList.toggle('active',  compFilter);
+  document.getElementById('dash-filter-sheet-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDashFilterSheet() {
+  document.getElementById('dash-filter-sheet-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function sheetSetCompetitive(val) {
+  document.getElementById('sheet-comp-all').classList.toggle('active', !val);
+  document.getElementById('sheet-comp-only').classList.toggle('active', val);
+  filterState.dash.competitive = val;
+}
+function applyDashFilterSheet() {
+  const sel = document.getElementById('sheet-type-filter');
+  if (sel) filterState.dash.type = sel.value;
+  closeDashFilterSheet();
+  renderDashboard();
+}
+function resetDashFilters() {
+  filterState.dash.type = '';
+  filterState.dash.competitive = false;
+  const sel = document.getElementById('sheet-type-filter');
+  if (sel) sel.value = '';
+  const btnAll  = document.getElementById('sheet-comp-all');
+  const btnComp = document.getElementById('sheet-comp-only');
+  if (btnAll)  btnAll.classList.add('active');
+  if (btnComp) btnComp.classList.remove('active');
+}
 
 // 
 // EDIT MODE
@@ -6318,7 +6476,7 @@ function renderEntry() {
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s1l" oninput="scoreAutoAdvance('e-s1l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
               
-              <div style="height:26px"></div>
+              <div style="height:28px"></div>
               <div id="e-tb1-reveal" style="display:none;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
@@ -6335,8 +6493,7 @@ function renderEntry() {
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div><input type="number" id="e-s2w" oninput="scoreAutoAdvance('e-s2w','e-s2l')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
                 <div><div style="font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div><input type="number" id="e-s2l" oninput="scoreAutoAdvance('e-s2l','')" min="0" max="99" placeholder="" inputmode="numeric" onchange="onEntryScoreChange()" style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none"></div>
               </div>
-              <div style="height:5px"></div>
-              <div style="height:26px"></div>
+              <div style="height:28px"></div>
               <div id="e-tb2-reveal" style="display:none;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:8px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak score</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:0">
@@ -8096,6 +8253,34 @@ function buildBadgeShelf() {
     <div class="confirm-actions">
       <button class="btn btn-ghost" onclick="settingsUnsavedLeave()">Leave anyway</button>
       <button class="btn btn-primary" onclick="settingsUnsavedStay()">Stay & save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD FILTER BOTTOM SHEET (mobile) -->
+<div class="dash-filter-sheet-overlay" id="dash-filter-sheet-overlay" onclick="if(event.target===this)closeDashFilterSheet()">
+  <div class="dash-filter-sheet">
+    <div class="dash-filter-sheet-handle"><div class="dash-filter-sheet-handle-bar"></div></div>
+    <div class="dash-filter-sheet-header">
+      <div class="dash-filter-sheet-title">Dashboard Filters</div>
+      <button class="dash-filter-sheet-close" onclick="closeDashFilterSheet()">✕</button>
+    </div>
+    <div class="dash-filter-sheet-body">
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Match Type</div>
+        <select class="dash-filter-select" id="sheet-type-filter" onchange="filterState.dash.type=this.value"></select>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Match Set <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
+        <div class="dash-filter-seg">
+          <button class="dash-filter-seg-btn" id="sheet-comp-all" onclick="sheetSetCompetitive(false)">All Matches</button>
+          <button class="dash-filter-seg-btn" id="sheet-comp-only" onclick="sheetSetCompetitive(true)">Competitive Only</button>
+        </div>
+      </div>
+    </div>
+    <div class="dash-filter-sheet-footer">
+      <button class="btn btn-ghost" onclick="resetDashFilters()">Reset</button>
+      <button class="btn btn-primary" onclick="applyDashFilterSheet()">Apply</button>
     </div>
   </div>
 </div>
