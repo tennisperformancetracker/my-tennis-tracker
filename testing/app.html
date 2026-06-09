@@ -283,6 +283,19 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 }
 .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--label); }
 .card-filter { display: flex; align-items: center; gap: 8px; }
+.chart-header-controls {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .chart-card-header {
+    flex-direction: column; align-items: flex-start; gap: 8px;
+  }
+  .chart-header-controls { width: 100%; }
+}
+@media (max-width: 400px) {
+  .chart-legend-full { display: none !important; }
+  .chart-legend-short { display: inline !important; }
+}
 
 /* ── Dashboard chart + insights side-by-side ────────────── */
 .chart-insights-layout {
@@ -2201,16 +2214,16 @@ function renderDashboard() {
     ${kpiHtml}
     <div class="dash-grid">
       <div class="card" style="grid-column:1/-1">
-        <div class="card-header">
+        <div class="card-header chart-card-header">
           <div class="card-title" id="chart-card-title">${filterState.chart.mode==='wins'?'Total W/L by Month':filterState.chart.mode==='year'?'Win % by Year':'Win % by Month'}</div>
-          <div class="card-filter" id="chart-card-filters">
-            ${fselHtml('chart-mode-filter', [{value:'month',label:'W% by Mo'},{value:'year',label:'W% by Yr'},{value:'wins',label:'W/L by Mo'}], filterState.chart.mode||'month', 'filterState.chart.mode=this.value;onChartModeChange()', 'fsel-compact')}
+          <div class="card-filter chart-header-controls" id="chart-card-filters">
+            ${(()=>{const mob=window.innerWidth<=768;return fselHtml('chart-mode-filter',[{value:'month',label:mob?'W% by Mo':'Win % by Month'},{value:'year',label:mob?'W% by Yr':'Win % by Year'},{value:'wins',label:mob?'W/L by Mo':'Total W/L by Month'}],filterState.chart.mode||'month','filterState.chart.mode=this.value;onChartModeChange()','fsel-compact');})()}
             <span id="chart-year-wrap" ${filterState.chart.mode==='year'?'style="display:none"':''}>
               ${fselHtml('chart-year-filter', chartYears.map(y=>({value:y,label:y||'All Years'})), chartYear, 'filterState.chart.year=this.value;renderMonthChart(getChartMatches())', 'fsel-compact')}
             </span>
-            <span id="chart-wl-legend" style="display:${filterState.chart.mode==='wins'?'flex':'none'};align-items:center;gap:10px;font-size:12px;color:var(--muted);font-family:var(--font);flex-shrink:0">
-              <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(46,125,82,0.75);display:inline-block"></span>Wins</span>
-              <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(192,57,43,0.5);display:inline-block"></span>Losses</span>
+            <span id="chart-wl-legend" style="display:${filterState.chart.mode==='wins'?'flex':'none'};align-items:center;gap:6px;font-size:12px;color:var(--muted);font-family:var(--font);flex-shrink:0;margin-left:auto">
+              <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(46,125,82,0.75);flex-shrink:0;display:inline-block"></span><span class="chart-legend-full">Wins</span><span class="chart-legend-short" style="display:none">W</span></span>
+              <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(192,57,43,0.5);flex-shrink:0;display:inline-block"></span><span class="chart-legend-full">Losses</span><span class="chart-legend-short" style="display:none">L</span></span>
             </span>
           </div>
         </div>
@@ -2262,8 +2275,7 @@ function renderDashboard() {
   requestAnimationFrame(function() {
     initSparkTooltips();
     initKpiCollapse();
-    chartModeTriggerText();
-  });
+    });
 }
 
 function getSplitsMatches(baseMatches) {
@@ -2312,17 +2324,6 @@ function getChartMatches() {
   });
 }
 
-function chartModeTriggerText() {
-  // On desktop (>768px) show full label in trigger; on mobile keep short label
-  if (window.innerWidth <= 768) return;
-  const trig = document.getElementById('fseltrig-chart-mode-filter');
-  if (!trig) return;
-  const mode = filterState.chart.mode || 'month';
-  trig.textContent = mode === 'wins' ? 'Total W/L by Month'
-                   : mode === 'year' ? 'Win % by Year'
-                   : 'Win % by Month';
-}
-
 function onChartModeChange() {
   filterState.chart.mode = document.getElementById('chart-mode-filter')?.value || 'month';
   const wrap  = document.getElementById('chart-year-wrap');
@@ -2335,7 +2336,6 @@ function onChartModeChange() {
                                  : filterState.chart.mode === 'year' ? 'Win % by Year'
                                  : 'Win % by Month';
   renderMonthChart(getChartMatches());
-  chartModeTriggerText();
 }
 
 // ── KPI Card System ─────────────────────────────────────────────────────────
