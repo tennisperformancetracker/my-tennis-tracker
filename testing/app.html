@@ -865,6 +865,11 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   .dash-filter-sheet {
     border-radius: 16px; max-width: 480px; margin: 0 auto;
     box-shadow: 0 8px 32px rgba(47,65,87,0.18); animation: none;
+    overflow: hidden; /* let border-radius clip cleanly */
+  }
+  .dash-filter-sheet-body {
+    overflow-y: auto; /* scroll inside the body, not the outer sheet */
+    max-height: calc(60vh - 120px); /* leave room for header + footer */
   }
 }
 @keyframes sheetSlideUp {
@@ -888,8 +893,8 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   background: none; border: none; font-size: 20px; color: var(--muted);
   cursor: pointer; line-height: 1; padding: 4px;
 }
-.dash-filter-sheet-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 20px; }
-.dash-filter-row { display: flex; flex-direction: column; gap: 8px; }
+.dash-filter-sheet-body { padding: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+.dash-filter-row { display: flex; flex-direction: column; gap: 5px; }
 .dash-filter-row-label {
   font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; color: var(--muted);
@@ -5870,15 +5875,15 @@ function renderSettings() {
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
                 <div class="field">
                   <div class="field-label">Default Type</div>
-                  ${fselHtml('def-type', [{value:'',label:'— None —'}, ...(validEntries.type||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultType')||'', '')}
+                  ${fselHtml('def-type', [{value:'',label:'— None —'}, ...(validEntries.type||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultType')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Season</div>
-                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '')}
+                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default League</div>
-                  ${fselHtml('def-league', [{value:'',label:'— None —'}, ...(validEntries.league||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLeague')||'', '')}
+                  ${fselHtml('def-league', [{value:'',label:'— None —'}, ...(validEntries.league||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLeague')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Level</div>
@@ -5896,7 +5901,7 @@ function renderSettings() {
                 </div>
                 <div class="field">
                   <div class="field-label">Default Surface</div>
-                  ${fselHtml('def-surface', [{value:'',label:'— None —'}, ...(validEntries.surface||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSurface')||'', '')}
+                  ${fselHtml('def-surface', [{value:'',label:'— None —'}, ...(validEntries.surface||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSurface')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Home Location</div>
@@ -7170,10 +7175,17 @@ function fselPosition(id) {
   const drop = document.getElementById('fseldrop-' + id);
   if (!trig || !drop) return;
   const r = trig.getBoundingClientRect();
-  drop.style.top  = (r.bottom + 2) + 'px';
-  drop.style.left = r.left + 'px';
-  // Width = max of trigger width and natural content width (fit widest option)
-  drop.style.width = 'auto';
+  const dropH = Math.min(260, drop.scrollHeight || 220);
+  const spaceBelow = window.innerHeight - r.bottom;
+  const spaceAbove = r.top;
+  // Flip above trigger if not enough space below and more space above
+  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
+    drop.style.top    = (r.top - dropH - 2) + 'px';
+  } else {
+    drop.style.top    = (r.bottom + 2) + 'px';
+  }
+  drop.style.left     = r.left + 'px';
+  drop.style.width    = 'auto';
   drop.style.minWidth = Math.max(r.width, 140) + 'px';
 }
 
@@ -7276,7 +7288,14 @@ function sselPosition(field) {
   const drop    = sselGetDrop(field);
   if (!trigger || !drop) return;
   const rect = trigger.getBoundingClientRect();
-  drop.style.top      = (rect.bottom + 2) + 'px';
+  const dropH = Math.min(220, drop.scrollHeight || 200);
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
+    drop.style.top = (rect.top - dropH - 2) + 'px';
+  } else {
+    drop.style.top = (rect.bottom + 2) + 'px';
+  }
   drop.style.left     = rect.left + 'px';
   drop.style.width    = 'auto';
   drop.style.minWidth = Math.max(rect.width, 160) + 'px';
@@ -9135,28 +9154,14 @@ function buildBadgeShelf() {
         </div>
       </div>
       <div class="dash-filter-row">
-        <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
-        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-comp-filter">
-          <div class="fsel-trigger" id="fseltrig-sheet-comp-filter" tabindex="0"
-            onclick="fselToggle('sheet-comp-filter')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-comp-filter');}" >All Matches</div>
+        <div class="dash-filter-row-label">Season</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-season-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-season-filter" tabindex="0"
+            onclick="fselToggle('sheet-season-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-season-filter');}">All Seasons</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <div class="fsel-dropdown" id="fseldrop-sheet-comp-filter"></div>
-          <select class="ssel-native" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
-            <option value="all">All Matches</option>
-            <option value="competitive">Competitive Only</option>
-          </select>
-        </div>
-      </div>
-      <div class="dash-filter-row">
-        <div class="dash-filter-row-label">Level</div>
-        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-level-filter">
-          <div class="fsel-trigger" id="fseltrig-sheet-level-filter" tabindex="0"
-            onclick="fselToggle('sheet-level-filter')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-level-filter');}">All Levels</div>
-          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <div class="fsel-dropdown" id="fseldrop-sheet-level-filter"></div>
-          <select class="ssel-native" id="sheet-level-filter" onchange="filterState.dash.level=this.value;dashFilterOnChange('level')"></select>
+          <div class="fsel-dropdown" id="fseldrop-sheet-season-filter"></div>
+          <select class="ssel-native" id="sheet-season-filter" onchange="filterState.dash.season=this.value;dashFilterOnChange('season')"></select>
         </div>
       </div>
       <div class="dash-filter-row">
@@ -9171,14 +9176,14 @@ function buildBadgeShelf() {
         </div>
       </div>
       <div class="dash-filter-row">
-        <div class="dash-filter-row-label">Season</div>
-        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-season-filter">
-          <div class="fsel-trigger" id="fseltrig-sheet-season-filter" tabindex="0"
-            onclick="fselToggle('sheet-season-filter')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-season-filter');}">All Seasons</div>
+        <div class="dash-filter-row-label">Level</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-level-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-level-filter" tabindex="0"
+            onclick="fselToggle('sheet-level-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-level-filter');}">All Levels</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <div class="fsel-dropdown" id="fseldrop-sheet-season-filter"></div>
-          <select class="ssel-native" id="sheet-season-filter" onchange="filterState.dash.season=this.value;dashFilterOnChange('season')"></select>
+          <div class="fsel-dropdown" id="fseldrop-sheet-level-filter"></div>
+          <select class="ssel-native" id="sheet-level-filter" onchange="filterState.dash.level=this.value;dashFilterOnChange('level')"></select>
         </div>
       </div>
       <div class="dash-filter-row">
@@ -9190,6 +9195,20 @@ function buildBadgeShelf() {
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
           <div class="fsel-dropdown" id="fseldrop-sheet-line-filter"></div>
           <select class="ssel-native" id="sheet-line-filter" onchange="filterState.dash.line=this.value;dashFilterOnChange('line')"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-comp-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-comp-filter" tabindex="0"
+            onclick="fselToggle('sheet-comp-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-comp-filter');}" >All Matches</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-comp-filter"></div>
+          <select class="ssel-native" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
+            <option value="all">All Matches</option>
+            <option value="competitive">Competitive Only</option>
+          </select>
         </div>
       </div>
     </div>
