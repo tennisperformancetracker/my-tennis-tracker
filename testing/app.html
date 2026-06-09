@@ -1982,7 +1982,7 @@ function renderDashboard() {
   const chartYear   = filterState.chart.year;
   const hasActive   = typeFilter || compFilter;
 
-  // Build topbar — Type + Competitive filters (desktop)
+  // Build topbar — Type + Match Quality filters (desktop)
   const types = ['', ...(validEntries.type || [])];
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
@@ -1992,8 +1992,8 @@ function renderDashboard() {
       </select>
     </div>
     <div class="topbar-filter-group">
-      <span class="topbar-label">Matches:</span>
-      <select class="topbar-select" id="dash-competitive-filter" onchange="filterState.dash.competitive=this.value==='competitive';renderDashboard()" title="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">
+      <span class="topbar-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="font-weight:400">ⓘ</span></span>
+      <select class="topbar-select" id="dash-competitive-filter" onchange="filterState.dash.competitive=this.value==='competitive';renderDashboard()">
         <option value="all"         ${!compFilter?'selected':''}>All Matches</option>
         <option value="competitive" ${compFilter?'selected':''}>Competitive Only</option>
       </select>
@@ -2003,15 +2003,10 @@ function renderDashboard() {
   document.getElementById('mobile-filters').innerHTML = '';
   const mobTopbarRightDash = document.getElementById('mob-topbar-right');
   if (mobTopbarRightDash) mobTopbarRightDash.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px">
-      <select onchange="filterState.dash.type=this.value;renderDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:4px 22px 4px 8px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;">
-        ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
-      </select>
-      <button class="mob-filter-btn ${hasActive ? 'has-active' : ''}" onclick="openDashFilterSheet()" title="Filters">
-        <span style="font-size:13px">⚙︎</span>
-        <span class="mob-filter-active-dot"></span>
-      </button>
-    </div>
+    <button class="mob-filter-btn ${hasActive ? 'has-active' : ''}" onclick="openDashFilterSheet()" title="Filters">
+      <span style="font-size:13px">⚙︎</span>
+      <span class="mob-filter-active-dot"></span>
+    </button>
   `;
 
   // Filter matches by type and competitive setting
@@ -4616,11 +4611,9 @@ function openDashFilterSheet() {
   if (sel) {
     sel.innerHTML = types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('');
   }
-  // Set segmented buttons
-  const btnAll  = document.getElementById('sheet-comp-all');
-  const btnComp = document.getElementById('sheet-comp-only');
-  if (btnAll)  btnAll.classList.toggle('active', !compFilter);
-  if (btnComp) btnComp.classList.toggle('active',  compFilter);
+  // Populate quality select
+  const compSel = document.getElementById('sheet-comp-filter');
+  if (compSel) compSel.value = compFilter ? 'competitive' : 'all';
   document.getElementById('dash-filter-sheet-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -4629,13 +4622,13 @@ function closeDashFilterSheet() {
   document.body.style.overflow = '';
 }
 function sheetSetCompetitive(val) {
-  document.getElementById('sheet-comp-all').classList.toggle('active', !val);
-  document.getElementById('sheet-comp-only').classList.toggle('active', val);
   filterState.dash.competitive = val;
 }
 function applyDashFilterSheet() {
   const sel = document.getElementById('sheet-type-filter');
   if (sel) filterState.dash.type = sel.value;
+  const compSel = document.getElementById('sheet-comp-filter');
+  if (compSel) filterState.dash.competitive = compSel.value === 'competitive';
   closeDashFilterSheet();
   renderDashboard();
 }
@@ -4644,10 +4637,8 @@ function resetDashFilters() {
   filterState.dash.competitive = false;
   const sel = document.getElementById('sheet-type-filter');
   if (sel) sel.value = '';
-  const btnAll  = document.getElementById('sheet-comp-all');
-  const btnComp = document.getElementById('sheet-comp-only');
-  if (btnAll)  btnAll.classList.add('active');
-  if (btnComp) btnComp.classList.remove('active');
+  const compSel = document.getElementById('sheet-comp-filter');
+  if (compSel) compSel.value = 'all';
 }
 
 // 
@@ -8271,11 +8262,11 @@ function buildBadgeShelf() {
         <select class="dash-filter-select" id="sheet-type-filter" onchange="filterState.dash.type=this.value"></select>
       </div>
       <div class="dash-filter-row">
-        <div class="dash-filter-row-label">Match Set <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
-        <div class="dash-filter-seg">
-          <button class="dash-filter-seg-btn" id="sheet-comp-all" onclick="sheetSetCompetitive(false)">All Matches</button>
-          <button class="dash-filter-seg-btn" id="sheet-comp-only" onclick="sheetSetCompetitive(true)">Competitive Only</button>
-        </div>
+        <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
+        <select class="dash-filter-select" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
+          <option value="all">All Matches</option>
+          <option value="competitive">Competitive Only</option>
+        </select>
       </div>
     </div>
     <div class="dash-filter-sheet-footer">
