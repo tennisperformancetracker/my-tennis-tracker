@@ -1073,6 +1073,17 @@ textarea:focus { border-color: var(--accent2) !important; }
   transition: opacity 0.15s;
   z-index: 9999;
 }
+/* Downward variant — use when icon is near the top of the viewport */
+.tip-icon.tip-down::after {
+  bottom: auto;
+  top: calc(100% + 6px);
+}
+.tip-icon.tip-down::before {
+  bottom: auto;
+  top: calc(100% + 2px);
+  border-top-color: transparent;
+  border-bottom-color: #1e2d3d;
+}
 .tip-icon:hover::after,
 .tip-icon:hover::before { opacity: 1; }
 
@@ -1992,7 +2003,7 @@ function renderDashboard() {
       </select>
     </div>
     <div class="topbar-filter-group">
-      <span class="topbar-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." data-tip-dir="down" style="font-weight:400">ⓘ</span></span>
+      <span class="topbar-label">Match Quality <span class="tip-icon tip-down" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="font-weight:400">ⓘ</span></span>
       <select class="topbar-select" id="dash-competitive-filter" onchange="filterState.dash.competitive=this.value==='competitive';renderDashboard()">
         <option value="all"         ${!compFilter?'selected':''}>All Matches</option>
         <option value="competitive" ${compFilter?'selected':''}>Competitive Only</option>
