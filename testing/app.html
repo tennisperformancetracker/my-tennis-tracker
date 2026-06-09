@@ -7175,18 +7175,27 @@ function fselPosition(id) {
   const drop = document.getElementById('fseldrop-' + id);
   if (!trig || !drop) return;
   const r = trig.getBoundingClientRect();
-  const dropH = Math.min(260, drop.scrollHeight || 220);
-  const spaceBelow = window.innerHeight - r.bottom;
-  const spaceAbove = r.top;
-  // Flip above trigger if not enough space below and more space above
-  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
-    drop.style.top    = (r.top - dropH - 2) + 'px';
-  } else {
-    drop.style.top    = (r.bottom + 2) + 'px';
+  // Measure actual rendered height: make visible off-screen first if hidden
+  const wasHidden = !drop.classList.contains('open');
+  if (wasHidden) {
+    drop.style.visibility = 'hidden';
+    drop.style.display = 'block';
   }
-  drop.style.left     = r.left + 'px';
+  const dropH = Math.min(260, drop.scrollHeight);
+  if (wasHidden) {
+    drop.style.display = '';
+    drop.style.visibility = '';
+  }
   drop.style.width    = 'auto';
   drop.style.minWidth = Math.max(r.width, 140) + 'px';
+  drop.style.left     = r.left + 'px';
+  const spaceBelow = window.innerHeight - r.bottom;
+  const spaceAbove = r.top;
+  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
+    drop.style.top = (r.top - dropH - 2) + 'px';
+  } else {
+    drop.style.top = (r.bottom + 2) + 'px';
+  }
 }
 
 function fselOpen(id) {
@@ -7288,7 +7297,13 @@ function sselPosition(field) {
   const drop    = sselGetDrop(field);
   if (!trigger || !drop) return;
   const rect = trigger.getBoundingClientRect();
-  const dropH = Math.min(220, drop.scrollHeight || 200);
+  const wasHidden = !drop.classList.contains('open');
+  if (wasHidden) { drop.style.visibility = 'hidden'; drop.style.display = 'block'; }
+  const dropH = Math.min(220, drop.scrollHeight);
+  if (wasHidden) { drop.style.display = ''; drop.style.visibility = ''; }
+  drop.style.width    = 'auto';
+  drop.style.minWidth = Math.max(rect.width, 160) + 'px';
+  drop.style.left     = rect.left + 'px';
   const spaceBelow = window.innerHeight - rect.bottom;
   const spaceAbove = rect.top;
   if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
@@ -7296,9 +7311,6 @@ function sselPosition(field) {
   } else {
     drop.style.top = (rect.bottom + 2) + 'px';
   }
-  drop.style.left     = rect.left + 'px';
-  drop.style.width    = 'auto';
-  drop.style.minWidth = Math.max(rect.width, 160) + 'px';
 }
 
 function sselOpen(field) {
@@ -7502,13 +7514,6 @@ function settingsComboRender(fieldId, query) {
   const input = document.getElementById(fieldId);
   if (!drop || !input) return;
 
-  // Position
-  const rect = input.getBoundingClientRect();
-  drop.style.top = (rect.bottom+2)+'px';
-  drop.style.left = rect.left+'px';
-  drop.style.width = 'auto';
-  drop.style.minWidth = rect.width+'px';
-
   const all = settingsComboGetOptions(fieldId);
   const q = (query||'').toLowerCase();
   const filtered = q.length >= 1 ? all.filter(o=>o.toLowerCase().includes(q)) : all;
@@ -7544,10 +7549,23 @@ function settingsComboRender(fieldId, query) {
     drop.appendChild(empty);
   }
 
+    // Position now that content is built — measure actual height
+  const rect = input.getBoundingClientRect();
+  drop.style.visibility = 'hidden';
+  drop.style.display = 'block';
+  const dropH = Math.min(260, drop.scrollHeight);
+  drop.style.display = '';
+  drop.style.visibility = '';
+  drop.style.width    = 'auto';
+  drop.style.minWidth = rect.width + 'px';
+  drop.style.left     = rect.left + 'px';
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove  = rect.top;
+  drop.style.top = (spaceBelow < dropH + 8 && spaceAbove > spaceBelow)
+    ? (rect.top - dropH - 2) + 'px'
+    : (rect.bottom + 2) + 'px';
   drop.classList.add('open');
-}
-
-// ── Combo Box Engine ─────────────────────────────────────
+}// ── Combo Box Engine ─────────────────────────────────────
 // State per field
 const comboState = {};
 
@@ -7579,10 +7597,20 @@ function comboPositionDropdown(field) {
   const drop = document.getElementById('combo-drop-' + field);
   if (!input || !drop) return;
   const rect = input.getBoundingClientRect();
-  drop.style.top      = (rect.bottom + 2) + 'px';
-  drop.style.left     = rect.left + 'px';
+  const wasHidden = !drop.classList.contains('open');
+  if (wasHidden) { drop.style.visibility = 'hidden'; drop.style.display = 'block'; }
+  const dropH = Math.min(220, drop.scrollHeight);
+  if (wasHidden) { drop.style.display = ''; drop.style.visibility = ''; }
   drop.style.width    = 'auto';
   drop.style.minWidth = rect.width + 'px';
+  drop.style.left     = rect.left + 'px';
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
+    drop.style.top = (rect.top - dropH - 2) + 'px';
+  } else {
+    drop.style.top = (rect.bottom + 2) + 'px';
+  }
 }
 
 function comboRenderDropdown(field, filterText) {
