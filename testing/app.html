@@ -286,11 +286,20 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .chart-header-controls {
   display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
+@media (min-width: 769px) {
+  .chart-card-header { position: relative; }
+  .chart-header-controls { margin-left: auto; }
+  #chart-wl-legend {
+    position: absolute !important; left: 50%; transform: translateX(-50%);
+    top: 50%; margin-top: -11px; /* vertically center within header */
+  }
+}
 @media (max-width: 768px) {
   .chart-card-header {
     flex-direction: column; align-items: flex-start; gap: 8px;
   }
   .chart-header-controls { width: 100%; }
+  #chart-wl-legend { margin-left: 0 !important; }
 }
 @media (max-width: 400px) {
   .chart-legend-full { display: none !important; }
@@ -2221,7 +2230,7 @@ function renderDashboard() {
             <span id="chart-year-wrap" ${filterState.chart.mode==='year'?'style="display:none"':''}>
               ${fselHtml('chart-year-filter', chartYears.map(y=>({value:y,label:y||'All Years'})), chartYear, 'filterState.chart.year=this.value;renderMonthChart(getChartMatches())', 'fsel-compact')}
             </span>
-            <span id="chart-wl-legend" style="display:${filterState.chart.mode==='wins'?'flex':'none'};align-items:center;gap:6px;font-size:12px;color:var(--muted);font-family:var(--font);flex-shrink:0;margin-left:auto">
+            <span id="chart-wl-legend" style="display:${filterState.chart.mode==='wins'?'flex':'none'};align-items:center;gap:6px;font-size:12px;color:var(--muted);font-family:var(--font);flex-shrink:0">
               <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(46,125,82,0.75);flex-shrink:0;display:inline-block"></span><span class="chart-legend-full">Wins</span><span class="chart-legend-short" style="display:none">W</span></span>
               <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(192,57,43,0.5);flex-shrink:0;display:inline-block"></span><span class="chart-legend-full">Losses</span><span class="chart-legend-short" style="display:none">L</span></span>
             </span>
