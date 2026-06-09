@@ -1992,7 +1992,7 @@ function renderDashboard() {
       </select>
     </div>
     <div class="topbar-filter-group">
-      <span class="topbar-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="font-weight:400">ⓘ</span></span>
+      <span class="topbar-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." data-tip-dir="down" style="font-weight:400">ⓘ</span></span>
       <select class="topbar-select" id="dash-competitive-filter" onchange="filterState.dash.competitive=this.value==='competitive';renderDashboard()">
         <option value="all"         ${!compFilter?'selected':''}>All Matches</option>
         <option value="competitive" ${compFilter?'selected':''}>Competitive Only</option>
@@ -2004,9 +2004,9 @@ function renderDashboard() {
   const mobTopbarRightDash = document.getElementById('mob-topbar-right');
   if (mobTopbarRightDash) mobTopbarRightDash.innerHTML = `
     <button class="mob-filter-btn ${hasActive ? 'has-active' : ''}" onclick="openDashFilterSheet()" title="Filters">
-      <span style="font-size:13px">⚙︎</span>
-      <span class="mob-filter-active-dot"></span>
-    </button>
+        <span style="font-size:12px;font-weight:600;letter-spacing:0.2px">Filters</span>
+        <span class="mob-filter-active-dot"></span>
+      </button>
   `;
 
   // Filter matches by type and competitive setting
