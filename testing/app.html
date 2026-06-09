@@ -2250,6 +2250,11 @@ function renderDashboard() {
   `;
 
   renderMonthChart(getChartMatches());
+  // Wire tooltips and collapse after every dashboard render
+  requestAnimationFrame(function() {
+    initSparkTooltips();
+    initKpiCollapse();
+  });
 }
 
 function getSplitsMatches(baseMatches) {
