@@ -832,22 +832,6 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   border: 1.5px solid #2f4157;
 }
 .mob-filter-btn.has-active .mob-filter-active-dot { display: block; }
-/* Desktop Filters button — same idea but lighter for light topbar */
-.dash-filters-btn {
-  display: flex; align-items: center; gap: 4px;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius); color: var(--text); cursor: pointer;
-  padding: 7px 14px; font-size: 13px; font-weight: 600;
-  font-family: var(--font); position: relative; flex-shrink: 0;
-  transition: border-color 0.15s;
-}
-.dash-filters-btn:hover { border-color: var(--accent2); }
-.dash-filters-btn.has-active { border-color: var(--accent2); background: rgba(99,133,162,0.08); }
-.dash-filters-dot {
-  display: none; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--accent2); margin-left: 2px;
-}
-.dash-filters-btn.has-active .dash-filters-dot { display: block; }
 /* Bottom sheet overlay */
 .dash-filter-sheet-overlay {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -860,14 +844,6 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   width: 100%; max-height: 80vh; overflow-y: auto;
   box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
   animation: sheetSlideUp 0.22s ease;
-}
-@media (min-width: 769px) {
-  .dash-filter-sheet-overlay { align-items: center !important; }
-  .dash-filter-sheet {
-    border-radius: 16px; max-width: 480px; margin: 0 auto;
-    box-shadow: 0 8px 32px rgba(47,65,87,0.18);
-    animation: none;
-  }
 }
 @keyframes sheetSlideUp {
   from { transform: translateY(100%); }
@@ -925,7 +901,7 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .dash-filter-sheet-footer .btn { flex: 1; justify-content: center; }
 @media (min-width: 769px) {
   .mob-filter-btn { display: none !important; }
-  /* dash-filter-sheet-overlay now used on desktop too */
+  .dash-filter-sheet-overlay { display: none !important; }
 }
 @media (max-width: 768px) {
   .mob-filter-btn { display: flex; }
@@ -2132,25 +2108,35 @@ function setScoresHtml(m) {
 // DASHBOARD
 // 
 function renderDashboard() {
-  // Sync chart controls from DOM (still inline dropdowns)
-  const cmEl = document.getElementById('chart-mode-filter');
-  if (cmEl) filterState.chart.mode = cmEl.value;
-  const cyEl = document.getElementById('chart-year-filter');
-  if (cyEl) filterState.chart.year = cyEl.value;
+  // Only sync from desktop DOM selects when they're actually visible (not hidden by mobile CSS)
+  const isMobileView = window.innerWidth <= 768;
+  if (!isMobileView) {
+    const dtEl = document.getElementById('dash-type-filter');
+    if (dtEl) filterState.dash.type = dtEl.value;
+    const dcEl = document.getElementById('dash-competitive-filter');
+    if (dcEl) filterState.dash.competitive = dcEl.value === 'competitive';
+    const cmEl = document.getElementById('chart-mode-filter');
+    if (cmEl) filterState.chart.mode = cmEl.value;
+    const cyEl = document.getElementById('chart-year-filter');
+    if (cyEl) filterState.chart.year = cyEl.value;
+  }
 
   const typeFilter  = filterState.dash.type;
   const compFilter  = filterState.dash.competitive;
   const chartYear   = filterState.chart.year;
   const hasActive   = typeFilter || compFilter || filterState.dash.level || filterState.dash.league || filterState.dash.season || filterState.dash.line;
 
-  // Build topbar — Filters button (desktop, opens same sheet as mobile)
+  // Build topbar — Type + Match Quality filters (desktop)
   const types = ['', ...(validEntries.type || [])];
-  const hasActiveFilters = typeFilter || compFilter || filterState.dash.level || filterState.dash.league || filterState.dash.season || filterState.dash.line;
   document.getElementById('topbar-right').innerHTML = `
-    <button class="dash-filters-btn ${hasActiveFilters ? 'has-active' : ''}" onclick="openDashFilterSheet()" title="Filters">
-      <span>Filters</span>
-      <span class="dash-filters-dot"></span>
-    </button>
+    <div class="topbar-filter-group">
+      <span class="topbar-label">Type:</span>
+      ${fselHtml('dash-type-filter', types.map(t=>({value:t,label:t||'All Types'})), typeFilter, 'filterState.dash.type=this.value;renderDashboard()')}
+    </div>
+    <div class="topbar-filter-group">
+      <span class="topbar-label">Match Quality <span class="tip-icon tip-down" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="font-weight:400">ⓘ</span></span>
+      ${fselHtml('dash-competitive-filter', [{value:'all',label:'All Matches'},{value:'competitive',label:'Competitive Only'}], compFilter?'competitive':'all', "filterState.dash.competitive=this.value==='competitive';renderDashboard()")}
+    </div>
   `;
 
   document.getElementById('mobile-filters').innerHTML = '';
@@ -2166,7 +2152,6 @@ function renderDashboard() {
   const leagueFilter = filterState.dash.league;
   const seasonFilter = filterState.dash.season;
   const lineFilter   = filterState.dash.line;
-  // Filter matches
   let matches = allMatches.filter(m =>
     (!typeFilter   || m.type   === typeFilter)   &&
     (!compFilter   || isClose(m))                &&
@@ -4741,27 +4726,100 @@ function closeModal() {
 function closeModalOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
 
 // ── Dashboard Filter Bottom Sheet (mobile) ───────────────────────────────────
+
+// ── Dynamic Dashboard Filter Logic ───────────────────────
+// When any filter changes in the sheet, narrow the other
+// dropdowns to only values present in matches that satisfy
+// all currently-selected filters EXCEPT the field being updated.
+
+const DASH_FILTER_FIELDS = ['type','level','league','season','line'];
+
+function dashFilterGetCurrent() {
+  return {
+    type:   document.getElementById('sheet-type-filter')?.value   || '',
+    level:  document.getElementById('sheet-level-filter')?.value  || '',
+    league: document.getElementById('sheet-league-filter')?.value || '',
+    season: document.getElementById('sheet-season-filter')?.value || '',
+    line:   document.getElementById('sheet-line-filter')?.value   || '',
+  };
+}
+
+function dashFilterGetMatches(excluding, current) {
+  // Return matches satisfying all filters EXCEPT `excluding`
+  return allMatches.filter(m => {
+    if (excluding !== 'type'   && current.type   && m.type   !== current.type)   return false;
+    if (excluding !== 'level'  && current.level  && m.level  !== current.level)  return false;
+    if (excluding !== 'league' && current.league && m.league !== current.league) return false;
+    if (excluding !== 'season' && current.season && m.season !== current.season) return false;
+    if (excluding !== 'line'   && current.line   && m.line   !== current.line)   return false;
+    return true;
+  });
+}
+
+function dashFilterGetValues(field, matches) {
+  const vals = new Set();
+  matches.forEach(m => { if (m[field]) vals.add(m[field]); });
+  if (field === 'level')  return sortedLevels([...vals]);
+  if (field === 'league') return sortedLeagues([...vals]);
+  if (field === 'type')   return [...vals].sort();
+  return [...vals].sort();
+}
+
+function dashFilterRefreshDropdowns(changedField) {
+  const current = dashFilterGetCurrent();
+  DASH_FILTER_FIELDS.forEach(field => {
+    if (field === changedField) return; // don't touch the field the user just changed
+    const matches = dashFilterGetMatches(field, current);
+    const available = dashFilterGetValues(field, matches);
+    const selId = 'sheet-' + field + '-filter';
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const currentVal = sel.value;
+    // Rebuild options: blank + sorted available values
+    const labelFn = v => v || { type:'All Types', level:'All Levels', league:'All Leagues', season:'All Seasons', line:'All Lines' }[field];
+    sel.innerHTML = ['',...available].map(v =>
+      `<option value="${v}"${v===currentVal?' selected':''}>${labelFn(v)}</option>`
+    ).join('');
+    // If current value no longer available, reset to blank
+    if (currentVal && !available.includes(currentVal)) {
+      sel.value = '';
+    }
+    fselSync(selId);
+  });
+}
+
+// Wire up: each sheet native select fires this on change
+// We need to add onchange to each native select — done by patching openDashFilterSheet
+// to add listeners after populating.
+
+function dashFilterOnChange(changedField) {
+  dashFilterRefreshDropdowns(changedField);
+}
+
 function openDashFilterSheet() {
-  const types   = ['', ...(validEntries.type   || [])];
-  const levels  = ['', ...sortedLevels(validEntries.level  || [])];
-  const leagues = ['', ...sortedLeagues(validEntries.league || [])];
-  const seasons = ['', ...(validEntries.season || [])];
-  const lines   = ['', ...(validEntries.line   || [])];
-
-  function populateSel(id, opts, labelFn, currentVal) {
+  // Sync current filterState into all native selects
+  const setVal = (id, val) => {
     const el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = opts.map(v => `<option value="${v}" ${v===currentVal?'selected':''}>${labelFn(v)}</option>`).join('');
-    fselSync(id);
-  }
-  populateSel('sheet-type-filter',   types,   t => t||'All Types',   filterState.dash.type);
-  populateSel('sheet-level-filter',  levels,  l => l||'All Levels',  filterState.dash.level);
-  populateSel('sheet-league-filter', leagues, l => l||'All Leagues', filterState.dash.league);
-  populateSel('sheet-season-filter', seasons, s => s||'All Seasons', filterState.dash.season);
-  populateSel('sheet-line-filter',   lines,   l => l||'All Lines',   filterState.dash.line);
-
+    if (el) { el.value = val; fselSync(id); }
+  };
   const compSel = document.getElementById('sheet-comp-filter');
   if (compSel) { compSel.value = filterState.dash.competitive ? 'competitive' : 'all'; fselSync('sheet-comp-filter'); }
+
+  // Populate all dynamic selects from match data, then refresh based on current filters
+  DASH_FILTER_FIELDS.forEach(field => {
+    const selId = 'sheet-' + field + '-filter';
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    // Get all possible values for this field (ignoring other filters for initial population)
+    const allVals = dashFilterGetValues(field, allMatches);
+    const labelFn = v => v || {type:'All Types',level:'All Levels',league:'All Leagues',season:'All Seasons',line:'All Lines'}[field];
+    const cur = filterState.dash[field] || '';
+    sel.innerHTML = ['',...allVals].map(v=>`<option value="${v}"${v===cur?' selected':''}>${labelFn(v)}</option>`).join('');
+    fselSync(selId);
+  });
+
+  // Now narrow each dropdown based on other currently-active filters
+  DASH_FILTER_FIELDS.forEach(field => dashFilterRefreshDropdowns(field));
 
   document.getElementById('dash-filter-sheet-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -4785,15 +4843,16 @@ function applyDashFilterSheet() {
   renderDashboard();
 }
 function resetDashFilters() {
-  filterState.dash.type = ''; filterState.dash.competitive = false;
-  filterState.dash.level = ''; filterState.dash.league = '';
-  filterState.dash.season = ''; filterState.dash.line = '';
-  ['sheet-type-filter','sheet-level-filter','sheet-league-filter','sheet-season-filter','sheet-line-filter'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.value = ''; fselSync(id); }
+  ['type','level','league','season','line'].forEach(f => { filterState.dash[f] = ''; });
+  filterState.dash.competitive = false;
+  DASH_FILTER_FIELDS.forEach(f => {
+    const el = document.getElementById('sheet-'+f+'-filter');
+    if (el) { el.value = ''; fselSync('sheet-'+f+'-filter'); }
   });
   const compSel = document.getElementById('sheet-comp-filter');
   if (compSel) { compSel.value = 'all'; fselSync('sheet-comp-filter'); }
+  // Refresh all dropdowns to show full lists
+  DASH_FILTER_FIELDS.forEach(field => dashFilterRefreshDropdowns(field));
 }
 
 // 
@@ -5781,7 +5840,17 @@ function renderSettings() {
                       const saved = localStorage.getItem(key) || '';
                       return `<div class="field">
                         <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
-                        ${fselHtml('def-partner-'+escHtml(t), [{value:'',label:'— None —'}, ...sortedPartners(validEntries.partner||[]).map(p=>({value:escHtml(p),label:p}))], saved, '', 'fsel-block')}
+                        <div class="combo-wrap" id="combo-wrap-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}">
+                          <input type="text" class="combo-input" id="defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"
+                            data-type="${escHtml(t)}"
+                            placeholder="— None —" autocomplete="off" value="${escHtml(saved)}"
+                            oninput="onSettingsComboInput(this.id)"
+                            onfocus="onSettingsComboFocus(this.id)"
+                            onblur="onComboBlur(this.id)"
+                            onkeydown="onSettingsComboKeydown(event,this.id)">
+                          <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+                          <div class="combo-dropdown" id="combo-drop-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"></div>
+                        </div>
                       </div>`;
                     }).join('')
                   : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
@@ -5790,23 +5859,33 @@ function renderSettings() {
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
                 <div class="field">
                   <div class="field-label">Default Type</div>
-                  ${fselHtml('def-type', [{value:'',label:'— None —'}, ...(validEntries.type||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultType')||'', '', 'fsel-block')}
+                  ${fselHtml('def-type', [{value:'',label:'— None —'}, ...(validEntries.type||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultType')||'', '')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Season</div>
-                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '', 'fsel-block')}
+                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default League</div>
-                  ${fselHtml('def-league', [{value:'',label:'— None —'}, ...(validEntries.league||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLeague')||'', '', 'fsel-block')}
+                  ${fselHtml('def-league', [{value:'',label:'— None —'}, ...(validEntries.league||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLeague')||'', '')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Level</div>
-                  ${fselHtml('def-level', [{value:'',label:'— None —'}, ...sortedLevels(validEntries.level||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLevel')||'', '', 'fsel-block')}
+                  <div class="combo-wrap" id="combo-wrap-def-level-combo">
+                    <input type="text" class="combo-input" id="def-level-combo"
+                      placeholder="— None —" autocomplete="off"
+                      value="${escHtml(localStorage.getItem('defaultLevel')||'')}"
+                      oninput="onSettingsComboInput('def-level-combo')"
+                      onfocus="onSettingsComboFocus('def-level-combo')"
+                      onblur="onComboBlur('def-level-combo')"
+                      onkeydown="onSettingsComboKeydown(event,'def-level-combo')">
+                    <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <div class="combo-dropdown" id="combo-drop-def-level-combo"></div>
+                  </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Default Surface</div>
-                  ${fselHtml('def-surface', [{value:'',label:'— None —'}, ...(validEntries.surface||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSurface')||'', '', 'fsel-block')}
+                  ${fselHtml('def-surface', [{value:'',label:'— None —'}, ...(validEntries.surface||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSurface')||'', '')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Home Location</div>
@@ -6300,7 +6379,7 @@ async function saveDefaultSettings(silent) {
   const defType     = document.getElementById('def-type')?.value     || '';
   const defSeason   = document.getElementById('def-season')?.value   || '';
   const defLeague   = document.getElementById('def-league')?.value   || '';
-  const defLevel    = document.getElementById('def-level')?.value    || '';
+  const defLevel    = document.getElementById('def-level-combo')?.value.trim() || '';
   const defSurface  = document.getElementById('def-surface')?.value  || '';
   const defLocation = document.getElementById('def-location')?.value.trim() || '';
   localStorage.setItem('defaultType',     defType);
@@ -6310,8 +6389,8 @@ async function saveDefaultSettings(silent) {
   localStorage.setItem('defaultSurface',  defSurface);
   localStorage.setItem('defaultLocation', defLocation);
   const settingsToSave = { defaultType: defType, defaultSeason: defSeason, defaultLeague: defLeague, defaultLevel: defLevel, defaultSurface: defSurface, defaultLocation: defLocation };
-  document.querySelectorAll('[id^="def-partner-"]').forEach(el => {
-    const t = el.dataset.type; const val = el.value || '';
+  document.querySelectorAll('[data-type][id^="defp-"]').forEach(el => {
+    const t = el.dataset.type; const val = el.value.trim() || '';
     localStorage.setItem('defaultPartner_' + t, val);
     settingsToSave['defaultPartner_' + t] = val;
   });
@@ -7324,6 +7403,119 @@ document.addEventListener('mousedown', function(e) {
     }
   });
 }, true);
+
+
+// ── Settings Combo Engine ─────────────────────────────────
+// Reuses the combo dropdown CSS but operates on settings fields.
+
+function settingsComboGetOptions(fieldId) {
+  if (fieldId === 'def-level-combo') return sortedLevels(validEntries.level || []);
+  if (fieldId.startsWith('defp-')) return ['', ...sortedPartners(validEntries.partner || [])];
+  return [];
+}
+
+function onSettingsComboFocus(fieldId) {
+  settingsComboRender(fieldId, document.getElementById(fieldId)?.value || '');
+}
+
+function onSettingsComboInput(fieldId) {
+  const q = document.getElementById(fieldId)?.value || '';
+  settingsComboRender(fieldId, q);
+}
+
+function onSettingsComboKeydown(e, fieldId) {
+  const drop = document.getElementById('combo-drop-' + fieldId);
+  const isOpen = drop?.classList.contains('open');
+  const opts = drop ? Array.from(drop.querySelectorAll('.combo-option:not(.add-new)')) : [];
+  const state = comboState[fieldId] || {};
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!isOpen) { settingsComboRender(fieldId, document.getElementById(fieldId)?.value||''); return; }
+    state.highlighted = Math.min((state.highlighted??-1)+1, opts.length-1);
+    opts.forEach((o,i)=>o.classList.toggle('highlighted', i===state.highlighted));
+    if (opts[state.highlighted]) opts[state.highlighted].scrollIntoView({block:'nearest'});
+    comboState[fieldId] = state; return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    state.highlighted = Math.max((state.highlighted??0)-1, 0);
+    opts.forEach((o,i)=>o.classList.toggle('highlighted', i===state.highlighted));
+    comboState[fieldId] = state; return;
+  }
+  if (e.key === 'Escape') { comboClose(fieldId); return; }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const hi = state.highlighted??-1;
+    if (isOpen && hi >= 0 && opts[hi]) {
+      document.getElementById(fieldId).value = opts[hi].dataset.value;
+      comboClose(fieldId);
+    } else {
+      const typed = document.getElementById(fieldId)?.value.trim()||'';
+      const all = settingsComboGetOptions(fieldId);
+      const exact = all.find(o=>o.toLowerCase()===typed.toLowerCase());
+      if (exact) { document.getElementById(fieldId).value = exact; comboClose(fieldId); }
+    }
+    return;
+  }
+  if (e.key === 'Tab') {
+    const typed = document.getElementById(fieldId)?.value.trim()||'';
+    const all = settingsComboGetOptions(fieldId);
+    const exact = all.find(o=>o.toLowerCase()===typed.toLowerCase());
+    if (exact) document.getElementById(fieldId).value = exact;
+    comboClose(fieldId); return;
+  }
+}
+
+function settingsComboRender(fieldId, query) {
+  const drop = document.getElementById('combo-drop-' + fieldId);
+  const input = document.getElementById(fieldId);
+  if (!drop || !input) return;
+
+  // Position
+  const rect = input.getBoundingClientRect();
+  drop.style.top = (rect.bottom+2)+'px';
+  drop.style.left = rect.left+'px';
+  drop.style.width = 'auto';
+  drop.style.minWidth = rect.width+'px';
+
+  const all = settingsComboGetOptions(fieldId);
+  const q = (query||'').toLowerCase();
+  const filtered = q.length >= 1 ? all.filter(o=>o.toLowerCase().includes(q)) : all;
+
+  drop.innerHTML = '';
+  const state = comboState[fieldId] || {};
+  state.highlighted = -1;
+  comboState[fieldId] = state;
+
+  filtered.forEach((opt, i) => {
+    if (!opt) return; // skip blank
+    const el = document.createElement('div');
+    el.className = 'combo-option';
+    el.dataset.value = opt;
+    if (q.length >= 1) {
+      const idx = opt.toLowerCase().indexOf(q);
+      el.innerHTML = escHtml(opt.slice(0,idx))+'<strong>'+escHtml(opt.slice(idx,idx+q.length))+'</strong>'+escHtml(opt.slice(idx+q.length));
+    } else {
+      el.textContent = opt;
+    }
+    el.onmousedown = (e) => {
+      e.preventDefault();
+      input.value = opt;
+      comboClose(fieldId);
+    };
+    drop.appendChild(el);
+  });
+
+  if (filtered.length === 0 && q.length >= 1) {
+    const empty = document.createElement('div');
+    empty.className = 'combo-no-match';
+    empty.textContent = 'No matches';
+    drop.appendChild(empty);
+  }
+
+  drop.classList.add('open');
+}
 
 // ── Combo Box Engine ─────────────────────────────────────
 // State per field
@@ -8928,7 +9120,7 @@ function buildBadgeShelf() {
             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-type-filter');}">All Types</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
           <div class="fsel-dropdown" id="fseldrop-sheet-type-filter"></div>
-          <select class="ssel-native" id="sheet-type-filter" onchange="filterState.dash.type=this.value"></select>
+          <select class="ssel-native" id="sheet-type-filter" onchange="filterState.dash.type=this.value;dashFilterOnChange('type')"></select>
         </div>
       </div>
       <div class="dash-filter-row">
@@ -8936,7 +9128,7 @@ function buildBadgeShelf() {
         <div class="fsel-wrap fsel-block" id="fselwrap-sheet-comp-filter">
           <div class="fsel-trigger" id="fseltrig-sheet-comp-filter" tabindex="0"
             onclick="fselToggle('sheet-comp-filter')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-comp-filter');}">All Matches</div>
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-comp-filter');}" >All Matches</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
           <div class="fsel-dropdown" id="fseldrop-sheet-comp-filter"></div>
           <select class="ssel-native" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
@@ -8953,7 +9145,7 @@ function buildBadgeShelf() {
             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-level-filter');}">All Levels</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
           <div class="fsel-dropdown" id="fseldrop-sheet-level-filter"></div>
-          <select class="ssel-native" id="sheet-level-filter" onchange="filterState.dash.level=this.value"></select>
+          <select class="ssel-native" id="sheet-level-filter" onchange="filterState.dash.level=this.value;dashFilterOnChange('level')"></select>
         </div>
       </div>
       <div class="dash-filter-row">
@@ -8964,7 +9156,7 @@ function buildBadgeShelf() {
             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-league-filter');}">All Leagues</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
           <div class="fsel-dropdown" id="fseldrop-sheet-league-filter"></div>
-          <select class="ssel-native" id="sheet-league-filter" onchange="filterState.dash.league=this.value"></select>
+          <select class="ssel-native" id="sheet-league-filter" onchange="filterState.dash.league=this.value;dashFilterOnChange('league')"></select>
         </div>
       </div>
       <div class="dash-filter-row">
@@ -8975,7 +9167,7 @@ function buildBadgeShelf() {
             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-season-filter');}">All Seasons</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
           <div class="fsel-dropdown" id="fseldrop-sheet-season-filter"></div>
-          <select class="ssel-native" id="sheet-season-filter" onchange="filterState.dash.season=this.value"></select>
+          <select class="ssel-native" id="sheet-season-filter" onchange="filterState.dash.season=this.value;dashFilterOnChange('season')"></select>
         </div>
       </div>
       <div class="dash-filter-row">
@@ -8986,7 +9178,7 @@ function buildBadgeShelf() {
             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-line-filter');}">All Lines</div>
           <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
           <div class="fsel-dropdown" id="fseldrop-sheet-line-filter"></div>
-          <select class="ssel-native" id="sheet-line-filter" onchange="filterState.dash.line=this.value"></select>
+          <select class="ssel-native" id="sheet-line-filter" onchange="filterState.dash.line=this.value;dashFilterOnChange('line')"></select>
         </div>
       </div>
     </div>
