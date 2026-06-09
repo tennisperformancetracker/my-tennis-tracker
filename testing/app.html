@@ -141,8 +141,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .topbar-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .topbar-select {
   background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text); font-family: var(--font); font-size: 13px; padding: 6px 28px 6px 10px;
-  outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 30px 9px 12px;
+  height: 39px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  transition: border-color 0.2s; box-sizing: border-box;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 10px center;
 }
@@ -426,12 +427,14 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 }
 .search-input:focus { border-color: var(--accent2); }
 .filter-select {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text); font-family: var(--font); font-size: 13px; padding: 8px 28px 8px 10px;
-  outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 30px 9px 12px;
+  height: 39px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  transition: border-color 0.2s; box-sizing: border-box;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 10px center;
 }
+.filter-select:focus { border-color: var(--accent2); }
 .match-body { flex: 1; min-width: 0; }
 .match-opponent { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
 .match-meta { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
@@ -784,11 +787,13 @@ body.dark .combo-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .dash-filter-select {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
-  font-size: 14px; font-weight: 500; padding: 10px 32px 10px 12px; outline: none;
-  appearance: none; -webkit-appearance: none; width: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
+  font-size: 13px; font-weight: 400; padding: 9px 30px 9px 12px;
+  height: 39px; outline: none; appearance: none; -webkit-appearance: none;
+  width: 100%; cursor: pointer; transition: border-color 0.2s; box-sizing: border-box;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
 }
+.dash-filter-select:focus { border-color: var(--accent2); }
 .dash-filter-seg {
   display: flex; gap: 8px;
 }
@@ -2078,12 +2083,12 @@ function renderDashboard() {
         <div class="card-header">
           <div class="card-title" id="chart-card-title">Win % by Month</div>
           <div class="card-filter" id="chart-card-filters">
-            <select class="topbar-select" id="chart-mode-filter" onchange="filterState.chart.mode=this.value;onChartModeChange()" style="font-size:12px;padding:5px 24px 5px 8px;">
+            <select class="topbar-select" id="chart-mode-filter" onchange="filterState.chart.mode=this.value;onChartModeChange()" style="font-size:12px;padding:5px 28px 5px 10px;height:auto;">
               <option value="month" ${filterState.chart.mode==='month'?'selected':''}>By Month</option>
               <option value="year"  ${filterState.chart.mode==='year'?'selected':''}>By Year</option>
             </select>
             <span id="chart-year-wrap" ${filterState.chart.mode==='year'?'style="display:none"':''}>
-              <select class="topbar-select" id="chart-year-filter" onchange="filterState.chart.year=this.value;renderMonthChart(getChartMatches())" style="font-size:12px;padding:5px 24px 5px 8px;">
+              <select class="topbar-select" id="chart-year-filter" onchange="filterState.chart.year=this.value;renderMonthChart(getChartMatches())" style="font-size:12px;padding:5px 28px 5px 10px;height:auto;">
                 ${chartYears.map(y => `<option value="${y}" ${y==chartYear?'selected':''}>${y||'All Years'}</option>`).join('')}
               </select>
             </span>
@@ -2098,10 +2103,10 @@ function renderDashboard() {
         <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
           <div class="card-title">Performance Breakdown</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select class="topbar-select" id="splits-month-filter" onchange="filterState.splits.month=this.value;updateSplits()" style="font-size:11px;padding:4px 22px 4px 7px;">
+            <select class="topbar-select" id="splits-month-filter" onchange="filterState.splits.month=this.value;updateSplits()" style="font-size:11px;padding:4px 26px 4px 9px;height:auto;">
               ${allMonths.map((m,i) => `<option value="${i===0?'':i}" ${(i===0?'':String(i))===filterState.splits.month?'selected':''}>${m||'All Months'}</option>`).join('')}
             </select>
-            <select class="topbar-select" id="splits-year-filter" onchange="filterState.splits.year=this.value;updateSplits()" style="font-size:11px;padding:4px 22px 4px 7px;">
+            <select class="topbar-select" id="splits-year-filter" onchange="filterState.splits.year=this.value;updateSplits()" style="font-size:11px;padding:4px 26px 4px 9px;height:auto;">
               ${['', ...allYears].map(y => `<option value="${y}" ${y==filterState.splits.year?'selected':''}>${y||'All Years'}</option>`).join('')}
             </select>
           </div>
