@@ -490,11 +490,10 @@ textarea:focus { border-color: var(--accent2) !important; }
   pointer-events: none; color: var(--muted);
 }
 .combo-dropdown {
-  position: absolute; top: calc(100% + 2px); left: 0; right: 0;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); z-index: 999; max-height: 220px;
+  position: fixed; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); z-index: 8000; max-height: 220px;
   overflow-y: auto; box-shadow: 0 4px 12px rgba(47,65,87,0.12);
-  display: none;
+  display: none; min-width: 160px;
 }
 .combo-dropdown.open { display: block; }
 .combo-option {
@@ -6496,7 +6495,7 @@ function renderEntry() {
           <div class="field">
             <div class="field-label">Partner <span class="required-dot"></span></div>
             <div class="combo-wrap" id="combo-wrap-partner">
-              <input type="text" class="combo-input" id="e-partner" tabindex="-1"
+              <input type="text" class="combo-input" id="e-partner"
                 placeholder="— Select or type —" autocomplete="off"
                 oninput="onComboInput('partner')"
                 onfocus="onComboFocus('partner')"
@@ -7012,9 +7011,20 @@ function comboSetValue(field, value) {
   }
 }
 
+function comboPositionDropdown(field) {
+  const input = document.getElementById('e-' + field);
+  const drop = document.getElementById('combo-drop-' + field);
+  if (!input || !drop) return;
+  const rect = input.getBoundingClientRect();
+  drop.style.top  = (rect.bottom + 2) + 'px';
+  drop.style.left = rect.left + 'px';
+  drop.style.width = rect.width + 'px';
+}
+
 function comboRenderDropdown(field, filterText) {
   const drop = document.getElementById('combo-drop-' + field);
   if (!drop) return;
+  comboPositionDropdown(field);
   const options = comboGetOptions(field);
   const query = (filterText || '').toLowerCase();
   const filtered = query.length >= 1
@@ -7089,6 +7099,16 @@ function comboOpen(field) {
 
 function onComboFocus(field) {
   comboRenderDropdown(field, document.getElementById('e-' + field)?.value || '');
+  // Reposition on scroll so dropdown tracks the input
+  const scroller = document.querySelector('.content') || document.documentElement;
+  const scrollHandler = () => {
+    if (document.getElementById('combo-drop-' + field)?.classList.contains('open')) {
+      comboPositionDropdown(field);
+    } else {
+      scroller.removeEventListener('scroll', scrollHandler, true);
+    }
+  };
+  scroller.addEventListener('scroll', scrollHandler, true);
 }
 
 function onComboBlur(field) {
