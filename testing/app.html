@@ -572,6 +572,9 @@ body.dark .ssel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .fsel-trigger.fsel-compact {
   font-size: 12px; padding: 5px 26px 5px 10px; height: auto;
 }
+@media (min-width: 769px) {
+  .fsel-trigger.fsel-compact { font-size: 13px; padding: 9px 30px 9px 12px; height: 39px; }
+}
 .fsel-trigger.fsel-small {
   font-size: 11px; padding: 4px 24px 4px 9px; height: auto;
 }
@@ -2201,7 +2204,7 @@ function renderDashboard() {
         <div class="card-header">
           <div class="card-title" id="chart-card-title">${filterState.chart.mode==='wins'?'Wins by Month':filterState.chart.mode==='year'?'Win % by Year':'Win % by Month'}</div>
           <div class="card-filter" id="chart-card-filters">
-            ${fselHtml('chart-mode-filter', [{value:'month',label:'Win % / Mo'},{value:'year',label:'Win % / Yr'},{value:'wins',label:'Wins / Mo'}], filterState.chart.mode||'month', 'filterState.chart.mode=this.value;onChartModeChange()', 'fsel-compact')}
+            ${fselHtml('chart-mode-filter', [{value:'month',label:'Win % by Month'},{value:'year',label:'Win % by Year'},{value:'wins',label:'Wins by Month'}], filterState.chart.mode||'month', 'filterState.chart.mode=this.value;onChartModeChange()', 'fsel-compact')}
             <span id="chart-year-wrap" ${filterState.chart.mode==='year'?'style="display:none"':''}>
               ${fselHtml('chart-year-filter', chartYears.map(y=>({value:y,label:y||'All Years'})), chartYear, 'filterState.chart.year=this.value;renderMonthChart(getChartMatches())', 'fsel-compact')}
             </span>
@@ -3549,46 +3552,67 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
 }
 
 function renderWinsChart(keys, labels, wins, dataMap, chartYear) {
-  const isDark     = document.body.classList.contains('dark');
-  const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(47,65,87,0.08)';
-  const textColor  = isDark ? '#7a97b0' : '#6385a2';
-  const maxWins    = Math.max(...wins, 1);
-  const barColors  = wins.map(w => w === maxWins ? '#2e7d52' : 'rgba(46,125,82,0.45)');
+  const isDark    = document.body.classList.contains('dark');
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(47,65,87,0.08)';
+  const textColor = isDark ? '#7a97b0' : '#6385a2';
+
+  // Build losses array from dataMap
+  const losses = keys.map(k => dataMap[k].l);
 
   if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
   const ctx = document.getElementById('monthChart');
   if (!ctx) return;
 
+  // Stacked bar: wins (green) + losses (red), tooltip shows both
   chartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
-      datasets: [{
-        label: 'Wins',
-        data: wins,
-        backgroundColor: barColors,
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
+      datasets: [
+        {
+          label: 'Wins',
+          data: wins,
+          backgroundColor: 'rgba(46,125,82,0.75)',
+          borderRadius: 0,
+          borderSkipped: false,
+          stack: 'matches',
+        },
+        {
+          label: 'Losses',
+          data: losses,
+          backgroundColor: 'rgba(192,57,43,0.5)',
+          borderRadius: 4,
+          borderSkipped: 'bottom',
+          stack: 'matches',
+        }
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { color: textColor, font: { family: 'Poppins', size: 11 }, boxWidth: 12, padding: 12 }
+        },
         tooltip: {
+          mode: 'index', intersect: false,
           callbacks: {
-            label: ctx => {
-              const k = keys[ctx.dataIndex];
+            title: items => labels[items[0].dataIndex],
+            afterBody: items => {
+              const k = keys[items[0].dataIndex];
               const {w,l} = dataMap[k];
-              return `${w} win${w!==1?'s':''} (${w+l} total)`;
+              const total = w + l;
+              const pct = total ? Math.round(w/total*100) : 0;
+              return [`Total: ${total} matches — ${pct}% win rate`];
             }
           }
         }
       },
       scales: {
-        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Poppins', size: 11 } } },
+        x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Poppins', size: 11 } } },
         y: {
-          min: 0,
+          stacked: true, min: 0,
           grid: { color: gridColor },
           ticks: { color: textColor, font: { family: 'Poppins', size: 11 }, stepSize: 1, callback: v => Number.isInteger(v) ? v : null }
         }
@@ -3598,7 +3622,7 @@ function renderWinsChart(keys, labels, wins, dataMap, chartYear) {
 
   // Resize to match insights panel height
   requestAnimationFrame(() => {
-    const panel = document.getElementById('chart-insights-panel');
+    const panel    = document.getElementById('chart-insights-panel');
     const chartWrap = document.getElementById('chart-wrap-el');
     if (panel && chartWrap) {
       const panelH = panel.offsetHeight;
@@ -3606,7 +3630,7 @@ function renderWinsChart(keys, labels, wins, dataMap, chartYear) {
     }
   });
 
-  // Build wins insights
+  // Build insights
   const panel = document.getElementById('chart-insights-panel');
   if (!panel) return;
   if (keys.length < 2) {
@@ -3621,42 +3645,76 @@ function renderWinsChart(keys, labels, wins, dataMap, chartYear) {
     return new Date(y, parseInt(mo)-1).toLocaleString('default',{month:'long',year:'numeric'});
   };
 
-  const maxIdx   = wins.indexOf(Math.max(...wins));
-  const totalW   = wins.reduce((a,b) => a+b, 0);
-  const totalM   = keys.reduce((a,k) => a + dataMap[k].w + dataMap[k].l, 0);
+  // Best month by wins
+  const maxWinIdx = wins.indexOf(Math.max(...wins));
+  const totalW    = wins.reduce((a,b)=>a+b,0);
+  const totalM    = keys.reduce((a,k)=>a+dataMap[k].w+dataMap[k].l,0);
   const overallPct = totalM ? Math.round(totalW/totalM*100) : 0;
-  const lastW    = wins[wins.length-1];
-  const prevW    = wins.length >= 2 ? wins[wins.length-2] : null;
-  const lastLabel = fmtKey(keys[keys.length-1]);
 
-  let trendHtml = '';
-  if (prevW !== null) {
-    const diff = lastW - prevW;
-    const dir  = diff >= 0 ? '↑' : '↓';
-    const col  = diff >= 0 ? 'var(--win)' : 'var(--loss)';
-    trendHtml  = `<strong style="color:${col}">${dir} ${Math.abs(diff)} win${Math.abs(diff)!==1?'s':''}</strong> vs previous period`;
+  // Most/least active season using calendar months
+  // Winter: Dec(11),Jan(0),Feb(1) | Spring: Mar(2),Apr(3),May(4)
+  // Summer: Jun(5),Jul(6),Aug(7)  | Fall: Sep(8),Oct(9),Nov(10)
+  const SEASON_MONTHS = {
+    Winter: [11,0,1], Spring: [2,3,4], Summer: [5,6,7], Fall: [8,9,10]
+  };
+  const seasonTotals = {};
+  // Only meaningful in all-years calendar mode (keys are numeric month indices)
+  const isCalendarMode = !chartYear && keys.every(k => !k.includes('-'));
+  if (isCalendarMode) {
+    Object.entries(SEASON_MONTHS).forEach(([season, months]) => {
+      let total = 0;
+      keys.forEach(k => {
+        if (months.includes(parseInt(k))) total += dataMap[k].w + dataMap[k].l;
+      });
+      seasonTotals[season] = total;
+    });
+  } else {
+    // For specific year: group months into seasons by calendar month
+    keys.forEach(k => {
+      let mo;
+      if (k.includes('-')) {
+        mo = parseInt(k.split('-')[1]) - 1; // 0-indexed
+      } else {
+        mo = parseInt(k);
+      }
+      const season = Object.entries(SEASON_MONTHS).find(([,months]) => months.includes(mo))?.[0];
+      if (season) {
+        if (!seasonTotals[season]) seasonTotals[season] = 0;
+        seasonTotals[season] += dataMap[k].w + dataMap[k].l;
+      }
+    });
   }
 
-  const avgWins = (totalW / keys.length).toFixed(1);
+  const seasonEntries = Object.entries(seasonTotals).filter(([,v]) => v > 0);
+  let busiestHtml = '', quietestHtml = '';
+  if (seasonEntries.length >= 2) {
+    const busiest  = seasonEntries.reduce((a,b) => b[1]>a[1]?b:a);
+    const quietest = seasonEntries.reduce((a,b) => b[1]<a[1]?b:a);
+    busiestHtml  = `<div class="chart-insight-card">
+      <div class="chart-insight-label">🌤️ Busiest Season</div>
+      <div class="chart-insight-value"><strong>${busiest[0]}</strong> — ${busiest[1]} matches</div>
+    </div>`;
+    quietestHtml = `<div class="chart-insight-card">
+      <div class="chart-insight-label">🌙 Quietest Season</div>
+      <div class="chart-insight-value"><strong>${quietest[0]}</strong> — ${quietest[1]} matches</div>
+    </div>`;
+  }
+
+  // Most active month (by total matches, not just wins)
+  const totals = keys.map(k => dataMap[k].w + dataMap[k].l);
+  const maxTotalIdx = totals.indexOf(Math.max(...totals));
 
   panel.innerHTML = `
     <div class="chart-insight-card">
       <div class="chart-insight-label">🏆 Best Month</div>
-      <div class="chart-insight-value"><strong>${fmtKey(keys[maxIdx])}</strong> — ${wins[maxIdx]} win${wins[maxIdx]!==1?'s':''} (${dataMap[keys[maxIdx]].w+dataMap[keys[maxIdx]].l} played)</div>
+      <div class="chart-insight-value"><strong>${fmtKey(keys[maxWinIdx])}</strong> — ${wins[maxWinIdx]} win${wins[maxWinIdx]!==1?'s':''} (${dataMap[keys[maxWinIdx]].w+dataMap[keys[maxWinIdx]].l} played)</div>
     </div>
     <div class="chart-insight-card">
-      <div class="chart-insight-label">📊 Total Wins Shown</div>
-      <div class="chart-insight-value"><strong>${totalW} wins</strong> from ${totalM} matches (${overallPct}% win rate)</div>
+      <div class="chart-insight-label">📅 Most Active Month</div>
+      <div class="chart-insight-value"><strong>${fmtKey(keys[maxTotalIdx])}</strong> — ${totals[maxTotalIdx]} matches (${wins[maxTotalIdx]}W–${losses[maxTotalIdx]}L)</div>
     </div>
-    <div class="chart-insight-card">
-      <div class="chart-insight-label">📈 Avg per Period</div>
-      <div class="chart-insight-value"><strong>${avgWins} wins</strong> per month</div>
-    </div>
-    ${trendHtml ? `
-    <div class="chart-insight-card">
-      <div class="chart-insight-label">⚡ Recent Trend</div>
-      <div class="chart-insight-value">${lastLabel}: ${lastW} win${lastW!==1?'s':''} — ${trendHtml}</div>
-    </div>` : ''}
+    ${busiestHtml}
+    ${quietestHtml}
   `;
 }
 
