@@ -512,6 +512,53 @@ textarea:focus { border-color: var(--accent2) !important; }
 .combo-option.add-new:hover { background: var(--surface2); }
 .combo-no-match { padding: 8px 12px; font-size: 13px; color: var(--muted); font-style: italic; }
 body.dark .combo-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+/* ── Filter Styled Select ───────────────────────────────── */
+.fsel-wrap { position: relative; display: inline-block; }
+.fsel-wrap.fsel-block { width: 100%; display: block; }
+.fsel-trigger {
+  display: flex; align-items: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-family: var(--font);
+  font-size: 13px; padding: 9px 30px 9px 12px; height: 39px;
+  outline: none; cursor: pointer; transition: border-color 0.2s;
+  box-sizing: border-box; white-space: nowrap; user-select: none;
+  min-width: 80px;
+}
+.fsel-trigger:focus { border-color: var(--accent2); }
+.fsel-trigger.open  { border-color: var(--accent2); }
+.fsel-trigger.fsel-compact {
+  font-size: 12px; padding: 5px 26px 5px 10px; height: auto;
+}
+.fsel-trigger.fsel-small {
+  font-size: 11px; padding: 4px 24px 4px 9px; height: auto;
+}
+.fsel-arrow {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  pointer-events: none;
+}
+.fsel-dropdown {
+  position: fixed; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); z-index: 8000; max-height: 260px;
+  overflow-y: auto; box-shadow: 0 4px 12px rgba(47,65,87,0.12);
+  display: none; min-width: 140px;
+}
+.fsel-dropdown.open { display: block; }
+.fsel-option {
+  padding: 8px 12px; font-size: 13px; color: var(--text);
+  cursor: pointer; font-family: var(--font); white-space: nowrap;
+}
+.fsel-option:hover  { background: var(--surface2); }
+.fsel-option.selected { font-weight: 600; }
+.fsel-option.fsel-muted { color: var(--muted); font-weight: 400; }
+body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+/* hist-sort special — white on dark topbar */
+.fsel-trigger.fsel-dark {
+  background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25);
+  color: #fff; font-size: 12px; font-weight: 600;
+  padding: 4px 22px 4px 8px; height: 30px;
+}
+.fsel-trigger.fsel-dark .fsel-arrow path { stroke: #fff; }
 .field-error.visible { display: block; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .score-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
@@ -2042,16 +2089,11 @@ function renderDashboard() {
   document.getElementById('topbar-right').innerHTML = `
     <div class="topbar-filter-group">
       <span class="topbar-label">Type:</span>
-      <select class="topbar-select" id="dash-type-filter" onchange="filterState.dash.type=this.value;renderDashboard()">
-        ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
-      </select>
+      ${fselHtml('dash-type-filter', types.map(t=>({value:t,label:t||'All Types'})), typeFilter, 'filterState.dash.type=this.value;renderDashboard()')}
     </div>
     <div class="topbar-filter-group">
       <span class="topbar-label">Match Quality <span class="tip-icon tip-down" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="font-weight:400">ⓘ</span></span>
-      <select class="topbar-select" id="dash-competitive-filter" onchange="filterState.dash.competitive=this.value==='competitive';renderDashboard()">
-        <option value="all"         ${!compFilter?'selected':''}>All Matches</option>
-        <option value="competitive" ${compFilter?'selected':''}>Competitive Only</option>
-      </select>
+      ${fselHtml('dash-competitive-filter', [{value:'all',label:'All Matches'},{value:'competitive',label:'Competitive Only'}], compFilter?'competitive':'all', "filterState.dash.competitive=this.value==='competitive';renderDashboard()")}
     </div>
   `;
 
@@ -2083,14 +2125,9 @@ function renderDashboard() {
         <div class="card-header">
           <div class="card-title" id="chart-card-title">Win % by Month</div>
           <div class="card-filter" id="chart-card-filters">
-            <select class="topbar-select" id="chart-mode-filter" onchange="filterState.chart.mode=this.value;onChartModeChange()" style="font-size:12px;padding:5px 28px 5px 10px;height:auto;">
-              <option value="month" ${filterState.chart.mode==='month'?'selected':''}>By Month</option>
-              <option value="year"  ${filterState.chart.mode==='year'?'selected':''}>By Year</option>
-            </select>
+            ${fselHtml('chart-mode-filter', [{value:'month',label:'By Month'},{value:'year',label:'By Year'}], filterState.chart.mode||'month', 'filterState.chart.mode=this.value;onChartModeChange()', 'fsel-compact')}
             <span id="chart-year-wrap" ${filterState.chart.mode==='year'?'style="display:none"':''}>
-              <select class="topbar-select" id="chart-year-filter" onchange="filterState.chart.year=this.value;renderMonthChart(getChartMatches())" style="font-size:12px;padding:5px 28px 5px 10px;height:auto;">
-                ${chartYears.map(y => `<option value="${y}" ${y==chartYear?'selected':''}>${y||'All Years'}</option>`).join('')}
-              </select>
+              ${fselHtml('chart-year-filter', chartYears.map(y=>({value:y,label:y||'All Years'})), chartYear, 'filterState.chart.year=this.value;renderMonthChart(getChartMatches())', 'fsel-compact')}
             </span>
           </div>
         </div>
@@ -2103,12 +2140,8 @@ function renderDashboard() {
         <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
           <div class="card-title">Performance Breakdown</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select class="topbar-select" id="splits-month-filter" onchange="filterState.splits.month=this.value;updateSplits()" style="font-size:11px;padding:4px 26px 4px 9px;height:auto;">
-              ${allMonths.map((m,i) => `<option value="${i===0?'':i}" ${(i===0?'':String(i))===filterState.splits.month?'selected':''}>${m||'All Months'}</option>`).join('')}
-            </select>
-            <select class="topbar-select" id="splits-year-filter" onchange="filterState.splits.year=this.value;updateSplits()" style="font-size:11px;padding:4px 26px 4px 9px;height:auto;">
-              ${['', ...allYears].map(y => `<option value="${y}" ${y==filterState.splits.year?'selected':''}>${y||'All Years'}</option>`).join('')}
-            </select>
+            ${fselHtml('splits-month-filter', allMonths.map((m,i)=>({value:i===0?'':String(i),label:m||'All Months'})), filterState.splits.month, 'filterState.splits.month=this.value;updateSplits()', 'fsel-small')}
+            ${fselHtml('splits-year-filter', ['', ...allYears].map(y=>({value:y,label:y||'All Years'})), filterState.splits.year, 'filterState.splits.year=this.value;updateSplits()', 'fsel-small')}
           </div>
         </div>
         <div id="splits-content">
@@ -3860,10 +3893,7 @@ function renderHistory(page, preFilterPartner) {
     <div class="topbar-filter-group">
       ${dashboardReturnState ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;margin-right:8px" onclick="backToDashboard()">← Dashboard</button>` : ''}
       <span class="topbar-label">Sort:</span>
-      <select class="topbar-select" id="hist-sort" onchange="renderHistory()">
-        <option value="newest" ${sortOrder==='newest'?'selected':''}>Newest First</option>
-        <option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest First</option>
-      </select>
+      ${fselHtml('hist-sort', [{value:'newest',label:'Newest First'},{value:'oldest',label:'Oldest First'}], sortOrder||'newest', 'renderHistory()')}
     </div>
   `;
 
@@ -3946,30 +3976,14 @@ function renderHistory(page, preFilterPartner) {
       <!-- Collapsible dropdowns -->
       <div id="hist-filter-body" style="display:none;padding:10px 14px 10px;border-bottom:1px solid var(--border)">
         <div class="history-controls" style="margin-bottom:0;flex-wrap:wrap;gap:8px">
-          <select class="filter-select hist-filter-sel" id="hist-type" onchange="renderHistory()">
-            ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-level" onchange="renderHistory()">
-            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-league" onchange="renderHistory()">
-            ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-year" onchange="renderHistory()">
-            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-season" onchange="renderHistory()">
-            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-line" onchange="renderHistory()">
-            ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-surface" onchange="renderHistory()">
-            ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-time" onchange="renderHistory()">
-            ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
-          </select>
+          ${fselHtml('hist-type', types.map(t=>({value:t,label:t||'All Types'})), typeFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-level', levels.map(l=>({value:l,label:l||'All Levels'})), levelFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-league', leagues.map(l=>({value:l,label:l||'All Leagues'})), filterState.history.league, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-year', years.map(y=>({value:y,label:y||'All Years'})), yearFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-season', seasons.map(s=>({value:s,label:s||'All Seasons'})), seasonFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-line', lines.map(l=>({value:l,label:l||'All Lines'})), filterState.history.line, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-surface', surfaces.map(s=>({value:s,label:s||'All Surfaces'})), filterState.history.surface, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-time', times.map(t=>({value:t,label:t||'All Times'})), filterState.history.time, 'renderHistory()', 'hist-filter-sel')}
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0;width:100%">
             <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
             <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
@@ -4665,10 +4679,11 @@ function openDashFilterSheet() {
   const sel = document.getElementById('sheet-type-filter');
   if (sel) {
     sel.innerHTML = types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('');
+    fselSync('sheet-type-filter');
   }
   // Populate quality select
   const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) compSel.value = compFilter ? 'competitive' : 'all';
+  if (compSel) { compSel.value = compFilter ? 'competitive' : 'all'; fselSync('sheet-comp-filter'); }
   document.getElementById('dash-filter-sheet-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -4691,9 +4706,9 @@ function resetDashFilters() {
   filterState.dash.type = '';
   filterState.dash.competitive = false;
   const sel = document.getElementById('sheet-type-filter');
-  if (sel) sel.value = '';
+  if (sel) { sel.value = ''; fselSync('sheet-type-filter'); }
   const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) compSel.value = 'all';
+  if (compSel) { compSel.value = 'all'; fselSync('sheet-comp-filter'); }
 }
 
 // 
@@ -6989,6 +7004,132 @@ function tbAdvance2(currentId, nextId) {
 }
 
 
+// ── Filter Styled Select Engine ──────────────────────────
+// Lightweight custom dropdown for filter/topbar selects.
+// fsel(id, options, currentVal, onchange, extraClass) → HTML string
+// Options: [{value, label}] or strings
+// The hidden <select> keeps .value readable by all existing filterState syncs.
+
+const fselState = {};
+
+function fselHtml(id, options, currentVal, onchangeJs, extraClass) {
+  // extraClass goes on the wrap (for layout) and trigger (for sizing)
+  // Filter out layout-only classes from trigger
+  const wrapExtra  = (extraClass||'').includes('hist-filter-sel') ? ' hist-filter-sel' : '';
+  const isBlock    = (extraClass||'').includes('fsel-block');
+  const trigExtra  = (extraClass||'').replace('hist-filter-sel','').trim();
+  const opts = options.map(o => typeof o === 'string' ? {value:o,label:o} : o);
+  const selected = opts.find(o => String(o.value) === String(currentVal)) || opts[0];
+  const displayLabel = selected ? (selected.label || selected.value || '— Select —') : '— Select —';
+  const nativeOpts = opts.map(o =>
+    `<option value="${o.value}"${String(o.value)===String(currentVal)?' selected':''}>${o.label||o.value}</option>`
+  ).join('');
+  return `<div class="fsel-wrap${isBlock?' fsel-block':''}${wrapExtra}" id="fselwrap-${id}">` +
+    `<div class="fsel-trigger${trigExtra?' '+trigExtra:''}" id="fseltrig-${id}" tabindex="0"` +
+    ` onclick="fselToggle('${id}')"` +
+    ` onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('${id}');}"` +
+    `>${displayLabel}</div>` +
+    `<svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>` +
+    `<div class="fsel-dropdown" id="fseldrop-${id}"></div>` +
+    `<select class="ssel-native" id="${id}" onchange="${onchangeJs}">${nativeOpts}</select>` +
+    `</div>`;
+}
+
+function fselPosition(id) {
+  const trig = document.getElementById('fseltrig-' + id);
+  const drop = document.getElementById('fseldrop-' + id);
+  if (!trig || !drop) return;
+  const r = trig.getBoundingClientRect();
+  drop.style.top   = (r.bottom + 2) + 'px';
+  drop.style.left  = r.left + 'px';
+  drop.style.width = Math.max(r.width, 140) + 'px';
+}
+
+function fselOpen(id) {
+  // close others
+  Object.keys(fselState).forEach(k => { if (k !== id && fselState[k]) fselClose(k); });
+  ['partner','level'].forEach(f => comboClose(f));
+  Object.keys(typeof sselState !== 'undefined' ? sselState : {}).forEach(f => {
+    if (typeof sselClose === 'function') sselClose(f);
+  });
+
+  const trig = document.getElementById('fseltrig-' + id);
+  const drop = document.getElementById('fseldrop-' + id);
+  const native = document.getElementById(id);
+  if (!trig || !drop || !native) return;
+
+  // Build options from native select
+  drop.innerHTML = '';
+  Array.from(native.options).forEach((opt, i) => {
+    const el = document.createElement('div');
+    const isSelected = opt.value === native.value;
+    el.className = 'fsel-option' + (isSelected ? ' selected' : '') + (!opt.value ? ' fsel-muted' : '');
+    el.textContent = opt.text;
+    el.dataset.value = opt.value;
+    el.onmousedown = (e) => { e.preventDefault(); fselSelect(id, opt.value, opt.text); };
+    drop.appendChild(el);
+  });
+
+  fselPosition(id);
+  trig.classList.add('open');
+  drop.classList.add('open');
+  fselState[id] = true;
+
+  // scroll selected into view
+  const selEl = drop.querySelector('.selected');
+  if (selEl) setTimeout(() => selEl.scrollIntoView({block:'nearest'}), 0);
+
+  const scrollHandler = () => {
+    if (fselState[id]) fselPosition(id);
+    else document.removeEventListener('scroll', scrollHandler, true);
+  };
+  document.addEventListener('scroll', scrollHandler, true);
+}
+
+function fselClose(id) {
+  document.getElementById('fseltrig-' + id)?.classList.remove('open');
+  document.getElementById('fseldrop-' + id)?.classList.remove('open');
+  fselState[id] = false;
+}
+
+function fselToggle(id) {
+  if (fselState[id]) fselClose(id); else fselOpen(id);
+}
+
+function fselSelect(id, value, label) {
+  const native = document.getElementById(id);
+  if (native) {
+    native.value = value;
+    // Fire the native onchange so all existing handlers run
+    native.dispatchEvent(new Event('change'));
+  }
+  // Update trigger text
+  const trig = document.getElementById('fseltrig-' + id);
+  if (trig) trig.textContent = label || value || '— Select —';
+  fselClose(id);
+}
+
+// Close on outside click
+document.addEventListener('mousedown', function(e) {
+  Object.keys(fselState).forEach(id => {
+    if (!fselState[id]) return;
+    const wrap = document.getElementById('fselwrap-' + id);
+    const drop = document.getElementById('fseldrop-' + id);
+    if (wrap && !wrap.contains(e.target) && drop && !drop.contains(e.target)) {
+      fselClose(id);
+    }
+  });
+}, true);
+
+// After re-render, update trigger text to match current native value
+function fselSync(id) {
+  const native = document.getElementById(id);
+  const trig   = document.getElementById('fseltrig-' + id);
+  if (!native || !trig) return;
+  const opt = Array.from(native.options).find(o => o.value === native.value);
+  if (opt) trig.textContent = opt.text || '— Select —';
+}
+
 // ── Combo Box Engine ─────────────────────────────────────
 // State per field
 const comboState = {};
@@ -8580,14 +8721,28 @@ function buildBadgeShelf() {
     <div class="dash-filter-sheet-body">
       <div class="dash-filter-row">
         <div class="dash-filter-row-label">Match Type</div>
-        <select class="dash-filter-select" id="sheet-type-filter" onchange="filterState.dash.type=this.value"></select>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-type-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-type-filter" tabindex="0"
+            onclick="fselToggle('sheet-type-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-type-filter');}">All Types</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-type-filter"></div>
+          <select class="ssel-native" id="sheet-type-filter" onchange="filterState.dash.type=this.value"></select>
+        </div>
       </div>
       <div class="dash-filter-row">
         <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
-        <select class="dash-filter-select" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
-          <option value="all">All Matches</option>
-          <option value="competitive">Competitive Only</option>
-        </select>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-comp-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-comp-filter" tabindex="0"
+            onclick="fselToggle('sheet-comp-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-comp-filter');}">All Matches</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-comp-filter"></div>
+          <select class="ssel-native" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
+            <option value="all">All Matches</option>
+            <option value="competitive">Competitive Only</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="dash-filter-sheet-footer">
@@ -8598,4 +8753,3 @@ function buildBadgeShelf() {
 </div>
 </body>
 </html>
-
