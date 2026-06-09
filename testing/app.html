@@ -1960,6 +1960,12 @@ function sortedPartners(arr) {
   });
 }
 function sortedLeagues(arr) { return [...(arr||[])].sort((a,b) => a.localeCompare(b)); }
+function sortedSeasons(arr) {
+  const ORDER = ['Winter','Spring','Summer','Fall'];
+  const known = ORDER.filter(s => (arr||[]).includes(s));
+  const other = [...(arr||[])].filter(s => !ORDER.includes(s)).sort((a,b) => a.localeCompare(b));
+  return [...known, ...other];
+}
 function sortedLevels(arr) {
   // "Letter group" = starts with a letter (e.g. A-8, B-1, B-2)
   // "Number group" = starts with a digit or dash+digit (e.g. 3.0, 3.0-, 4.0)
@@ -2272,13 +2278,21 @@ function updateSplits() {
 }
 
 function getChartMatches() {
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
-  const chartYear  = filterState.chart.year;
-  const mode       = filterState.chart.mode;
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
+  const chartYear    = filterState.chart.year;
+  const mode         = filterState.chart.mode;
   return allMatches.filter(m => {
-    if (typeFilter && m.type !== typeFilter) return false;
-    if (compFilter && !isClose(m)) return false;
+    if (typeFilter   && m.type   !== typeFilter)   return false;
+    if (compFilter   && !isClose(m))               return false;
+    if (levelFilter  && m.level  !== levelFilter)  return false;
+    if (leagueFilter && m.league !== leagueFilter) return false;
+    if (seasonFilter && m.season !== seasonFilter) return false;
+    if (lineFilter   && m.line   !== lineFilter)   return false;
     if (mode === 'month' && chartYear && String(m.year) !== String(chartYear)) return false;
     return true;
   });
@@ -3923,7 +3937,7 @@ function renderHistory(page, preFilterPartner) {
   const years   = ['', ...new Set(allMatches.map(m=>m.year).filter(Boolean)).values()].sort((a,b)=>b-a);
   // '' sorts to end numerically — move it back to front
   if (years[years.length-1] === '') { years.pop(); years.unshift(''); }
-  const seasons = ['', ...(validEntries.season||[])];
+  const seasons = ['', ...sortedSeasons(validEntries.season||[])];
   const levels  = ['', ...sortedLevels(validEntries.level)];
   const types   = ['', ...(validEntries.type||[])];
 
@@ -4777,6 +4791,7 @@ function dashFilterGetValues(field, matches) {
   matches.forEach(m => { if (m[field]) vals.add(m[field]); });
   if (field === 'level')  return sortedLevels([...vals]);
   if (field === 'league') return sortedLeagues([...vals]);
+  if (field === 'season') return sortedSeasons([...vals]);
   if (field === 'type')   return [...vals].sort();
   return [...vals].sort();
 }
@@ -5879,7 +5894,7 @@ function renderSettings() {
                 </div>
                 <div class="field">
                   <div class="field-label">Default Season</div>
-                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '', 'fsel-block')}
+                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...sortedSeasons(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default League</div>
@@ -6780,7 +6795,7 @@ function renderEntry() {
         <div class="entry-pair">
           <div class="field">
             <div class="field-label">Season</div>
-            <div class="ssel-wrap" id="ssel-wrap-season"><div class="ssel-trigger" id="ssel-trigger-season" tabindex="0" onclick="sselToggle('season')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('season');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-season"></div><select class="ssel-native" id="e-season"><option value=""></option>${(validEntries.season||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
+            <div class="ssel-wrap" id="ssel-wrap-season"><div class="ssel-trigger" id="ssel-trigger-season" tabindex="0" onclick="sselToggle('season')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('season');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-season"></div><select class="ssel-native" id="e-season"><option value=""></option>${sortedSeasons(validEntries.season||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
           <div class="field">
             <div class="field-label">League</div>
