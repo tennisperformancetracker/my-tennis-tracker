@@ -832,6 +832,22 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   border: 1.5px solid #2f4157;
 }
 .mob-filter-btn.has-active .mob-filter-active-dot { display: block; }
+/* Desktop Filters button — same idea but lighter for light topbar */
+.dash-filters-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); cursor: pointer;
+  padding: 7px 14px; font-size: 13px; font-weight: 600;
+  font-family: var(--font); position: relative; flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.dash-filters-btn:hover { border-color: var(--accent2); }
+.dash-filters-btn.has-active { border-color: var(--accent2); background: rgba(99,133,162,0.08); }
+.dash-filters-dot {
+  display: none; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent2); margin-left: 2px;
+}
+.dash-filters-btn.has-active .dash-filters-dot { display: block; }
 /* Bottom sheet overlay */
 .dash-filter-sheet-overlay {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -844,6 +860,14 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   width: 100%; max-height: 80vh; overflow-y: auto;
   box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
   animation: sheetSlideUp 0.22s ease;
+}
+@media (min-width: 769px) {
+  .dash-filter-sheet-overlay { align-items: center !important; }
+  .dash-filter-sheet {
+    border-radius: 16px; max-width: 480px; margin: 0 auto;
+    box-shadow: 0 8px 32px rgba(47,65,87,0.18);
+    animation: none;
+  }
 }
 @keyframes sheetSlideUp {
   from { transform: translateY(100%); }
@@ -901,7 +925,7 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .dash-filter-sheet-footer .btn { flex: 1; justify-content: center; }
 @media (min-width: 769px) {
   .mob-filter-btn { display: none !important; }
-  .dash-filter-sheet-overlay { display: none !important; }
+  /* dash-filter-sheet-overlay now used on desktop too */
 }
 @media (max-width: 768px) {
   .mob-filter-btn { display: flex; }
@@ -1744,7 +1768,7 @@ let chartInstance = null;
 
 // Persistent filter state — survives page navigation
 const filterState = {
-  dash: { type: '', year: '', competitive: false },
+  dash: { type: '', year: '', competitive: false, level: '', league: '', season: '', line: '' },
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5, mode: 'partners' },
@@ -2108,35 +2132,25 @@ function setScoresHtml(m) {
 // DASHBOARD
 // 
 function renderDashboard() {
-  // Only sync from desktop DOM selects when they're actually visible (not hidden by mobile CSS)
-  const isMobileView = window.innerWidth <= 768;
-  if (!isMobileView) {
-    const dtEl = document.getElementById('dash-type-filter');
-    if (dtEl) filterState.dash.type = dtEl.value;
-    const dcEl = document.getElementById('dash-competitive-filter');
-    if (dcEl) filterState.dash.competitive = dcEl.value === 'competitive';
-    const cmEl = document.getElementById('chart-mode-filter');
-    if (cmEl) filterState.chart.mode = cmEl.value;
-    const cyEl = document.getElementById('chart-year-filter');
-    if (cyEl) filterState.chart.year = cyEl.value;
-  }
+  // Sync chart controls from DOM (still inline dropdowns)
+  const cmEl = document.getElementById('chart-mode-filter');
+  if (cmEl) filterState.chart.mode = cmEl.value;
+  const cyEl = document.getElementById('chart-year-filter');
+  if (cyEl) filterState.chart.year = cyEl.value;
 
   const typeFilter  = filterState.dash.type;
   const compFilter  = filterState.dash.competitive;
   const chartYear   = filterState.chart.year;
-  const hasActive   = typeFilter || compFilter;
+  const hasActive   = typeFilter || compFilter || filterState.dash.level || filterState.dash.league || filterState.dash.season || filterState.dash.line;
 
-  // Build topbar — Type + Match Quality filters (desktop)
+  // Build topbar — Filters button (desktop, opens same sheet as mobile)
   const types = ['', ...(validEntries.type || [])];
+  const hasActiveFilters = typeFilter || compFilter || filterState.dash.level || filterState.dash.league || filterState.dash.season || filterState.dash.line;
   document.getElementById('topbar-right').innerHTML = `
-    <div class="topbar-filter-group">
-      <span class="topbar-label">Type:</span>
-      ${fselHtml('dash-type-filter', types.map(t=>({value:t,label:t||'All Types'})), typeFilter, 'filterState.dash.type=this.value;renderDashboard()')}
-    </div>
-    <div class="topbar-filter-group">
-      <span class="topbar-label">Match Quality <span class="tip-icon tip-down" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="font-weight:400">ⓘ</span></span>
-      ${fselHtml('dash-competitive-filter', [{value:'all',label:'All Matches'},{value:'competitive',label:'Competitive Only'}], compFilter?'competitive':'all', "filterState.dash.competitive=this.value==='competitive';renderDashboard()")}
-    </div>
+    <button class="dash-filters-btn ${hasActiveFilters ? 'has-active' : ''}" onclick="openDashFilterSheet()" title="Filters">
+      <span>Filters</span>
+      <span class="dash-filters-dot"></span>
+    </button>
   `;
 
   document.getElementById('mobile-filters').innerHTML = '';
@@ -2148,8 +2162,19 @@ function renderDashboard() {
       </button>
   `;
 
-  // Filter matches by type and competitive setting
-  let matches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
+  // Filter matches
+  let matches = allMatches.filter(m =>
+    (!typeFilter   || m.type   === typeFilter)   &&
+    (!compFilter   || isClose(m))                &&
+    (!levelFilter  || m.level  === levelFilter)  &&
+    (!leagueFilter || m.league === leagueFilter) &&
+    (!seasonFilter || m.season === seasonFilter) &&
+    (!lineFilter   || m.line   === lineFilter)
+  );
 
   const curYear = new Date().getFullYear();
   const curYearMatches = allMatches.filter(m => m.year === curYear && (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
@@ -4717,18 +4742,27 @@ function closeModalOutside(e) { if (e.target===document.getElementById('modal-ov
 
 // ── Dashboard Filter Bottom Sheet (mobile) ───────────────────────────────────
 function openDashFilterSheet() {
-  const types = ['', ...(validEntries.type || [])];
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
-  // Populate type select
-  const sel = document.getElementById('sheet-type-filter');
-  if (sel) {
-    sel.innerHTML = types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('');
-    fselSync('sheet-type-filter');
+  const types   = ['', ...(validEntries.type   || [])];
+  const levels  = ['', ...sortedLevels(validEntries.level  || [])];
+  const leagues = ['', ...sortedLeagues(validEntries.league || [])];
+  const seasons = ['', ...(validEntries.season || [])];
+  const lines   = ['', ...(validEntries.line   || [])];
+
+  function populateSel(id, opts, labelFn, currentVal) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = opts.map(v => `<option value="${v}" ${v===currentVal?'selected':''}>${labelFn(v)}</option>`).join('');
+    fselSync(id);
   }
-  // Populate quality select
+  populateSel('sheet-type-filter',   types,   t => t||'All Types',   filterState.dash.type);
+  populateSel('sheet-level-filter',  levels,  l => l||'All Levels',  filterState.dash.level);
+  populateSel('sheet-league-filter', leagues, l => l||'All Leagues', filterState.dash.league);
+  populateSel('sheet-season-filter', seasons, s => s||'All Seasons', filterState.dash.season);
+  populateSel('sheet-line-filter',   lines,   l => l||'All Lines',   filterState.dash.line);
+
   const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) { compSel.value = compFilter ? 'competitive' : 'all'; fselSync('sheet-comp-filter'); }
+  if (compSel) { compSel.value = filterState.dash.competitive ? 'competitive' : 'all'; fselSync('sheet-comp-filter'); }
+
   document.getElementById('dash-filter-sheet-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -4740,18 +4774,24 @@ function sheetSetCompetitive(val) {
   filterState.dash.competitive = val;
 }
 function applyDashFilterSheet() {
-  const sel = document.getElementById('sheet-type-filter');
-  if (sel) filterState.dash.type = sel.value;
-  const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) filterState.dash.competitive = compSel.value === 'competitive';
+  const g = id => document.getElementById(id)?.value || '';
+  filterState.dash.type        = g('sheet-type-filter');
+  filterState.dash.level       = g('sheet-level-filter');
+  filterState.dash.league      = g('sheet-league-filter');
+  filterState.dash.season      = g('sheet-season-filter');
+  filterState.dash.line        = g('sheet-line-filter');
+  filterState.dash.competitive = document.getElementById('sheet-comp-filter')?.value === 'competitive';
   closeDashFilterSheet();
   renderDashboard();
 }
 function resetDashFilters() {
-  filterState.dash.type = '';
-  filterState.dash.competitive = false;
-  const sel = document.getElementById('sheet-type-filter');
-  if (sel) { sel.value = ''; fselSync('sheet-type-filter'); }
+  filterState.dash.type = ''; filterState.dash.competitive = false;
+  filterState.dash.level = ''; filterState.dash.league = '';
+  filterState.dash.season = ''; filterState.dash.line = '';
+  ['sheet-type-filter','sheet-level-filter','sheet-league-filter','sheet-season-filter','sheet-line-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; fselSync(id); }
+  });
   const compSel = document.getElementById('sheet-comp-filter');
   if (compSel) { compSel.value = 'all'; fselSync('sheet-comp-filter'); }
 }
@@ -5741,7 +5781,7 @@ function renderSettings() {
                       const saved = localStorage.getItem(key) || '';
                       return `<div class="field">
                         <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
-                        ${fselHtml('def-partner-'+escHtml(t), [{value:'',label:'— None —'}, ...sortedPartners(validEntries.partner||[]).map(p=>({value:escHtml(p),label:p}))], saved, '')}
+                        ${fselHtml('def-partner-'+escHtml(t), [{value:'',label:'— None —'}, ...sortedPartners(validEntries.partner||[]).map(p=>({value:escHtml(p),label:p}))], saved, '', 'fsel-block')}
                       </div>`;
                     }).join('')
                   : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
@@ -5750,23 +5790,23 @@ function renderSettings() {
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
                 <div class="field">
                   <div class="field-label">Default Type</div>
-                  ${fselHtml('def-type', [{value:'',label:'— None —'}, ...(validEntries.type||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultType')||'', '')}
+                  ${fselHtml('def-type', [{value:'',label:'— None —'}, ...(validEntries.type||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultType')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Season</div>
-                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '')}
+                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default League</div>
-                  ${fselHtml('def-league', [{value:'',label:'— None —'}, ...(validEntries.league||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLeague')||'', '')}
+                  ${fselHtml('def-league', [{value:'',label:'— None —'}, ...(validEntries.league||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLeague')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Level</div>
-                  ${fselHtml('def-level', [{value:'',label:'— None —'}, ...sortedLevels(validEntries.level||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLevel')||'', '')}
+                  ${fselHtml('def-level', [{value:'',label:'— None —'}, ...sortedLevels(validEntries.level||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLevel')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Surface</div>
-                  ${fselHtml('def-surface', [{value:'',label:'— None —'}, ...(validEntries.surface||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSurface')||'', '')}
+                  ${fselHtml('def-surface', [{value:'',label:'— None —'}, ...(validEntries.surface||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSurface')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Home Location</div>
@@ -8903,6 +8943,50 @@ function buildBadgeShelf() {
             <option value="all">All Matches</option>
             <option value="competitive">Competitive Only</option>
           </select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Level</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-level-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-level-filter" tabindex="0"
+            onclick="fselToggle('sheet-level-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-level-filter');}">All Levels</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-level-filter"></div>
+          <select class="ssel-native" id="sheet-level-filter" onchange="filterState.dash.level=this.value"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">League</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-league-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-league-filter" tabindex="0"
+            onclick="fselToggle('sheet-league-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-league-filter');}">All Leagues</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-league-filter"></div>
+          <select class="ssel-native" id="sheet-league-filter" onchange="filterState.dash.league=this.value"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Season</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-season-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-season-filter" tabindex="0"
+            onclick="fselToggle('sheet-season-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-season-filter');}">All Seasons</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-season-filter"></div>
+          <select class="ssel-native" id="sheet-season-filter" onchange="filterState.dash.season=this.value"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Line</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-line-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-line-filter" tabindex="0"
+            onclick="fselToggle('sheet-line-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-line-filter');}">All Lines</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-line-filter"></div>
+          <select class="ssel-native" id="sheet-line-filter" onchange="filterState.dash.line=this.value"></select>
         </div>
       </div>
     </div>
