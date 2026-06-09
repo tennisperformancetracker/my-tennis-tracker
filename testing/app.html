@@ -3544,8 +3544,13 @@ function refreshPartnersTable() {
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = buildKPIs(kpiMatches, curYearMatches);
       const newGrid = tempDiv.querySelector('#kpi-grid-main');
-      if (newGrid) kpiGrid.replaceWith(newGrid);
-      setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50);
+      if (newGrid) {
+        kpiGrid.replaceWith(newGrid);
+        // Wait for browser to paint the new grid before wiring tooltips
+        requestAnimationFrame(function() {
+          setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50);
+        });
+      }
     }
   }
 }
@@ -3649,11 +3654,19 @@ function sortPartners(col) {
 function drillPartner(name) {
   const hidden = document.getElementById('partners-hidden-body');
   if (hidden) hidden.style.display = 'none';
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
   const matches = allMatches.filter(m => {
-    if (typeFilter && m.type !== typeFilter) return false;
-    if (compFilter && !isClose(m)) return false;
+    if (typeFilter   && m.type   !== typeFilter)   return false;
+    if (compFilter   && !isClose(m))               return false;
+    if (levelFilter  && m.level  !== levelFilter)  return false;
+    if (leagueFilter && m.league !== leagueFilter) return false;
+    if (seasonFilter && m.season !== seasonFilter) return false;
+    if (lineFilter   && m.line   !== lineFilter)   return false;
     return m.partner === name;
   });
 
@@ -3699,7 +3712,19 @@ function drillSplit(key, partner, opponent) {
     drillPartner: partner || null,
     drillOpponent: opponent || null
   };
-  filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent: (opponent||'').toLowerCase(), notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
+  // Carry active dashboard filters into history so the view matches what was on screen
+  const df = filterState.dash;
+  filterState.history = {
+    year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '',
+    partner:  partner  || '',
+    opponent: (opponent||'').toLowerCase(),
+    splitFilter: key,
+    type:   df.type   || '',
+    level:  df.level  || '',
+    league: df.league || '',
+    season: df.season || '',
+    line:   df.line   || '',
+  };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -3714,8 +3739,17 @@ function viewPartnerHistory(name) {
   dashboardReturnState = null;
   if (_histTimer) { clearTimeout(_histTimer); _histTimer = null; }
   dashboardReturnState = { scrollY: window.scrollY, drillPartner: name, drillOpponent: null };
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
-  filterState.history.partner = name;
+  const _df = filterState.dash;
+  filterState.history = {
+    year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '', splitFilter: null,
+    opponent: '',
+    partner:  name,
+    type:   _df.type   || '',
+    level:  _df.level  || '',
+    league: _df.league || '',
+    season: _df.season || '',
+    line:   _df.line   || '',
+  };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -3829,13 +3863,21 @@ function sortOpponents(col) {
 function drillOpponent(name) {
   const hidden = document.getElementById('opponents-hidden-body');
   if (hidden) hidden.style.display = 'none';
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
 
   // Collect all matches involving this opponent (opp1 or opp2)
   const matches = allMatches.filter(m => {
-    if (typeFilter && m.type !== typeFilter) return false;
-    if (compFilter && !isClose(m)) return false;
+    if (typeFilter   && m.type   !== typeFilter)   return false;
+    if (compFilter   && !isClose(m))               return false;
+    if (levelFilter  && m.level  !== levelFilter)  return false;
+    if (leagueFilter && m.league !== leagueFilter) return false;
+    if (seasonFilter && m.season !== seasonFilter) return false;
+    if (lineFilter   && m.line   !== lineFilter)   return false;
     return m.opp1 === name || m.opp2 === name;
   });
 
@@ -3881,8 +3923,17 @@ function viewOpponentHistory(name) {
   dashboardReturnState = null;
   if (_histTimer) { clearTimeout(_histTimer); _histTimer = null; }
   dashboardReturnState = { scrollY: window.scrollY, drillPartner: null, drillOpponent: name };
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
-  filterState.history.opponent = name.toLowerCase();
+  const _dfo = filterState.dash;
+  filterState.history = {
+    year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '', splitFilter: null,
+    partner: '',
+    opponent: name.toLowerCase(),
+    type:   _dfo.type   || '',
+    level:  _dfo.level  || '',
+    league: _dfo.league || '',
+    season: _dfo.season || '',
+    line:   _dfo.line   || '',
+  };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
