@@ -9301,7 +9301,7 @@ function buildBadgeShelf() {
         </div>
       </div>
       <div class="dash-filter-row">
-        <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
+        <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
         <div class="fsel-wrap fsel-block" id="fselwrap-sheet-comp-filter">
           <div class="fsel-trigger" id="fseltrig-sheet-comp-filter" tabindex="0"
             onclick="fselToggle('sheet-comp-filter')"
@@ -9310,7 +9310,7 @@ function buildBadgeShelf() {
           <div class="fsel-dropdown" id="fseldrop-sheet-comp-filter"></div>
           <select class="ssel-native" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
             <option value="all">All Matches</option>
-            <option value="competitive">Competitive Only</option>
+            <option value="competitive">Close Matches Only</option>
           </select>
         </div>
       </div>
