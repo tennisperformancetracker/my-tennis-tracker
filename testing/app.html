@@ -7552,18 +7552,13 @@ function settingsComboRender(fieldId, query) {
     // Position now that content is built — measure actual height
   const rect = input.getBoundingClientRect();
   drop.style.visibility = 'hidden';
-  drop.style.display = 'block';
-  const dropH = Math.min(260, drop.scrollHeight);
   drop.style.display = '';
   drop.style.visibility = '';
   drop.style.width    = 'auto';
   drop.style.minWidth = rect.width + 'px';
   drop.style.left     = rect.left + 'px';
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const spaceAbove  = rect.top;
-  drop.style.top = (spaceBelow < dropH + 8 && spaceAbove > spaceBelow)
-    ? (rect.top - dropH - 2) + 'px'
-    : (rect.bottom + 2) + 'px';
+  // Settings typeahead combos always open below so user can see their typing
+  drop.style.top = (rect.bottom + 2) + 'px';
   drop.classList.add('open');
 }// ── Combo Box Engine ─────────────────────────────────────
 // State per field
@@ -7597,20 +7592,11 @@ function comboPositionDropdown(field) {
   const drop = document.getElementById('combo-drop-' + field);
   if (!input || !drop) return;
   const rect = input.getBoundingClientRect();
-  const wasHidden = !drop.classList.contains('open');
-  if (wasHidden) { drop.style.visibility = 'hidden'; drop.style.display = 'block'; }
-  const dropH = Math.min(220, drop.scrollHeight);
-  if (wasHidden) { drop.style.display = ''; drop.style.visibility = ''; }
   drop.style.width    = 'auto';
   drop.style.minWidth = rect.width + 'px';
   drop.style.left     = rect.left + 'px';
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const spaceAbove = rect.top;
-  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
-    drop.style.top = (rect.top - dropH - 2) + 'px';
-  } else {
-    drop.style.top = (rect.bottom + 2) + 'px';
-  }
+  // Typeahead combos always open BELOW so user can see what they're typing
+  drop.style.top = (rect.bottom + 2) + 'px';
 }
 
 function comboRenderDropdown(field, filterText) {
