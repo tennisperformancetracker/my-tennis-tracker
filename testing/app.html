@@ -4909,7 +4909,12 @@ function openDashFilterSheet() {
     if (el) { el.value = val; fselSync(id); }
   };
   const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) { compSel.value = filterState.dash.competitive ? 'competitive' : 'all'; fselSync('sheet-comp-filter'); }
+  if (compSel) compSel.checked = filterState.dash.competitive;
+  const track = document.getElementById('comp-toggle-track');
+  if (track) {
+    track.style.background = filterState.dash.competitive ? 'var(--slate)' : 'var(--border)';
+    track.querySelector('.comp-toggle-knob').style.left = filterState.dash.competitive ? '19px' : '3px';
+  }
 
   // Populate all dynamic selects from match data, then refresh based on current filters
   DASH_FILTER_FIELDS.forEach(field => {
@@ -4944,7 +4949,7 @@ function applyDashFilterSheet() {
   filterState.dash.league      = g('sheet-league-filter');
   filterState.dash.season      = g('sheet-season-filter');
   filterState.dash.line        = g('sheet-line-filter');
-  filterState.dash.competitive = document.getElementById('sheet-comp-filter')?.value === 'competitive';
+  filterState.dash.competitive = document.getElementById('sheet-comp-filter')?.checked || false;
   closeDashFilterSheet();
   renderDashboard();
 }
@@ -4956,7 +4961,12 @@ function resetDashFilters() {
     if (el) { el.value = ''; fselSync('sheet-'+f+'-filter'); }
   });
   const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) { compSel.value = 'all'; fselSync('sheet-comp-filter'); }
+  if (compSel) compSel.checked = false;
+  const track = document.getElementById('comp-toggle-track');
+  if (track) {
+    track.style.background = 'var(--border)';
+    track.querySelector('.comp-toggle-knob').style.left = '3px';
+  }
   // Refresh all dropdowns to show full lists
   DASH_FILTER_FIELDS.forEach(field => dashFilterRefreshDropdowns(field));
 }
@@ -9301,19 +9311,13 @@ function buildBadgeShelf() {
           <select class="ssel-native" id="sheet-line-filter" onchange="filterState.dash.line=this.value;dashFilterOnChange('line')"></select>
         </div>
       </div>
-      <div class="dash-filter-row">
-        <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
-        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-comp-filter">
-          <div class="fsel-trigger" id="fseltrig-sheet-comp-filter" tabindex="0"
-            onclick="fselToggle('sheet-comp-filter')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-comp-filter');}" >All Matches</div>
-          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <div class="fsel-dropdown" id="fseldrop-sheet-comp-filter"></div>
-          <select class="ssel-native" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
-            <option value="all">All Matches</option>
-            <option value="competitive">Close Matches Only</option>
-          </select>
+      <div class="dash-filter-row" style="flex-direction:row;align-items:center;justify-content:space-between;padding:4px 0">
+        <div class="dash-filter-row-label" style="margin:0">Close Matches Only <span class="tip-icon" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
+        <div id="comp-toggle-track" onclick="filterState.dash.competitive=!filterState.dash.competitive;this.style.background=filterState.dash.competitive?'var(--slate)':'var(--border)';this.querySelector('.comp-toggle-knob').style.left=filterState.dash.competitive?'19px':'3px';document.getElementById('sheet-comp-filter').checked=filterState.dash.competitive;"
+          style="width:36px;height:20px;border-radius:10px;background:var(--border);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0">
+          <div class="comp-toggle-knob" style="position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
         </div>
+        <input type="checkbox" id="sheet-comp-filter" style="display:none" onchange="filterState.dash.competitive=this.checked">
       </div>
     </div>
     <div class="dash-filter-sheet-footer">
