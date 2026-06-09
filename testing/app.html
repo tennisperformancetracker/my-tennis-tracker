@@ -4910,11 +4910,7 @@ function openDashFilterSheet() {
   };
   const compSel = document.getElementById('sheet-comp-filter');
   if (compSel) compSel.checked = filterState.dash.competitive;
-  const track = document.getElementById('comp-toggle-track');
-  if (track) {
-    track.style.background = filterState.dash.competitive ? 'var(--slate)' : 'var(--border)';
-    track.querySelector('.comp-toggle-knob').style.left = filterState.dash.competitive ? '19px' : '3px';
-  }
+  
 
   // Populate all dynamic selects from match data, then refresh based on current filters
   DASH_FILTER_FIELDS.forEach(field => {
@@ -4962,11 +4958,7 @@ function resetDashFilters() {
   });
   const compSel = document.getElementById('sheet-comp-filter');
   if (compSel) compSel.checked = false;
-  const track = document.getElementById('comp-toggle-track');
-  if (track) {
-    track.style.background = 'var(--border)';
-    track.querySelector('.comp-toggle-knob').style.left = '3px';
-  }
+  
   // Refresh all dropdowns to show full lists
   DASH_FILTER_FIELDS.forEach(field => dashFilterRefreshDropdowns(field));
 }
@@ -9313,11 +9305,10 @@ function buildBadgeShelf() {
       </div>
       <div class="dash-filter-row" style="flex-direction:row;align-items:center;justify-content:space-between;padding:4px 0">
         <div class="dash-filter-row-label" style="margin:0">Close Matches Only <span class="tip-icon" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
-        <div id="comp-toggle-track" onclick="filterState.dash.competitive=!filterState.dash.competitive;this.style.background=filterState.dash.competitive?'var(--slate)':'var(--border)';this.querySelector('.comp-toggle-knob').style.left=filterState.dash.competitive?'19px':'3px';document.getElementById('sheet-comp-filter').checked=filterState.dash.competitive;"
-          style="width:36px;height:20px;border-radius:10px;background:var(--border);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0">
-          <div class="comp-toggle-knob" style="position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
-        </div>
-        <input type="checkbox" id="sheet-comp-filter" style="display:none" onchange="filterState.dash.competitive=this.checked">
+        <label class="form-toggle">
+          <input type="checkbox" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.checked">
+          <span class="form-toggle-slider"></span>
+        </label>
       </div>
     </div>
     <div class="dash-filter-sheet-footer">
