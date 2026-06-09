@@ -3505,9 +3505,20 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
 
 function refreshPartnersTable() {
   const mode = filterState.partners.mode || 'partners';
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
-  const matches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
+  const matches = allMatches.filter(m =>
+    (!typeFilter   || m.type   === typeFilter)   &&
+    (!compFilter   || isClose(m))                &&
+    (!levelFilter  || m.level  === levelFilter)  &&
+    (!leagueFilter || m.league === leagueFilter) &&
+    (!seasonFilter || m.season === seasonFilter) &&
+    (!lineFilter   || m.line   === lineFilter)
+  );
   const mainPanel = document.getElementById('partners-main-panel');
   if (!mainPanel) return;
   if (mode === 'opponents') {
@@ -3521,7 +3532,14 @@ function refreshPartnersTable() {
     // Re-render only the KPI cards so Best Partner card reflects new threshold
     const kpiGrid = document.getElementById('kpi-grid-main');
     if (kpiGrid) {
-      const kpiMatches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
+      const kpiMatches = allMatches.filter(m =>
+        (!typeFilter   || m.type   === typeFilter)   &&
+        (!compFilter   || isClose(m))                &&
+        (!levelFilter  || m.level  === levelFilter)  &&
+        (!leagueFilter || m.league === leagueFilter) &&
+        (!seasonFilter || m.season === seasonFilter) &&
+        (!lineFilter   || m.line   === lineFilter)
+      );
       const curYearMatches = allMatches.filter(m => m.year === new Date().getFullYear());
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = buildKPIs(kpiMatches, curYearMatches);
