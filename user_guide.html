@@ -378,7 +378,7 @@
     .field-table td:first-child {
       font-weight: 600;
       color: var(--navy);
-      white-space: nowrap;
+      width: 28%;
     }
 
     .required-badge {
@@ -839,16 +839,80 @@
 
       <p>To the right of the cards, a small <strong>✏️</strong> icon links directly to the Dashboard Cards settings. On mobile, a <strong>Stats</strong> pill at the top of the section lets you collapse and expand the cards to free up screen space.</p>
 
-      <p>The <strong>Type</strong> dropdown in the top-right corner of the Dashboard filters all summary cards and charts by match type — Singles, Doubles, Mixed Doubles, or All Types combined.</p>
+      <p>A <strong>Filters</strong> button in the top-right corner of the Dashboard opens a filter panel. When any filter is active the button shows a blue highlight so you can tell at a glance that your view is narrowed. All filters apply simultaneously — every KPI card, chart, and table on the Dashboard updates to reflect only the matching matches.</p>
+
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Match Type</td>
+            <td>Limits the Dashboard to a specific match format — Singles, Doubles, Mixed Doubles, etc. Useful when you want to view your singles and doubles records independently.</td>
+          </tr>
+          <tr>
+            <td>Season</td>
+            <td>Narrows to matches from a specific season (Spring, Summer, Fall, Winter).</td>
+          </tr>
+          <tr>
+            <td>League</td>
+            <td>Narrows to matches played in a specific league, such as ALTA or USTA.</td>
+          </tr>
+          <tr>
+            <td>Level</td>
+            <td>Narrows to matches played at a specific level, such as A-8 or B-1.</td>
+          </tr>
+          <tr>
+            <td>Line</td>
+            <td>Narrows to matches played at a specific line number within team matches.</td>
+          </tr>
+          <tr>
+            <td>Close Matches Only</td>
+            <td>When toggled on, limits the Dashboard to matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not. Use this to see how your record holds up in tighter, more evenly-matched games.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note note-tip" style="margin-top:14px">
+        <strong>Filters narrow each other.</strong> The dropdowns are cascading — once you select a League, the Season, Level, and Line dropdowns automatically update to show only values that exist within that league's matches. This prevents dead-end combinations and makes it faster to drill into a specific slice of your data. Click <strong>Reset</strong> in the filter panel to clear all filters at once.
+      </div>
     </div>
 
     <!-- WIN % CHART -->
     <div class="card">
-      <div class="card-title">Win % by Month / Year Chart</div>
-      <p>The line chart in the middle of the Dashboard plots your win percentage across months or years, giving you a visual of your performance over time. Each data point represents how you played in that calendar month or year.</p>
-      <p>Use the controls in the top-right of the chart to toggle between <strong>By Month</strong> and <strong>By Year</strong> views, and to filter by a specific year or view <strong>All Years</strong> combined.</p>
+      <div class="card-title">Performance Chart</div>
+      <p>The chart in the middle of the Dashboard visualizes your performance over time. Use the mode selector in the top-right of the chart card to switch between three views:</p>
 
-     <table class="field-table">
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>What It Shows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Win % by Month</td>
+            <td>A line chart plotting your win percentage for each calendar month. When <strong>All Years</strong> is selected, months are aggregated across all years (all Januaries combined, etc.). Select a specific year to see each individual month plotted chronologically.</td>
+          </tr>
+          <tr>
+            <td>Win % by Year</td>
+            <td>A line chart plotting your win percentage for each full calendar year. The year selector is hidden in this mode since each year is already its own data point.</td>
+          </tr>
+          <tr>
+            <td>Total W/L by Month</td>
+            <td>A stacked bar chart showing raw win and loss counts per month — green bars for wins stacked below red bars for losses. Hovering over any bar shows the win/loss breakdown and overall win rate for that month. A color legend (Wins / Losses) appears in the chart header. Use this view to understand volume alongside performance — a month with a high win percentage but few total matches carries less weight than one with many.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:14px">A year filter sits alongside the mode selector (hidden in Win % by Year mode) so you can scope the monthly charts to a single season. Each chart mode surfaces its own set of insights in the panel beside or below the chart.</p>
+
+      <p style="margin-top:16px;font-size:13.5px;font-weight:600;color:var(--navy)">Win % by Month &amp; Win % by Year — Insights</p>
+      <table class="field-table">
         <thead>
           <tr>
             <th>Insight</th>
@@ -856,11 +920,27 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>Best Month /<br> Year</td><td>Automatically identified and highlighted; shows the month or year where your win percentage peaked, along with the win-loss record for that period.</td></tr>
-          <tr><td>Worst Month /<br> Year</td><td>The month or year with your lowest win percentage, useful for identifying recurring seasonal dips or stretches where your game typically struggles.</td></tr>
-          <tr><td>Biggest<br>Improvement</td><td>Highlights the largest month-over-month or year-over-year gain in win percentage, showing when you made your most significant jump in performance and how much it increased.</td></tr>
-          <tr><td>Recent Trend</td><td>Shows whether your win % is trending up or down by comparing your two most recent months (or years) to the two that came before them. Rather than just comparing one period to another, it averages each pair to smooth out any single outlier month — so one unusually good or bad month won't skew the trend.</td></tr>
-	</tbody>
+          <tr><td>Best Month /<br>Year</td><td>The month or year where your win percentage peaked, along with the win-loss record for that period.</td></tr>
+          <tr><td>Worst Month /<br>Year</td><td>The month or year with your lowest win percentage — useful for identifying recurring seasonal dips or stretches where your game typically struggles.</td></tr>
+          <tr><td>Biggest<br>Improvement</td><td>The largest month-over-month or year-over-year gain in win percentage, showing when you made your most significant jump in performance.</td></tr>
+          <tr><td>Recent Trend</td><td>Whether your win % is trending up or down, calculated by comparing your two most recent periods to the two before them. Averaging each pair smooths out single-month outliers so one unusually good or bad result doesn't skew the direction.</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:16px;font-size:13.5px;font-weight:600;color:var(--navy)">Total W/L by Month — Insights</p>
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Insight</th>
+            <th>What It Measures</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Best Month</td><td>The month with the most wins — a volume measure, not a win percentage measure. Useful for seeing when you were at peak activity and winning the most matches outright.</td></tr>
+          <tr><td>Most Active Month</td><td>The month with the most total matches played, shown with the full W–L breakdown. High activity months with a lower win rate can indicate a stretch of tough scheduling or league playoffs.</td></tr>
+          <tr><td>Busiest Season</td><td>Which calendar season (Spring, Summer, Fall, or Winter) contained the most total matches across your history. Only shown when All Years is selected.</td></tr>
+          <tr><td>Quietest Season</td><td>The calendar season with the fewest total matches — useful for seeing when you naturally play less. Only shown when All Years is selected.</td></tr>
+        </tbody>
       </table>
     </div>
 
@@ -1058,8 +1138,8 @@
       <p>This panel covers the core information about what happened on the court. Required fields are marked below — the form will not submit without them.</p>
       
       <div class="note">
-      <strong>Partners and other dropdown values</strong> in Match Entry come directly from your Valid Entries page. If a partner, league, level, or so on isn't appearing in a dropdown, you can add it on the Valid Entries page at any time or add it by clicking the <strong>+ Add new</strong> option in the dropdown field while logging your match.
-    </div>
+        <strong>Partner and Level are searchable combo boxes.</strong> Rather than a plain dropdown, these fields let you type to filter the list as you go — matching options are highlighted as you type. You can also use the arrow keys to navigate and Enter to select. If you type a name or value that doesn't exist yet, the list shows <strong>+ Add "[value]"</strong> — selecting it opens a small prompt where you confirm the new entry, adds it to your Valid Entries automatically, and fills it into the field, all without leaving the form. All other dropdown fields still use the standard select — only Partner and Level have the searchable combo behavior.
+      </div>
 
       <table class="field-table">
         <thead>
@@ -1088,12 +1168,16 @@
           </tr>
           <tr>
             <td>Partner<br><span class="required-badge">Required</span></td>
-            <td><p>Your doubles partner.</p>
+            <td><p>Your doubles partner. This is a searchable combo box — type any part of a name to filter the list, or scroll through all partners. If your partner isn't in the list yet, type their name and select <strong>+ Add "[name]"</strong> to add them on the spot.</p>
             <p><i><strong>Note:</strong> This field is not required when inputting singles matches.</i></p></td>
           </tr>
           <tr>
             <td>Score<br><span class="required-badge">Required</span></td>
-            <td>Enter the score for your match in the Set sections. If the match went to a third set, the Set 3 section becomes available automatically."</td>
+            <td>
+              <p>Enter the score for your match in the Set sections. If the match went to a third set, the Set 3 section becomes available automatically.</p>
+              <p><strong>Tiebreak scores:</strong> Whenever you enter a 7–6 set score, a small tiebreak score panel appears automatically beneath that set. Enter the loser's tiebreak score in the <strong>Opp</strong> field (e.g., if you won 7–4, enter 4). This lets the app display the standard tennis tiebreak notation — for example, 7–6 <sup>4</sup> — in your match history.</p>
+              <p><strong>Match tiebreak (Set 3):</strong> If a third set was decided by a match tiebreak to 10 rather than a full set, enter the score as 1–0 (your side first) in the Set 3 fields. A <strong>Match tiebreak</strong> checkbox will appear beneath Set 3 — check it and then enter the actual match tiebreak score (e.g., 10–7) in the score fields that appear. The match tiebreak score is stored and displayed alongside the 1–0 result.</p>
+            </td>
           </tr>
           <tr>
             <td>Opponent<br>Retired<br><span class="optional-badge">Toggle</span></td>
@@ -1130,7 +1214,7 @@
           </tr>
           <tr>
             <td>Level<br><span class="optional-badge">Optional</span></td>
-            <td>The skill or competitive level of the match (e.g., A-8, B-1, B-2).</td>
+            <td>The skill or competitive level of the match (e.g., A-8, B-1, B-2). This is a searchable combo box — type to filter existing levels or select <strong>+ Add "[value]"</strong> to add a new one without leaving the form.</td>
           </tr>
           <tr>
             <td>Line<br><span class="optional-badge">Optional</span></td>
@@ -1321,14 +1405,14 @@
         <tr><td>Default Type</td><td>Pre-selects the match type (e.g. Men's Doubles).</td></tr>
         <tr><td>Default Season</td><td>Pre-selects the season (e.g. Spring).</td></tr>
         <tr><td>Default League</td><td>Pre-selects the league (e.g. ALTA).</td></tr>
-        <tr><td>Default Level</td><td>Pre-selects the level (e.g. A-8).</td></tr>
+        <tr><td>Default Level</td><td>Pre-selects the level (e.g. A-8). This is a searchable combo box — type to filter your existing levels. Unlike the Level combo in Match Entry, this field does not support adding new values inline; add new levels on the Valid Entries page first.</td></tr>
         <tr><td>Default Surface</td><td>Pre-selects the surface (e.g. Hard - Outdoor).</td></tr>
         <tr><td>Default Home Location</td><td>Auto-fills the Location field whenever Home / Away is set to Home.</td></tr>
       </tbody>
     </table>
 
     <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin:24px 0 8px">Default Partner by Match Type</h4>
-    <p>For each doubles or mixed match type in your Valid Entries, you can set a default partner that will be pre-selected when that type is chosen during match entry. This is especially useful if you primarily play with the same partner for a given league or season.</p>
+    <p>For each doubles or mixed match type in your Valid Entries, you can set a default partner that will be pre-selected when that type is chosen during match entry. Each match type gets its own searchable combo box — type any part of a name to filter the list. This is especially useful if you primarily play with the same partner for a given league or season. As with Default Level, new partners cannot be added inline here; add them on the Valid Entries page first.</p>
 
     <div class="note note-tip" style="margin-top:14px">
       <strong>Defaults speed up entry but never lock you in.</strong> You can always change any pre-filled value before submitting a match.
@@ -1528,6 +1612,13 @@
         <div>U - Set 3 Losses</div>
         <div>V - Opp Retired</div>
         <div>W - I/We Retired</div>
+        <div>X - Notes</div>
+        <div>Y - TB1 Us</div>
+        <div>Z - TB1 Opp</div>
+        <div>AA - TB2 Us</div>
+        <div>AB - TB2 Opp</div>
+        <div>AC - TB3 Us</div>
+        <div>AD - TB3 Opp</div>
       </div>
     </div>
   </div>
@@ -1569,14 +1660,14 @@
           <div style="font-size:13px;font-weight:700;color:#7ecba1;margin-bottom:12px;">Match Tracker Pro — Data Reformatter Prompt</div>
           <div style="margin-bottom:16px;">I need you to reformat my tennis match data into a specific CSV format for import into Match Tracker Pro.</div>
 
-          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a8c4d8;margin-bottom:10px;margin-top:18px;">The output must be exactly 23 tab-separated columns in this order, one match per row, no header row:</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a8c4d8;margin-bottom:10px;margin-top:18px;">The output must be exactly 30 tab-separated columns in this order, one match per row, no header row:</div>
 
           <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:4px;">
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">1.</span><span><strong style="color:#fff;">Date</strong> <span style="color:rgba(255,255,255,0.5)">(MM/DD/YYYY)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">2.</span><span><strong style="color:#fff;">Season</strong> <span style="color:rgba(255,255,255,0.5)">(Spring / Summer / Fall / Winter — leave blank if unknown)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">3.</span><span><strong style="color:#fff;">League</strong> <span style="color:rgba(255,255,255,0.5)">(ALTA / USTA / Club / etc. — leave blank if unknown)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">4.</span><span><strong style="color:#fff;">Level</strong> <span style="color:rgba(255,255,255,0.5)">(3.5 / 4.0 / etc. — leave blank if unknown)</span></span></div>
-            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">5.</span><span><strong style="color:#fff;">Type</strong> <span style="color:rgba(255,255,255,0.5)">(Singles, Doubles, Men's Doubles, Mixed Doubles, etc. If a partner exists it default to Doubles if no type is specified)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">5.</span><span><strong style="color:#fff;">Type</strong> <span style="color:rgba(255,255,255,0.5)">(Singles, Doubles, Men's Doubles, Mixed Doubles, etc. If a partner exists it defaults to Doubles if no type is specified)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">6.</span><span><strong style="color:#fff;">Line</strong> <span style="color:rgba(255,255,255,0.5)">(1 / 2 / 3 / etc. — leave blank if unknown)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">7.</span><span><strong style="color:#fff;">Location</strong> <span style="color:rgba(255,255,255,0.5)">(venue name — leave blank if unknown)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">8.</span><span><strong style="color:#fff;">Home/Away</strong> <span style="color:rgba(255,255,255,0.5)">(Home / Away / Neutral — leave blank if unknown)</span></span></div>
@@ -1595,24 +1686,37 @@
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">21.</span><span><strong style="color:#fff;">Set 3 Losses</strong> <span style="color:rgba(255,255,255,0.5)">(leave blank if no third set)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">22.</span><span><strong style="color:#fff;">Opponent Retired</strong> <span style="color:rgba(255,255,255,0.5)">(TRUE or FALSE — leave blank if neither player retired)</span></span></div>
             <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">23.</span><span><strong style="color:#fff;">We Retired</strong> <span style="color:rgba(255,255,255,0.5)">(TRUE or FALSE — leave blank if neither player retired)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">24.</span><span><strong style="color:#fff;">Notes</strong> <span style="color:rgba(255,255,255,0.5)">(any match comments or notes — leave blank if none)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">25.</span><span><strong style="color:#fff;">TB1 Us</strong> <span style="color:rgba(255,255,255,0.5)">(tiebreak points won by us in set 1 — leave blank if no tiebreak was played)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">26.</span><span><strong style="color:#fff;">TB1 Opp</strong> <span style="color:rgba(255,255,255,0.5)">(tiebreak points won by opponent in set 1 — leave blank if no tiebreak was played)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">27.</span><span><strong style="color:#fff;">TB2 Us</strong> <span style="color:rgba(255,255,255,0.5)">(tiebreak points won by us in set 2 — leave blank if no tiebreak was played)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">28.</span><span><strong style="color:#fff;">TB2 Opp</strong> <span style="color:rgba(255,255,255,0.5)">(tiebreak points won by opponent in set 2 — leave blank if no tiebreak was played)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">29.</span><span><strong style="color:#fff;">TB3 Us</strong> <span style="color:rgba(255,255,255,0.5)">(tiebreak points won by us in set 3 — leave blank if no tiebreak was played)</span></span></div>
+            <div style="display:flex;gap:10px;"><span style="color:#a8c4d8;font-weight:600;min-width:22px;font-size:12px;">30.</span><span><strong style="color:#fff;">TB3 Opp</strong> <span style="color:rgba(255,255,255,0.5)">(tiebreak points won by opponent in set 3 — leave blank if no tiebreak was played)</span></span></div>
           </div>
 
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a8c4d8;margin-bottom:10px;margin-top:22px;">Rules:</div>
           <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;">
             <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Output raw tab-separated data only — no headers, no markdown, no explanation</li>
             <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If my data has a combined score like "6-4, 6-2" split it: Set1Wins=6, Set1Losses=4, Set2Wins=6, Set2Losses=2</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If a set score is 7-6, look for a corresponding tiebreak score in the source data and populate the TB columns for that set. If no tiebreak score is recorded, leave the TB columns blank — do not invent or estimate tiebreak scores</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If a set score is 1-0 or 0-1 with a tiebreak score in parentheses, treat it as a super tiebreak used in place of a full set. Record the set score as 1-0 or 0-1 and put the tiebreak points in the corresponding TB columns for that set</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If the partner field contains the word "Singles", treat the match as Type=Singles and leave Partner and Opponent 2 blank</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If a set score appears incomplete (e.g. 4-4) and the notes indicate retirement or forfeit, set Opponent Retired = TRUE and include the partial score as-is</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If S2 is blank and the Notes field mentions "retired", "retirement", or "forfeit", set Opponent Retired = TRUE</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If the Notes field contains the phrase "Opponent retired", set Opponent Retired = TRUE</li>
             <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If my data has a Win/Loss column, ignore it — do not output it (the sheet calculates this from scores)</li>
-            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If Type is missing, default to Singles if no partner exists. Default to doubles if partner exists.</li>
-            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If a match has two opponents and a partner listed, it's Doubles</li>
-            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Every row must have all 23 columns, even if most are blank (use empty string, not a placeholder)</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If no opponents are present, enter them as "Unknown"</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Every row must have all 30 columns, even if most are blank (use empty string, not a placeholder)</li>
             <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Do not skip any rows from my data</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Enter time based on match times in 24-hour format: 00:00–11:59 = Morning, 12:00–16:59 = Afternoon, 17:00–23:59 = Night</li>
             <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>If only a year is available with no season, default the date to 1/1/YYYY. If a year and season are available but no exact date, use the first day of that season: Winter (January–February) → 1/1/YYYY, Spring (March–May) → 3/1/YYYY, Summer (June–August) → 6/1/YYYY, Fall (September–December) → 9/1/YYYY. In all cases, add a note at the very end of the output listing which rows had estimated dates and what was used, so the user can correct them before importing.</li>
             <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Do not include any introduction, confirmation, or closing message. Output only the data rows, followed by the date notes if applicable.</li>
             <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>Do not wrap the output in a code block or any markdown formatting. Plain text only.</li>
-            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>This needs to be in a format that i can easily copy and paste back into google sheets.</li>
+            <li style="padding-left:16px;position:relative;color:rgba(255,255,255,0.75);"><span style="position:absolute;left:2px;color:#a8c4d8;">·</span>This needs to be in a format that I can easily copy and paste back into Google Sheets.</li>
           </ul>
 
-          <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);font-size:13px;color:rgba(255,255,255,0.5);font-style:italic;">My data is attached. Please reformat it now and output only the CSV.</div>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);font-size:13px;color:rgba(255,255,255,0.5);font-style:italic;">My data is attached. Please reformat it now and output only as tab-separated plain text.</div>
         </div>
       </div>
     </div>
@@ -1623,6 +1727,9 @@
     </ol>
     <div class="note note-tip">
       <strong>This prompt works for most data structures out of the box.</strong> If your data uses shorthand values (like "H" for Hard or "W" for Win), or your opponent names are split into separate first/last columns, add a brief note describing that at the end of the prompt before attaching your file.
+    </div>
+    <div class="note note-warn">
+      <strong>Always review the AI output before importing.</strong> The prompt handles the vast majority of data structures correctly, but AI reformatting is not infallible — names may be split differently than expected, tiebreak scores may be missed if they're buried in notes, or edge cases in your data may produce an unexpected result. Scan through the output before pasting it into Match Import, and correct anything that looks off.
     </div>
   </div>
 
@@ -1667,6 +1774,13 @@
         <div>U - Set 3 Losses</div>
         <div>V - Opp Retired</div>
         <div>W - I/We Retired</div>
+        <div>X - Notes</div>
+        <div>Y - TB1 Us</div>
+        <div>Z - TB1 Opp</div>
+        <div>AA - TB2 Us</div>
+        <div>AB - TB2 Opp</div>
+        <div>AC - TB3 Us</div>
+        <div>AD - TB3 Opp</div>
       </div>
     </div>
   </div>
@@ -1751,6 +1865,10 @@
     <p>
       You can optionally fix the remaining rows and import them afterward.
     </p>
+
+    <div class="note note-warn">
+      <strong>Import anyway.</strong> If errors are found during analysis, an <strong>Import anyway</strong> checkbox appears below the error list. Checking it and clicking Import will force all rows through — including flagged ones — with error cells still highlighted in red so you can review them after importing. Use this only when you're confident the flagged rows are correct (for example, if a match was legitimately retired before set 2).
+    </div>
 
     <div class="note note-tip">
       <strong>Refresh Match Tracker Pro</strong> after importing to immediately see all imported matches and updated statistics.
@@ -1924,14 +2042,13 @@
 
 <script>
 const AI_PROMPT_TEXT = `Match Tracker Pro — Data Reformatter Prompt
-I need you to reformat my tennis match data into a specific CSV format for import into Match Tracker Pro.
-The output must be exactly 23 tab-separated columns in this order, one match per row, no header row:
+I need you to reformat my tennis match data into a specific CSV format for import into Match Tracker Pro. The output must be exactly 30 tab-separated columns in this order, one match per row, no header row:
 
 1. Date (MM/DD/YYYY)
 2. Season (Spring / Summer / Fall / Winter — leave blank if unknown)
 3. League (ALTA / USTA / Club / etc. — leave blank if unknown)
 4. Level (3.5 / 4.0 / etc. — leave blank if unknown)
-5. Type (Singles, Doubles, Men's Doubles, Mixed Doubles, etc. If a partner exists it default to Doubles if no type is specified)
+5. Type (Singles, Doubles, Men's Doubles, Mixed Doubles, etc. If a partner exists it defaults to Doubles if no type is specified)
 6. Line (1 / 2 / 3 / etc. — leave blank if unknown)
 7. Location (venue name — leave blank if unknown)
 8. Home/Away (Home / Away / Neutral — leave blank if unknown)
@@ -1950,21 +2067,35 @@ The output must be exactly 23 tab-separated columns in this order, one match per
 21. Set 3 Losses (leave blank if no third set)
 22. Opponent Retired (TRUE or FALSE — leave blank if neither player retired)
 23. We Retired (TRUE or FALSE — leave blank if neither player retired)
+24. Notes (any match comments or notes — leave blank if none)
+25. TB1 Us (tiebreak points won by us in set 1 — leave blank if no tiebreak was played)
+26. TB1 Opp (tiebreak points won by opponent in set 1 — leave blank if no tiebreak was played)
+27. TB2 Us (tiebreak points won by us in set 2 — leave blank if no tiebreak was played)
+28. TB2 Opp (tiebreak points won by opponent in set 2 — leave blank if no tiebreak was played)
+29. TB3 Us (tiebreak points won by us in set 3 — leave blank if no tiebreak was played)
+30. TB3 Opp (tiebreak points won by opponent in set 3 — leave blank if no tiebreak was played)
 
 Rules:
+
 * Output raw tab-separated data only — no headers, no markdown, no explanation
 * If my data has a combined score like "6-4, 6-2" split it: Set1Wins=6, Set1Losses=4, Set2Wins=6, Set2Losses=2
+* If a set score is 7-6, look for a corresponding tiebreak score in the source data and populate the TB columns for that set. If no tiebreak score is recorded, leave the TB columns blank — do not invent or estimate tiebreak scores
+* If a set score is 1-0 or 0-1 with a tiebreak score in parentheses, treat it as a super tiebreak used in place of a full set. Record the set score as 1-0 or 0-1 and put the tiebreak points in the corresponding TB columns for that set
+* If the partner field contains the word "Singles", treat the match as Type=Singles and leave Partner and Opponent 2 blank
+* If a set score appears incomplete (e.g. 4-4) and the notes indicate retirement or forfeit, set Opponent Retired = TRUE and include the partial score as-is
+* If S2 is blank and the Notes field mentions "retired", "retirement", or "forfeit", set Opponent Retired = TRUE
+* If the Notes field contains the phrase "Opponent retired", set Opponent Retired = TRUE
 * If my data has a Win/Loss column, ignore it — do not output it (the sheet calculates this from scores)
-* If Type is missing, default to Singles if no partner exists. Default to doubles if partner exists.
-* If a match has two opponents and a partner listed, it's Doubles
-* Every row must have all 23 columns, even if most are blank (use empty string, not a placeholder)
+* If no opponents are present, enter them as "Unknown"
+* Every row must have all 30 columns, even if most are blank (use empty string, not a placeholder)
 * Do not skip any rows from my data
+* Enter time based on my match times in 24-hour format. All matches played from 00:00 and 11:59 are Morning. All matches played from 12:00 and 16:59 are Afternoon. All matches played from 17:00 and 23:59 are Night.
 * If only a year is available with no season, default the date to 1/1/YYYY. If a year and season are available but no exact date, use the first day of that season: Winter (January–February) → 1/1/YYYY, Spring (March–May) → 3/1/YYYY, Summer (June–August) → 6/1/YYYY, Fall (September–December) → 9/1/YYYY. In all cases, add a note at the very end of the output listing which rows had estimated dates and what was used, so the user can correct them before importing.
 * Do not include any introduction, confirmation, or closing message. Output only the data rows, followed by the date notes if applicable.
 * Do not wrap the output in a code block or any markdown formatting. Plain text only.
-* This needs to be in a format that i can easily copy and paste back into google sheets.
+* This needs to be in a format that I can easily copy and paste back into Google Sheets.
 
-My data is attached. Please reformat it now and output only the CSV.`;
+My data is attached. Please reformat it now and output only as tab-separated plain text.`;
 
 function toggleAiPrompt(btn) {
   const body = document.getElementById('aiPromptBody');

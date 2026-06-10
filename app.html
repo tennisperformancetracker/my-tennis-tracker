@@ -141,8 +141,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .topbar-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .topbar-select {
   background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text); font-family: var(--font); font-size: 13px; padding: 6px 28px 6px 10px;
-  outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 30px 9px 12px;
+  height: 39px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  transition: border-color 0.2s; box-sizing: border-box;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 10px center;
 }
@@ -282,6 +283,28 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 }
 .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--label); }
 .card-filter { display: flex; align-items: center; gap: 8px; }
+.chart-header-controls {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+@media (min-width: 769px) {
+  .chart-card-header { position: relative; }
+  .chart-header-controls { margin-left: auto; }
+  #chart-wl-legend {
+    position: absolute !important; left: 50%; transform: translateX(-50%);
+    top: 50%; margin-top: -11px; /* vertically center within header */
+  }
+}
+@media (max-width: 768px) {
+  .chart-card-header {
+    flex-direction: column; align-items: flex-start; gap: 8px;
+  }
+  .chart-header-controls { width: 100%; }
+  #chart-wl-legend { margin-left: 0 !important; }
+}
+@media (max-width: 400px) {
+  .chart-legend-full { display: none !important; }
+  .chart-legend-short { display: inline !important; }
+}
 
 /* ── Dashboard chart + insights side-by-side ────────────── */
 .chart-insights-layout {
@@ -426,12 +449,14 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 }
 .search-input:focus { border-color: var(--accent2); }
 .filter-select {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text); font-family: var(--font); font-size: 13px; padding: 8px 28px 8px 10px;
-  outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 30px 9px 12px;
+  height: 39px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+  transition: border-color 0.2s; box-sizing: border-box;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 10px center;
 }
+.filter-select:focus { border-color: var(--accent2); }
 .match-body { flex: 1; min-width: 0; }
 .match-opponent { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
 .match-meta { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
@@ -474,6 +499,133 @@ input[type="number"]:focus { border-color: var(--accent2) !important; }
 textarea:focus { border-color: var(--accent2) !important; }
 .field input.error, .field select.error { border-color: var(--danger); }
 .field-error { font-size: 11px; color: var(--danger); margin-top: 3px; display: none; }
+
+/* ── Combo Box ──────────────────────────────────────────── */
+.combo-wrap { position: relative; width: 100%; }
+.combo-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-family: var(--font);
+  font-size: 13px; padding: 9px 30px 9px 12px; outline: none;
+  transition: border-color 0.2s; box-sizing: border-box; height: 39px;
+}
+.combo-input:focus { border-color: var(--accent2); }
+.combo-input.error { border-color: var(--danger); }
+.combo-arrow {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; color: var(--muted);
+}
+.combo-dropdown {
+  position: fixed; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); z-index: 8000; max-height: 220px;
+  overflow-y: auto; box-shadow: 0 4px 12px rgba(47,65,87,0.12);
+  display: none; min-width: 160px;
+}
+.combo-dropdown.open { display: block; }
+.combo-option {
+  padding: 8px 12px; font-size: 13px; color: var(--text);
+  cursor: pointer; font-family: var(--font);
+}
+.combo-option:hover, .combo-option.highlighted { background: var(--surface2); }
+.combo-option.add-new {
+  color: var(--accent2); font-weight: 600;
+  border-top: 1px solid var(--border); position: sticky; bottom: 0;
+  background: var(--surface);
+}
+.combo-option.add-new:hover { background: var(--surface2); }
+.combo-no-match { padding: 8px 12px; font-size: 13px; color: var(--muted); font-style: italic; }
+body.dark .combo-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+/* Hide native selects inside custom dropdown wrappers */
+.ssel-native { display: none !important; }
+
+/* ── Entry Form Styled Select ───────────────────────────── */
+.ssel-wrap { position: relative; width: 100%; }
+.ssel-trigger {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-family: var(--font);
+  font-size: 13px; padding: 9px 30px 9px 12px; height: 39px;
+  outline: none; cursor: pointer; transition: border-color 0.2s;
+  box-sizing: border-box; display: flex; align-items: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  user-select: none;
+}
+.ssel-trigger:focus { border-color: var(--accent2); }
+.ssel-trigger.open  { border-color: var(--accent2); }
+.ssel-trigger.error { border-color: var(--danger); }
+.ssel-placeholder { color: var(--muted); }
+.ssel-arrow {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  pointer-events: none;
+}
+.ssel-dropdown {
+  position: fixed; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); z-index: 8000; max-height: 220px;
+  overflow-y: auto; box-shadow: 0 4px 12px rgba(47,65,87,0.12);
+  display: none; min-width: 160px;
+}
+.ssel-dropdown.open { display: block; }
+.ssel-option {
+  padding: 8px 12px; font-size: 13px; color: var(--text);
+  cursor: pointer; font-family: var(--font);
+}
+.ssel-option:hover, .ssel-option.highlighted { background: var(--surface2); }
+.ssel-option.selected { font-weight: 600; }
+.ssel-option.add-new {
+  color: var(--accent2); font-weight: 600;
+  border-top: 1px solid var(--border); position: sticky; bottom: 0;
+  background: var(--surface);
+}
+.ssel-option.add-new:hover { background: var(--surface2); }
+body.dark .ssel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+/* ── Filter Styled Select ───────────────────────────────── */
+.fsel-wrap { position: relative; display: inline-block; }
+.fsel-wrap.fsel-block { width: 100%; display: block; }
+.fsel-trigger {
+  display: flex; align-items: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-family: var(--font);
+  font-size: 13px; padding: 9px 30px 9px 12px; height: 39px;
+  outline: none; cursor: pointer; transition: border-color 0.2s;
+  box-sizing: border-box; white-space: nowrap; user-select: none;
+  min-width: 80px;
+}
+.fsel-trigger:focus { border-color: var(--accent2); }
+.fsel-trigger.open  { border-color: var(--accent2); }
+.fsel-trigger.fsel-compact {
+  font-size: 12px; padding: 5px 26px 5px 10px; height: auto;
+}
+@media (min-width: 769px) {
+  .fsel-trigger.fsel-compact { font-size: 13px; padding: 9px 30px 9px 12px; height: 39px; }
+}
+.fsel-trigger.fsel-small {
+  font-size: 11px; padding: 4px 24px 4px 9px; height: auto;
+}
+.fsel-arrow {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  pointer-events: none;
+}
+.fsel-dropdown {
+  position: fixed; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); z-index: 8000; max-height: 260px;
+  overflow-y: auto; box-shadow: 0 4px 12px rgba(47,65,87,0.12);
+  display: none; min-width: 140px;
+}
+.fsel-dropdown.open { display: block; }
+.fsel-option {
+  padding: 8px 12px; font-size: 13px; color: var(--text);
+  cursor: pointer; font-family: var(--font); white-space: nowrap;
+}
+.fsel-option:hover  { background: var(--surface2); }
+.fsel-option.selected { font-weight: 600; }
+.fsel-option.fsel-muted { color: var(--muted); font-weight: 400; }
+body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+/* hist-sort special — white on dark topbar */
+.fsel-trigger.fsel-dark {
+  background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25);
+  color: #fff; font-size: 12px; font-weight: 600;
+  padding: 4px 22px 4px 8px; height: 30px;
+}
+.fsel-trigger.fsel-dark .fsel-arrow path { stroke: #fff; }
 .field-error.visible { display: block; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .score-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
@@ -705,6 +857,21 @@ textarea:focus { border-color: var(--accent2) !important; }
   border: 1.5px solid #2f4157;
 }
 .mob-filter-btn.has-active .mob-filter-active-dot { display: block; }
+/* Desktop Filters button */
+.dash-filters-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); cursor: pointer;
+  padding: 7px 14px; font-size: 13px; font-weight: 600;
+  font-family: var(--font); position: relative; flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.dash-filters-btn:hover { border-color: var(--accent2); }
+.dash-filters-btn.has-active { border-color: var(--accent2); background: rgba(99,133,162,0.08); color: var(--accent2); }
+.dash-filters-dot {
+  display: none; width: 7px; height: 7px; border-radius: 50%; background: var(--accent2);
+}
+.dash-filters-btn.has-active .dash-filters-dot { display: block; }
 /* Bottom sheet overlay */
 .dash-filter-sheet-overlay {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -717,6 +884,18 @@ textarea:focus { border-color: var(--accent2) !important; }
   width: 100%; max-height: 80vh; overflow-y: auto;
   box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
   animation: sheetSlideUp 0.22s ease;
+}
+@media (min-width: 769px) {
+  .dash-filter-sheet-overlay { align-items: center !important; }
+  .dash-filter-sheet {
+    border-radius: 16px; max-width: 480px; margin: 0 auto;
+    box-shadow: 0 8px 32px rgba(47,65,87,0.18); animation: none;
+    overflow: hidden; /* let border-radius clip cleanly */
+  }
+  .dash-filter-sheet-body {
+    overflow-y: auto; /* scroll inside the body, not the outer sheet */
+    max-height: calc(60vh - 120px); /* leave room for header + footer */
+  }
 }
 @keyframes sheetSlideUp {
   from { transform: translateY(100%); }
@@ -739,21 +918,24 @@ textarea:focus { border-color: var(--accent2) !important; }
   background: none; border: none; font-size: 20px; color: var(--muted);
   cursor: pointer; line-height: 1; padding: 4px;
 }
-.dash-filter-sheet-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 20px; }
-.dash-filter-row { display: flex; flex-direction: column; gap: 8px; }
+.dash-filter-sheet-body { padding: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+.dash-filter-row { display: flex; flex-direction: column; gap: 5px; }
 .dash-filter-row-label {
   font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; color: var(--muted);
 }
 .dash-filter-row-label .tip-icon { cursor: default; font-style: normal; letter-spacing: 0; }
+.dash-filter-row-label .tip-icon::after { text-transform: none; font-weight: 500; letter-spacing: 0; }
 .dash-filter-select {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); font-family: var(--font);
-  font-size: 14px; font-weight: 500; padding: 10px 32px 10px 12px; outline: none;
-  appearance: none; -webkit-appearance: none; width: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
+  font-size: 13px; font-weight: 400; padding: 9px 30px 9px 12px;
+  height: 39px; outline: none; appearance: none; -webkit-appearance: none;
+  width: 100%; cursor: pointer; transition: border-color 0.2s; box-sizing: border-box;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
 }
+.dash-filter-select:focus { border-color: var(--accent2); }
 .dash-filter-seg {
   display: flex; gap: 8px;
 }
@@ -772,7 +954,7 @@ textarea:focus { border-color: var(--accent2) !important; }
 .dash-filter-sheet-footer .btn { flex: 1; justify-content: center; }
 @media (min-width: 769px) {
   .mob-filter-btn { display: none !important; }
-  .dash-filter-sheet-overlay { display: none !important; }
+  /* dash-filter-sheet-overlay intentionally visible on desktop too */
 }
 @media (max-width: 768px) {
   .mob-filter-btn { display: flex; }
@@ -1615,7 +1797,7 @@ let chartInstance = null;
 
 // Persistent filter state — survives page navigation
 const filterState = {
-  dash: { type: '', year: '', competitive: false },
+  dash: { type: '', year: '', competitive: false, level: '', league: '', season: '', line: '' },
   chart: { mode: 'month', year: '' },
   splits: { month: '', year: '' },
   partners: { sortCol: 'pctVal', sortDir: 'desc', threshold: 5, mode: 'partners' },
@@ -1804,6 +1986,12 @@ function sortedPartners(arr) {
   });
 }
 function sortedLeagues(arr) { return [...(arr||[])].sort((a,b) => a.localeCompare(b)); }
+function sortedSeasons(arr) {
+  const ORDER = ['Winter','Spring','Summer','Fall'];
+  const known = ORDER.filter(s => (arr||[]).includes(s));
+  const other = [...(arr||[])].filter(s => !ORDER.includes(s)).sort((a,b) => a.localeCompare(b));
+  return [...known, ...other];
+}
 function sortedLevels(arr) {
   // "Letter group" = starts with a letter (e.g. A-8, B-1, B-2)
   // "Number group" = starts with a digit or dash+digit (e.g. 3.0, 3.0-, 4.0)
@@ -1979,59 +2167,54 @@ function setScoresHtml(m) {
 // DASHBOARD
 // 
 function renderDashboard() {
-  // Only sync from desktop DOM selects when they're actually visible (not hidden by mobile CSS)
-  const isMobileView = window.innerWidth <= 768;
-  if (!isMobileView) {
-    const dtEl = document.getElementById('dash-type-filter');
-    if (dtEl) filterState.dash.type = dtEl.value;
-    const dcEl = document.getElementById('dash-competitive-filter');
-    if (dcEl) filterState.dash.competitive = dcEl.value === 'competitive';
-    const cmEl = document.getElementById('chart-mode-filter');
-    if (cmEl) filterState.chart.mode = cmEl.value;
-    const cyEl = document.getElementById('chart-year-filter');
-    if (cyEl) filterState.chart.year = cyEl.value;
-  }
+  // Sync chart controls from DOM (still inline)
+  const cmEl = document.getElementById('chart-mode-filter');
+  if (cmEl) filterState.chart.mode = cmEl.value;
+  const cyEl = document.getElementById('chart-year-filter');
+  if (cyEl) filterState.chart.year = cyEl.value;
 
   const typeFilter  = filterState.dash.type;
   const compFilter  = filterState.dash.competitive;
   const chartYear   = filterState.chart.year;
-  const hasActive   = typeFilter || compFilter;
+  const hasActive   = typeFilter || compFilter || filterState.dash.level || filterState.dash.league || filterState.dash.season || filterState.dash.line;
 
-  // Build topbar — Type + Match Quality filters (desktop)
+  // Build topbar — single Filters button (opens sheet on both desktop and mobile)
   const types = ['', ...(validEntries.type || [])];
   document.getElementById('topbar-right').innerHTML = `
-    <div class="topbar-filter-group">
-      <span class="topbar-label">Type:</span>
-      <select class="topbar-select" id="dash-type-filter" onchange="filterState.dash.type=this.value;renderDashboard()">
-        ${types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
-      </select>
-    </div>
-    <div class="topbar-filter-group">
-      <span class="topbar-label">Match Quality <span class="tip-icon tip-down" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not." style="font-weight:400">ⓘ</span></span>
-      <select class="topbar-select" id="dash-competitive-filter" onchange="filterState.dash.competitive=this.value==='competitive';renderDashboard()">
-        <option value="all"         ${!compFilter?'selected':''}>All Matches</option>
-        <option value="competitive" ${compFilter?'selected':''}>Competitive Only</option>
-      </select>
-    </div>
+    <button class="dash-filters-btn ${hasActive ? 'has-active' : ''}" onclick="openDashFilterSheet()">
+      <span>Filters</span>
+      <span class="dash-filters-dot"></span>
+    </button>
   `;
 
   document.getElementById('mobile-filters').innerHTML = '';
   const mobTopbarRightDash = document.getElementById('mob-topbar-right');
   if (mobTopbarRightDash) mobTopbarRightDash.innerHTML = `
     <button class="mob-filter-btn ${hasActive ? 'has-active' : ''}" onclick="openDashFilterSheet()" title="Filters">
-        <span style="font-size:12px;font-weight:600;letter-spacing:0.2px">Filters</span>
-        <span class="mob-filter-active-dot"></span>
-      </button>
+      <span style="font-size:12px;font-weight:600;letter-spacing:0.2px">Filters</span>
+      <span class="mob-filter-active-dot"></span>
+    </button>
   `;
 
-  // Filter matches by type and competitive setting
-  let matches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
+  let matches = allMatches.filter(m =>
+    (!typeFilter   || m.type   === typeFilter)   &&
+    (!compFilter   || isClose(m))                &&
+    (!levelFilter  || m.level  === levelFilter)  &&
+    (!leagueFilter || m.league === leagueFilter) &&
+    (!seasonFilter || m.season === seasonFilter) &&
+    (!lineFilter   || m.line   === lineFilter)
+  );
 
   const curYear = new Date().getFullYear();
   const curYearMatches = allMatches.filter(m => m.year === curYear && (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
   const kpiHtml = buildKPIs(matches, curYearMatches);
 
   const chartYears = ['', ...new Set(allMatches.map(m => m.year).filter(Boolean))].sort((a,b) => b-a);
+  if (chartYears[chartYears.length-1] === '') { chartYears.pop(); chartYears.unshift(''); }
   const allYears   = [...new Set(allMatches.map(m => m.year).filter(Boolean))].sort((a,b) => b-a);
   const allMonths  = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -2040,17 +2223,16 @@ function renderDashboard() {
     ${kpiHtml}
     <div class="dash-grid">
       <div class="card" style="grid-column:1/-1">
-        <div class="card-header">
-          <div class="card-title" id="chart-card-title">Win % by Month</div>
-          <div class="card-filter" id="chart-card-filters">
-            <select class="topbar-select" id="chart-mode-filter" onchange="filterState.chart.mode=this.value;onChartModeChange()" style="font-size:12px;padding:5px 24px 5px 8px;">
-              <option value="month" ${filterState.chart.mode==='month'?'selected':''}>By Month</option>
-              <option value="year"  ${filterState.chart.mode==='year'?'selected':''}>By Year</option>
-            </select>
+        <div class="card-header chart-card-header">
+          <div class="card-title" id="chart-card-title">${filterState.chart.mode==='wins'?'Total W/L by Month':filterState.chart.mode==='year'?'Win % by Year':'Win % by Month'}</div>
+          <div class="card-filter chart-header-controls" id="chart-card-filters">
+            ${(()=>{const mob=window.innerWidth<=768;return fselHtml('chart-mode-filter',[{value:'month',label:mob?'W% by Mo':'Win % by Month'},{value:'year',label:mob?'W% by Yr':'Win % by Year'},{value:'wins',label:mob?'W/L by Mo':'Total W/L by Month'}],filterState.chart.mode||'month','filterState.chart.mode=this.value;onChartModeChange()','fsel-compact');})()}
             <span id="chart-year-wrap" ${filterState.chart.mode==='year'?'style="display:none"':''}>
-              <select class="topbar-select" id="chart-year-filter" onchange="filterState.chart.year=this.value;renderMonthChart(getChartMatches())" style="font-size:12px;padding:5px 24px 5px 8px;">
-                ${chartYears.map(y => `<option value="${y}" ${y==chartYear?'selected':''}>${y||'All Years'}</option>`).join('')}
-              </select>
+              ${fselHtml('chart-year-filter', chartYears.map(y=>({value:y,label:y||'All Years'})), chartYear, 'filterState.chart.year=this.value;renderMonthChart(getChartMatches())', 'fsel-compact')}
+            </span>
+            <span id="chart-wl-legend" style="display:${filterState.chart.mode==='wins'?'flex':'none'};align-items:center;gap:6px;font-size:12px;color:var(--muted);font-family:var(--font);flex-shrink:0">
+              <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(46,125,82,0.75);flex-shrink:0;display:inline-block"></span><span class="chart-legend-full">Wins</span><span class="chart-legend-short" style="display:none">W</span></span>
+              <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(192,57,43,0.5);flex-shrink:0;display:inline-block"></span><span class="chart-legend-full">Losses</span><span class="chart-legend-short" style="display:none">L</span></span>
             </span>
           </div>
         </div>
@@ -2063,12 +2245,8 @@ function renderDashboard() {
         <div class="card-header" style="min-height:40px;flex-wrap:wrap;gap:8px">
           <div class="card-title">Performance Breakdown</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select class="topbar-select" id="splits-month-filter" onchange="filterState.splits.month=this.value;updateSplits()" style="font-size:11px;padding:4px 22px 4px 7px;">
-              ${allMonths.map((m,i) => `<option value="${i===0?'':i}" ${(i===0?'':String(i))===filterState.splits.month?'selected':''}>${m||'All Months'}</option>`).join('')}
-            </select>
-            <select class="topbar-select" id="splits-year-filter" onchange="filterState.splits.year=this.value;updateSplits()" style="font-size:11px;padding:4px 22px 4px 7px;">
-              ${['', ...allYears].map(y => `<option value="${y}" ${y==filterState.splits.year?'selected':''}>${y||'All Years'}</option>`).join('')}
-            </select>
+            ${fselHtml('splits-month-filter', allMonths.map((m,i)=>({value:i===0?'':String(i),label:m||'All Months'})), filterState.splits.month, 'filterState.splits.month=this.value;updateSplits()', 'fsel-small')}
+            ${fselHtml('splits-year-filter', ['', ...allYears].map(y=>({value:y,label:y||'All Years'})), filterState.splits.year, 'filterState.splits.year=this.value;updateSplits()', 'fsel-small')}
           </div>
         </div>
         <div id="splits-content">
@@ -2102,6 +2280,11 @@ function renderDashboard() {
   `;
 
   renderMonthChart(getChartMatches());
+  // Wire tooltips and collapse after every dashboard render
+  requestAnimationFrame(function() {
+    initSparkTooltips();
+    initKpiCollapse();
+    });
 }
 
 function getSplitsMatches(baseMatches) {
@@ -2130,14 +2313,22 @@ function updateSplits() {
 }
 
 function getChartMatches() {
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
-  const chartYear  = filterState.chart.year;
-  const mode       = filterState.chart.mode;
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
+  const chartYear    = filterState.chart.year;
+  const mode         = filterState.chart.mode;
   return allMatches.filter(m => {
-    if (typeFilter && m.type !== typeFilter) return false;
-    if (compFilter && !isClose(m)) return false;
-    if (mode === 'month' && chartYear && String(m.year) !== String(chartYear)) return false;
+    if (typeFilter   && m.type   !== typeFilter)   return false;
+    if (compFilter   && !isClose(m))               return false;
+    if (levelFilter  && m.level  !== levelFilter)  return false;
+    if (leagueFilter && m.league !== leagueFilter) return false;
+    if (seasonFilter && m.season !== seasonFilter) return false;
+    if (lineFilter   && m.line   !== lineFilter)   return false;
+    if ((mode === 'month' || mode === 'wins') && chartYear && String(m.year) !== String(chartYear)) return false;
     return true;
   });
 }
@@ -2146,8 +2337,13 @@ function onChartModeChange() {
   filterState.chart.mode = document.getElementById('chart-mode-filter')?.value || 'month';
   const wrap  = document.getElementById('chart-year-wrap');
   const title = document.getElementById('chart-card-title');
-  if (wrap)  wrap.style.display  = filterState.chart.mode === 'month' ? '' : 'none';
-  if (title) title.textContent   = filterState.chart.mode === 'month' ? 'Win % by Month' : 'Win % by Year';
+  // Show year selector for month and wins modes; hide for year mode
+  if (wrap)  wrap.style.display = filterState.chart.mode === 'year' ? 'none' : '';
+  const wlLegend = document.getElementById('chart-wl-legend');
+  if (wlLegend) wlLegend.style.display = filterState.chart.mode === 'wins' ? 'flex' : 'none';
+  if (title) title.textContent  = filterState.chart.mode === 'wins' ? 'Total W/L by Month'
+                                 : filterState.chart.mode === 'year' ? 'Win % by Year'
+                                 : 'Win % by Month';
   renderMonthChart(getChartMatches());
 }
 
@@ -3051,6 +3247,42 @@ function renderMonthChart(matches) {
   // Build data map
   const dataMap = {};
 
+  if (mode === 'wins') {
+    // Wins by Month — bar chart of win counts per month
+    if (!chartYear) {
+      const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      MONTH_NAMES.forEach((name,i) => { dataMap[String(i)] = {w:0,l:0,label:name}; });
+      matches.forEach(m => {
+        if (!m.date) return;
+        const p = m.date.split('/');
+        if (p.length!==3) return;
+        const idx = String(parseInt(p[0])-1);
+        if (m.result==='W') dataMap[idx].w++;
+        else if (m.result==='L') dataMap[idx].l++;
+      });
+      const keys   = Object.keys(dataMap).filter(k => dataMap[k].w+dataMap[k].l>0);
+      const labels = keys.map(k => dataMap[k].label);
+      const wins   = keys.map(k => dataMap[k].w);
+      renderWinsChart(keys, labels, wins, dataMap, chartYear);
+    } else {
+      matches.forEach(m => {
+        if (!m.date) return;
+        const p = m.date.split('/');
+        if (p.length!==3) return;
+        const key   = `${p[2]}-${p[0].padStart(2,'0')}`;
+        const label = new Date(p[2], parseInt(p[0])-1).toLocaleString('default',{month:'short',year:'2-digit'});
+        if (!dataMap[key]) dataMap[key] = {w:0,l:0,label};
+        if (m.result==='W') dataMap[key].w++;
+        else if (m.result==='L') dataMap[key].l++;
+      });
+      const keys   = Object.keys(dataMap).sort();
+      const labels = keys.map(k => dataMap[k].label);
+      const wins   = keys.map(k => dataMap[k].w);
+      renderWinsChart(keys, labels, wins, dataMap, chartYear);
+    }
+    return;
+  }
+
   if (mode === 'month' && !chartYear) {
     // All Years + Month mode: group by calendar month (Jan–Dec), aggregate all years
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -3347,11 +3579,186 @@ titleEl.textContent = mode === 'opponents' ? 'Top W% vs Opponents' : 'Top Partne
   }
 }
 
+function renderWinsChart(keys, labels, wins, dataMap, chartYear) {
+  const isDark    = document.body.classList.contains('dark');
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(47,65,87,0.08)';
+  const textColor = isDark ? '#7a97b0' : '#6385a2';
+
+  // Build losses array from dataMap
+  const losses = keys.map(k => dataMap[k].l);
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  const ctx = document.getElementById('monthChart');
+  if (!ctx) return;
+
+  // Stacked bar: wins (green) + losses (red), tooltip shows both
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Wins',
+          data: wins,
+          backgroundColor: 'rgba(46,125,82,0.75)',
+          borderRadius: 0,
+          borderSkipped: false,
+          stack: 'matches',
+        },
+        {
+          label: 'Losses',
+          data: losses,
+          backgroundColor: 'rgba(192,57,43,0.5)',
+          borderRadius: 4,
+          borderSkipped: 'bottom',
+          stack: 'matches',
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index', intersect: false,
+          callbacks: {
+            title: items => labels[items[0].dataIndex],
+            afterBody: items => {
+              const k = keys[items[0].dataIndex];
+              const {w,l} = dataMap[k];
+              const total = w + l;
+              const pct = total ? Math.round(w/total*100) : 0;
+              return [`Total: ${total} matches — ${pct}% win rate`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Poppins', size: 11 } } },
+        y: {
+          stacked: true, min: 0,
+          grid: { color: gridColor },
+          ticks: { color: textColor, font: { family: 'Poppins', size: 11 }, stepSize: 1, callback: v => Number.isInteger(v) ? v : null }
+        }
+      }
+    }
+  });
+
+  // Resize to match insights panel height
+  requestAnimationFrame(() => {
+    const panel    = document.getElementById('chart-insights-panel');
+    const chartWrap = document.getElementById('chart-wrap-el');
+    if (panel && chartWrap) {
+      const panelH = panel.offsetHeight;
+      if (panelH > 120) { chartWrap.style.height = panelH + 'px'; chartInstance.resize(); }
+    }
+  });
+
+  // Build insights
+  const panel = document.getElementById('chart-insights-panel');
+  if (!panel) return;
+  if (keys.length < 2) {
+    panel.innerHTML = `<div style="color:var(--muted);font-size:12px">Log more matches to see insights.</div>`;
+    return;
+  }
+
+  const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const fmtKey = k => {
+    if (!k.includes('-')) return MONTH_NAMES_FULL[parseInt(k)] || k;
+    const [y,mo] = k.split('-');
+    return new Date(y, parseInt(mo)-1).toLocaleString('default',{month:'long',year:'numeric'});
+  };
+
+  // Best month by wins
+  const maxWinIdx = wins.indexOf(Math.max(...wins));
+  const totalW    = wins.reduce((a,b)=>a+b,0);
+  const totalM    = keys.reduce((a,k)=>a+dataMap[k].w+dataMap[k].l,0);
+  const overallPct = totalM ? Math.round(totalW/totalM*100) : 0;
+
+  // Most/least active season using calendar months
+  // Winter: Dec(11),Jan(0),Feb(1) | Spring: Mar(2),Apr(3),May(4)
+  // Summer: Jun(5),Jul(6),Aug(7)  | Fall: Sep(8),Oct(9),Nov(10)
+  const SEASON_MONTHS = {
+    Winter: [11,0,1], Spring: [2,3,4], Summer: [5,6,7], Fall: [8,9,10]
+  };
+  const seasonTotals = {};
+  // Only meaningful in all-years calendar mode (keys are numeric month indices)
+  const isCalendarMode = !chartYear && keys.every(k => !k.includes('-'));
+  if (isCalendarMode) {
+    Object.entries(SEASON_MONTHS).forEach(([season, months]) => {
+      let total = 0;
+      keys.forEach(k => {
+        if (months.includes(parseInt(k))) total += dataMap[k].w + dataMap[k].l;
+      });
+      seasonTotals[season] = total;
+    });
+  } else {
+    // For specific year: group months into seasons by calendar month
+    keys.forEach(k => {
+      let mo;
+      if (k.includes('-')) {
+        mo = parseInt(k.split('-')[1]) - 1; // 0-indexed
+      } else {
+        mo = parseInt(k);
+      }
+      const season = Object.entries(SEASON_MONTHS).find(([,months]) => months.includes(mo))?.[0];
+      if (season) {
+        if (!seasonTotals[season]) seasonTotals[season] = 0;
+        seasonTotals[season] += dataMap[k].w + dataMap[k].l;
+      }
+    });
+  }
+
+  const seasonEntries = Object.entries(seasonTotals).filter(([,v]) => v > 0);
+  let busiestHtml = '', quietestHtml = '';
+  if (seasonEntries.length >= 2) {
+    const busiest  = seasonEntries.reduce((a,b) => b[1]>a[1]?b:a);
+    const quietest = seasonEntries.reduce((a,b) => b[1]<a[1]?b:a);
+    busiestHtml  = `<div class="chart-insight-card">
+      <div class="chart-insight-label">🌤️ Busiest Season</div>
+      <div class="chart-insight-value"><strong>${busiest[0]}</strong> — ${busiest[1]} matches</div>
+    </div>`;
+    quietestHtml = `<div class="chart-insight-card">
+      <div class="chart-insight-label">🌙 Quietest Season</div>
+      <div class="chart-insight-value"><strong>${quietest[0]}</strong> — ${quietest[1]} matches</div>
+    </div>`;
+  }
+
+  // Most active month (by total matches, not just wins)
+  const totals = keys.map(k => dataMap[k].w + dataMap[k].l);
+  const maxTotalIdx = totals.indexOf(Math.max(...totals));
+
+  panel.innerHTML = `
+    <div class="chart-insight-card">
+      <div class="chart-insight-label">🏆 Best Month</div>
+      <div class="chart-insight-value"><strong>${fmtKey(keys[maxWinIdx])}</strong> — ${wins[maxWinIdx]} win${wins[maxWinIdx]!==1?'s':''} (${dataMap[keys[maxWinIdx]].w+dataMap[keys[maxWinIdx]].l} played)</div>
+    </div>
+    <div class="chart-insight-card">
+      <div class="chart-insight-label">📅 Most Active Month</div>
+      <div class="chart-insight-value"><strong>${fmtKey(keys[maxTotalIdx])}</strong> — ${totals[maxTotalIdx]} matches (${wins[maxTotalIdx]}W–${losses[maxTotalIdx]}L)</div>
+    </div>
+    ${busiestHtml}
+    ${quietestHtml}
+  `;
+}
+
+
 function refreshPartnersTable() {
   const mode = filterState.partners.mode || 'partners';
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
-  const matches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
+  const matches = allMatches.filter(m =>
+    (!typeFilter   || m.type   === typeFilter)   &&
+    (!compFilter   || isClose(m))                &&
+    (!levelFilter  || m.level  === levelFilter)  &&
+    (!leagueFilter || m.league === leagueFilter) &&
+    (!seasonFilter || m.season === seasonFilter) &&
+    (!lineFilter   || m.line   === lineFilter)
+  );
   const mainPanel = document.getElementById('partners-main-panel');
   if (!mainPanel) return;
   if (mode === 'opponents') {
@@ -3365,13 +3772,25 @@ function refreshPartnersTable() {
     // Re-render only the KPI cards so Best Partner card reflects new threshold
     const kpiGrid = document.getElementById('kpi-grid-main');
     if (kpiGrid) {
-      const kpiMatches = allMatches.filter(m => (!typeFilter || m.type === typeFilter) && (!compFilter || isClose(m)));
+      const kpiMatches = allMatches.filter(m =>
+        (!typeFilter   || m.type   === typeFilter)   &&
+        (!compFilter   || isClose(m))                &&
+        (!levelFilter  || m.level  === levelFilter)  &&
+        (!leagueFilter || m.league === leagueFilter) &&
+        (!seasonFilter || m.season === seasonFilter) &&
+        (!lineFilter   || m.line   === lineFilter)
+      );
       const curYearMatches = allMatches.filter(m => m.year === new Date().getFullYear());
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = buildKPIs(kpiMatches, curYearMatches);
       const newGrid = tempDiv.querySelector('#kpi-grid-main');
-      if (newGrid) kpiGrid.replaceWith(newGrid);
-      setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50);
+      if (newGrid) {
+        kpiGrid.replaceWith(newGrid);
+        // Wait for browser to paint the new grid before wiring tooltips
+        requestAnimationFrame(function() {
+          setTimeout(function(){ initSparkTooltips(); initKpiCollapse(); }, 50);
+        });
+      }
     }
   }
 }
@@ -3475,11 +3894,19 @@ function sortPartners(col) {
 function drillPartner(name) {
   const hidden = document.getElementById('partners-hidden-body');
   if (hidden) hidden.style.display = 'none';
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
   const matches = allMatches.filter(m => {
-    if (typeFilter && m.type !== typeFilter) return false;
-    if (compFilter && !isClose(m)) return false;
+    if (typeFilter   && m.type   !== typeFilter)   return false;
+    if (compFilter   && !isClose(m))               return false;
+    if (levelFilter  && m.level  !== levelFilter)  return false;
+    if (leagueFilter && m.league !== leagueFilter) return false;
+    if (seasonFilter && m.season !== seasonFilter) return false;
+    if (lineFilter   && m.line   !== lineFilter)   return false;
     return m.partner === name;
   });
 
@@ -3525,7 +3952,19 @@ function drillSplit(key, partner, opponent) {
     drillPartner: partner || null,
     drillOpponent: opponent || null
   };
-  filterState.history = { year:'', season:'', level:'', type:'', partner: partner||'', opponent: (opponent||'').toLowerCase(), notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter: key };
+  // Carry active dashboard filters into history so the view matches what was on screen
+  const df = filterState.dash;
+  filterState.history = {
+    year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '',
+    partner:  partner  || '',
+    opponent: (opponent||'').toLowerCase(),
+    splitFilter: key,
+    type:   df.type   || '',
+    level:  df.level  || '',
+    league: df.league || '',
+    season: df.season || '',
+    line:   df.line   || '',
+  };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -3540,8 +3979,17 @@ function viewPartnerHistory(name) {
   dashboardReturnState = null;
   if (_histTimer) { clearTimeout(_histTimer); _histTimer = null; }
   dashboardReturnState = { scrollY: window.scrollY, drillPartner: name, drillOpponent: null };
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
-  filterState.history.partner = name;
+  const _df = filterState.dash;
+  filterState.history = {
+    year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '', splitFilter: null,
+    opponent: '',
+    partner:  name,
+    type:   _df.type   || '',
+    level:  _df.level  || '',
+    league: _df.league || '',
+    season: _df.season || '',
+    line:   _df.line   || '',
+  };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -3655,13 +4103,21 @@ function sortOpponents(col) {
 function drillOpponent(name) {
   const hidden = document.getElementById('opponents-hidden-body');
   if (hidden) hidden.style.display = 'none';
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
+  const typeFilter   = filterState.dash.type;
+  const compFilter   = filterState.dash.competitive;
+  const levelFilter  = filterState.dash.level;
+  const leagueFilter = filterState.dash.league;
+  const seasonFilter = filterState.dash.season;
+  const lineFilter   = filterState.dash.line;
 
   // Collect all matches involving this opponent (opp1 or opp2)
   const matches = allMatches.filter(m => {
-    if (typeFilter && m.type !== typeFilter) return false;
-    if (compFilter && !isClose(m)) return false;
+    if (typeFilter   && m.type   !== typeFilter)   return false;
+    if (compFilter   && !isClose(m))               return false;
+    if (levelFilter  && m.level  !== levelFilter)  return false;
+    if (leagueFilter && m.league !== leagueFilter) return false;
+    if (seasonFilter && m.season !== seasonFilter) return false;
+    if (lineFilter   && m.line   !== lineFilter)   return false;
     return m.opp1 === name || m.opp2 === name;
   });
 
@@ -3707,8 +4163,17 @@ function viewOpponentHistory(name) {
   dashboardReturnState = null;
   if (_histTimer) { clearTimeout(_histTimer); _histTimer = null; }
   dashboardReturnState = { scrollY: window.scrollY, drillPartner: null, drillOpponent: name };
-  filterState.history = { year:'', season:'', level:'', type:'', partner:'', opponent:'', notes:'', sort:'newest', playoff:false, league:'', line:'', surface:'', time:'', splitFilter:null };
-  filterState.history.opponent = name.toLowerCase();
+  const _dfo = filterState.dash;
+  filterState.history = {
+    year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '', splitFilter: null,
+    partner: '',
+    opponent: name.toLowerCase(),
+    type:   _dfo.type   || '',
+    level:  _dfo.level  || '',
+    league: _dfo.league || '',
+    season: _dfo.season || '',
+    line:   _dfo.line   || '',
+  };
   histFiltersOpen = false;
   histInsightsCollapsed = true;
   currentPage = 'history';
@@ -3779,7 +4244,9 @@ function renderHistory(page, preFilterPartner) {
   const sortOrder      = filterState.history.sort || 'newest';
 
   const years   = ['', ...new Set(allMatches.map(m=>m.year).filter(Boolean)).values()].sort((a,b)=>b-a);
-  const seasons = ['', ...(validEntries.season||[])];
+  // '' sorts to end numerically — move it back to front
+  if (years[years.length-1] === '') { years.pop(); years.unshift(''); }
+  const seasons = ['', ...sortedSeasons(validEntries.season||[])];
   const levels  = ['', ...sortedLevels(validEntries.level)];
   const types   = ['', ...(validEntries.type||[])];
 
@@ -3820,10 +4287,7 @@ function renderHistory(page, preFilterPartner) {
     <div class="topbar-filter-group">
       ${dashboardReturnState ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;margin-right:8px" onclick="backToDashboard()">← Dashboard</button>` : ''}
       <span class="topbar-label">Sort:</span>
-      <select class="topbar-select" id="hist-sort" onchange="renderHistory()">
-        <option value="newest" ${sortOrder==='newest'?'selected':''}>Newest First</option>
-        <option value="oldest" ${sortOrder==='oldest'?'selected':''}>Oldest First</option>
-      </select>
+      ${fselHtml('hist-sort', [{value:'newest',label:'Newest First'},{value:'oldest',label:'Oldest First'}], sortOrder||'newest', 'renderHistory()')}
     </div>
   `;
 
@@ -3906,30 +4370,14 @@ function renderHistory(page, preFilterPartner) {
       <!-- Collapsible dropdowns -->
       <div id="hist-filter-body" style="display:none;padding:10px 14px 10px;border-bottom:1px solid var(--border)">
         <div class="history-controls" style="margin-bottom:0;flex-wrap:wrap;gap:8px">
-          <select class="filter-select hist-filter-sel" id="hist-type" onchange="renderHistory()">
-            ${types.map(t=>`<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-level" onchange="renderHistory()">
-            ${levels.map(l=>`<option value="${l}" ${l===levelFilter?'selected':''}>${l||'All Levels'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-league" onchange="renderHistory()">
-            ${leagues.map(l=>`<option value="${l}" ${l===filterState.history.league?'selected':''}>${l||'All Leagues'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-year" onchange="renderHistory()">
-            ${years.map(y=>`<option value="${y}" ${y==yearFilter?'selected':''}>${y||'All Years'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-season" onchange="renderHistory()">
-            ${seasons.map(s=>`<option value="${s}" ${s===seasonFilter?'selected':''}>${s||'All Seasons'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-line" onchange="renderHistory()">
-            ${lines.map(l=>`<option value="${l}" ${l===filterState.history.line?'selected':''}>${l||'All Lines'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-surface" onchange="renderHistory()">
-            ${surfaces.map(s=>`<option value="${s}" ${s===filterState.history.surface?'selected':''}>${s||'All Surfaces'}</option>`).join('')}
-          </select>
-          <select class="filter-select hist-filter-sel" id="hist-time" onchange="renderHistory()">
-            ${times.map(t=>`<option value="${t}" ${t===filterState.history.time?'selected':''}>${t||'All Times'}</option>`).join('')}
-          </select>
+          ${fselHtml('hist-type', types.map(t=>({value:t,label:t||'All Types'})), typeFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-level', levels.map(l=>({value:l,label:l||'All Levels'})), levelFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-league', leagues.map(l=>({value:l,label:l||'All Leagues'})), filterState.history.league, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-year', years.map(y=>({value:y,label:y||'All Years'})), yearFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-season', seasons.map(s=>({value:s,label:s||'All Seasons'})), seasonFilter, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-line', lines.map(l=>({value:l,label:l||'All Lines'})), filterState.history.line, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-surface', surfaces.map(s=>({value:s,label:s||'All Surfaces'})), filterState.history.surface, 'renderHistory()', 'hist-filter-sel')}
+          ${fselHtml('hist-time', times.map(t=>({value:t,label:t||'All Times'})), filterState.history.time, 'renderHistory()', 'hist-filter-sel')}
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0;width:100%">
             <span style="font-size:13px;color:var(--text);white-space:nowrap">Playoff Only</span>
             <label class="form-toggle"><input type="checkbox" id="hist-playoff" ${playoffFilter?'checked':''} onchange="filterState.history.playoff=this.checked;renderHistory()"><span class="form-toggle-slider"></span></label>
@@ -4617,18 +5065,103 @@ function closeModal() {
 function closeModalOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
 
 // ── Dashboard Filter Bottom Sheet (mobile) ───────────────────────────────────
+
+// ── Dynamic Dashboard Filter Logic ───────────────────────
+// When any filter changes in the sheet, narrow the other
+// dropdowns to only values present in matches that satisfy
+// all currently-selected filters EXCEPT the field being updated.
+
+const DASH_FILTER_FIELDS = ['type','level','league','season','line'];
+
+function dashFilterGetCurrent() {
+  return {
+    type:   document.getElementById('sheet-type-filter')?.value   || '',
+    level:  document.getElementById('sheet-level-filter')?.value  || '',
+    league: document.getElementById('sheet-league-filter')?.value || '',
+    season: document.getElementById('sheet-season-filter')?.value || '',
+    line:   document.getElementById('sheet-line-filter')?.value   || '',
+  };
+}
+
+function dashFilterGetMatches(excluding, current) {
+  // Return matches satisfying all filters EXCEPT `excluding`
+  return allMatches.filter(m => {
+    if (excluding !== 'type'   && current.type   && m.type   !== current.type)   return false;
+    if (excluding !== 'level'  && current.level  && m.level  !== current.level)  return false;
+    if (excluding !== 'league' && current.league && m.league !== current.league) return false;
+    if (excluding !== 'season' && current.season && m.season !== current.season) return false;
+    if (excluding !== 'line'   && current.line   && m.line   !== current.line)   return false;
+    return true;
+  });
+}
+
+function dashFilterGetValues(field, matches) {
+  const vals = new Set();
+  matches.forEach(m => { if (m[field]) vals.add(m[field]); });
+  if (field === 'level')  return sortedLevels([...vals]);
+  if (field === 'league') return sortedLeagues([...vals]);
+  if (field === 'season') return sortedSeasons([...vals]);
+  if (field === 'type')   return [...vals].sort();
+  return [...vals].sort();
+}
+
+function dashFilterRefreshDropdowns(changedField) {
+  const current = dashFilterGetCurrent();
+  DASH_FILTER_FIELDS.forEach(field => {
+    if (field === changedField) return; // don't touch the field the user just changed
+    const matches = dashFilterGetMatches(field, current);
+    const available = dashFilterGetValues(field, matches);
+    const selId = 'sheet-' + field + '-filter';
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const currentVal = sel.value;
+    // Rebuild options: blank + sorted available values
+    const labelFn = v => v || { type:'All Types', level:'All Levels', league:'All Leagues', season:'All Seasons', line:'All Lines' }[field];
+    sel.innerHTML = ['',...available].map(v =>
+      `<option value="${v}"${v===currentVal?' selected':''}>${labelFn(v)}</option>`
+    ).join('');
+    // If current value no longer available, reset to blank
+    if (currentVal && !available.includes(currentVal)) {
+      sel.value = '';
+    }
+    fselSync(selId);
+  });
+}
+
+// Wire up: each sheet native select fires this on change
+// We need to add onchange to each native select — done by patching openDashFilterSheet
+// to add listeners after populating.
+
+function dashFilterOnChange(changedField) {
+  dashFilterRefreshDropdowns(changedField);
+}
+
 function openDashFilterSheet() {
-  const types = ['', ...(validEntries.type || [])];
-  const typeFilter = filterState.dash.type;
-  const compFilter = filterState.dash.competitive;
-  // Populate type select
-  const sel = document.getElementById('sheet-type-filter');
-  if (sel) {
-    sel.innerHTML = types.map(t => `<option value="${t}" ${t===typeFilter?'selected':''}>${t||'All Types'}</option>`).join('');
-  }
-  // Populate quality select
+  // Sync current filterState into all native selects
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) { el.value = val; fselSync(id); }
+  };
   const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) compSel.value = compFilter ? 'competitive' : 'all';
+  if (compSel) compSel.checked = filterState.dash.competitive;
+  
+
+  // Populate all dynamic selects from match data, then refresh based on current filters
+  DASH_FILTER_FIELDS.forEach(field => {
+    const selId = 'sheet-' + field + '-filter';
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    // Get all possible values for this field (ignoring other filters for initial population)
+    const allVals = dashFilterGetValues(field, allMatches);
+    const labelFn = v => v || {type:'All Types',level:'All Levels',league:'All Leagues',season:'All Seasons',line:'All Lines'}[field];
+    const cur = filterState.dash[field] || '';
+    sel.innerHTML = ['',...allVals].map(v=>`<option value="${v}"${v===cur?' selected':''}>${labelFn(v)}</option>`).join('');
+    fselSync(selId);
+  });
+
+  // Now narrow each dropdown based on other currently-active filters
+  DASH_FILTER_FIELDS.forEach(field => dashFilterRefreshDropdowns(field));
+
   document.getElementById('dash-filter-sheet-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -4640,20 +5173,28 @@ function sheetSetCompetitive(val) {
   filterState.dash.competitive = val;
 }
 function applyDashFilterSheet() {
-  const sel = document.getElementById('sheet-type-filter');
-  if (sel) filterState.dash.type = sel.value;
-  const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) filterState.dash.competitive = compSel.value === 'competitive';
+  const g = id => document.getElementById(id)?.value || '';
+  filterState.dash.type        = g('sheet-type-filter');
+  filterState.dash.level       = g('sheet-level-filter');
+  filterState.dash.league      = g('sheet-league-filter');
+  filterState.dash.season      = g('sheet-season-filter');
+  filterState.dash.line        = g('sheet-line-filter');
+  filterState.dash.competitive = document.getElementById('sheet-comp-filter')?.checked || false;
   closeDashFilterSheet();
   renderDashboard();
 }
 function resetDashFilters() {
-  filterState.dash.type = '';
+  ['type','level','league','season','line'].forEach(f => { filterState.dash[f] = ''; });
   filterState.dash.competitive = false;
-  const sel = document.getElementById('sheet-type-filter');
-  if (sel) sel.value = '';
+  DASH_FILTER_FIELDS.forEach(f => {
+    const el = document.getElementById('sheet-'+f+'-filter');
+    if (el) { el.value = ''; fselSync('sheet-'+f+'-filter'); }
+  });
   const compSel = document.getElementById('sheet-comp-filter');
-  if (compSel) compSel.value = 'all';
+  if (compSel) compSel.checked = false;
+  
+  // Refresh all dropdowns to show full lists
+  DASH_FILTER_FIELDS.forEach(field => dashFilterRefreshDropdowns(field));
 }
 
 // 
@@ -5641,10 +6182,17 @@ function renderSettings() {
                       const saved = localStorage.getItem(key) || '';
                       return `<div class="field">
                         <div class="field-label tip" data-tip="${escHtml(t)}" style="max-width:100%">${escHtml(t)}</div>
-                        <select id="def-partner-${escHtml(t)}" data-type="${escHtml(t)}">
-                          <option value="">— None —</option>
-                          ${sortedPartners(validEntries.partner||[]).map(p=>`<option value="${escHtml(p)}" ${saved===p?'selected':''}>${escHtml(p)}</option>`).join('')}
-                        </select>
+                        <div class="combo-wrap" id="combo-wrap-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}">
+                          <input type="text" class="combo-input" id="defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"
+                            data-type="${escHtml(t)}"
+                            placeholder="— None —" autocomplete="off" value="${escHtml(saved)}"
+                            oninput="onSettingsComboInput(this.id)"
+                            onfocus="onSettingsComboFocus(this.id)"
+                            onblur="onComboBlur(this.id)"
+                            onkeydown="onSettingsComboKeydown(event,this.id)">
+                          <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+                          <div class="combo-dropdown" id="combo-drop-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"></div>
+                        </div>
                       </div>`;
                     }).join('')
                   : `<div style="font-size:13px;color:var(--muted)">No doubles types in your Valid Entries yet.</div>`}
@@ -5653,38 +6201,33 @@ function renderSettings() {
                 <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">General Defaults</div>
                 <div class="field">
                   <div class="field-label">Default Type</div>
-                  <select id="def-type">
-                    <option value="">— None —</option>
-                    ${(validEntries.type||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultType')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-                  </select>
+                  ${fselHtml('def-type', [{value:'',label:'— None —'}, ...(validEntries.type||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultType')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Season</div>
-                  <select id="def-season">
-                    <option value="">— None —</option>
-                    ${(validEntries.season||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSeason')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-                  </select>
+                  ${fselHtml('def-season', [{value:'',label:'— None —'}, ...sortedSeasons(validEntries.season||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSeason')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default League</div>
-                  <select id="def-league">
-                    <option value="">— None —</option>
-                    ${(validEntries.league||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLeague')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-                  </select>
+                  ${fselHtml('def-league', [{value:'',label:'— None —'}, ...(validEntries.league||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultLeague')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Level</div>
-                  <select id="def-level">
-                    <option value="">— None —</option>
-                    ${sortedLevels(validEntries.level||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultLevel')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-                  </select>
+                  <div class="combo-wrap" id="combo-wrap-def-level-combo">
+                    <input type="text" class="combo-input" id="def-level-combo"
+                      placeholder="— None —" autocomplete="off"
+                      value="${escHtml(localStorage.getItem('defaultLevel')||'')}"
+                      oninput="onSettingsComboInput('def-level-combo')"
+                      onfocus="onSettingsComboFocus('def-level-combo')"
+                      onblur="onComboBlur('def-level-combo')"
+                      onkeydown="onSettingsComboKeydown(event,'def-level-combo')">
+                    <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <div class="combo-dropdown" id="combo-drop-def-level-combo"></div>
+                  </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Default Surface</div>
-                  <select id="def-surface">
-                    <option value="">— None —</option>
-                    ${(validEntries.surface||[]).map(v=>`<option value="${escHtml(v)}" ${localStorage.getItem('defaultSurface')===v?'selected':''}>${escHtml(v)}</option>`).join('')}
-                  </select>
+                  ${fselHtml('def-surface', [{value:'',label:'— None —'}, ...(validEntries.surface||[]).map(v=>({value:escHtml(v),label:v}))], localStorage.getItem('defaultSurface')||'', '', 'fsel-block')}
                 </div>
                 <div class="field">
                   <div class="field-label">Default Home Location</div>
@@ -6178,7 +6721,7 @@ async function saveDefaultSettings(silent) {
   const defType     = document.getElementById('def-type')?.value     || '';
   const defSeason   = document.getElementById('def-season')?.value   || '';
   const defLeague   = document.getElementById('def-league')?.value   || '';
-  const defLevel    = document.getElementById('def-level')?.value    || '';
+  const defLevel    = document.getElementById('def-level-combo')?.value.trim() || '';
   const defSurface  = document.getElementById('def-surface')?.value  || '';
   const defLocation = document.getElementById('def-location')?.value.trim() || '';
   localStorage.setItem('defaultType',     defType);
@@ -6188,8 +6731,8 @@ async function saveDefaultSettings(silent) {
   localStorage.setItem('defaultSurface',  defSurface);
   localStorage.setItem('defaultLocation', defLocation);
   const settingsToSave = { defaultType: defType, defaultSeason: defSeason, defaultLeague: defLeague, defaultLevel: defLevel, defaultSurface: defSurface, defaultLocation: defLocation };
-  document.querySelectorAll('[id^="def-partner-"]').forEach(el => {
-    const t = el.dataset.type; const val = el.value || '';
+  document.querySelectorAll('[data-type][id^="defp-"]').forEach(el => {
+    const t = el.dataset.type; const val = el.value.trim() || '';
     localStorage.setItem('defaultPartner_' + t, val);
     settingsToSave['defaultPartner_' + t] = val;
   });
@@ -6429,11 +6972,7 @@ function renderEntry() {
           </div>
           <div class="field">
             <div class="field-label">Type <span class="required-dot"></span></div>
-            <select id="e-type" onchange="if(this.value!=='__new__')onEntryTypeChange();onEntryNewSelect('type')">
-              <option value="">— Select —</option>
-              ${(validEntries.type||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-              <option value="__new__">+ Add new…</option>
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-type"><div class="ssel-trigger" id="ssel-trigger-type" tabindex="0" onclick="sselToggle('type')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('type');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-type"></div><select class="ssel-native" id="e-type"><option value=""></option>${(validEntries.type||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
             <div class="field-error" id="err-type">Required</div>
           </div>
         </div>
@@ -6459,11 +6998,16 @@ function renderEntry() {
         <div id="e-doubles-fields" class="cond cond-hidden" style="margin-top:10px">
           <div class="field">
             <div class="field-label">Partner <span class="required-dot"></span></div>
-            <select id="e-partner" tabindex="-1" onchange="onEntryNewSelect('partner')">
-              <option value="">— Select —</option>
-              <option value="__new__">+ Add new…</option>
-              ${sortedPartners(validEntries.partner).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="combo-wrap" id="combo-wrap-partner">
+              <input type="text" class="combo-input" id="e-partner"
+                placeholder="— Select or type —" autocomplete="off"
+                oninput="onComboInput('partner')"
+                onfocus="onComboFocus('partner')"
+                onblur="onComboBlur('partner')"
+                onkeydown="onComboKeydown(event,'partner')">
+              <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <div class="combo-dropdown" id="combo-drop-partner"></div>
+            </div>
             <div class="field-error" id="err-partner">Partner is required for doubles</div>
           </div>
           
@@ -6562,19 +7106,11 @@ function renderEntry() {
         <div class="entry-pair">
           <div class="field">
             <div class="field-label">Season</div>
-            <select id="e-season" onchange="onEntryNewSelect('season')">
-              <option value="">— Select —</option>
-              <option value="__new__">+ Add new…</option>
-              ${(validEntries.season||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-season"><div class="ssel-trigger" id="ssel-trigger-season" tabindex="0" onclick="sselToggle('season')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('season');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-season"></div><select class="ssel-native" id="e-season"><option value=""></option>${sortedSeasons(validEntries.season||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
           <div class="field">
             <div class="field-label">League</div>
-            <select id="e-league" onchange="onEntryNewSelect('league')">
-              <option value="">— Select —</option>
-              <option value="__new__">+ Add new…</option>
-              ${sortedLeagues(validEntries.league).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-league"><div class="ssel-trigger" id="ssel-trigger-league" tabindex="0" onclick="sselToggle('league')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('league');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-league"></div><select class="ssel-native" id="e-league"><option value=""></option>${sortedLeagues(validEntries.league).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
         </div>
         
@@ -6584,19 +7120,20 @@ function renderEntry() {
         <div class="entry-pair" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Level</div>
-            <select id="e-level" onchange="onEntryNewSelect('level')">
-              <option value="">— Select —</option>
-              <option value="__new__">+ Add new…</option>
-              ${sortedLevels(validEntries.level).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="combo-wrap" id="combo-wrap-level">
+              <input type="text" class="combo-input" id="e-level"
+                placeholder="— Select or type —" autocomplete="off"
+                oninput="onComboInput('level')"
+                onfocus="onComboFocus('level')"
+                onblur="onComboBlur('level')"
+                onkeydown="onComboKeydown(event,'level')">
+              <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <div class="combo-dropdown" id="combo-drop-level"></div>
+            </div>
           </div>
           <div class="field">
             <div class="field-label">Line</div>
-            <select id="e-line" onchange="onEntryNewSelect('line')">
-              <option value="">— Select —</option>
-              <option value="__new__">+ Add new…</option>
-              ${(validEntries.line||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-line"><div class="ssel-trigger" id="ssel-trigger-line" tabindex="0" onclick="sselToggle('line')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('line');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-line"></div><select class="ssel-native" id="e-line"><option value=""></option>${(validEntries.line||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
         </div>
         
@@ -6606,18 +7143,11 @@ function renderEntry() {
         <div class="entry-pair" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Home / Away</div>
-            <select id="e-homeaway" onchange="onEntryHomeAwayChange()">
-              <option value="">— Select —</option>
-              ${(validEntries.homeaway||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-homeaway"><div class="ssel-trigger" id="ssel-trigger-homeaway" tabindex="0" onclick="sselToggle('homeaway')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('homeaway');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-homeaway"></div><select class="ssel-native" id="e-homeaway"><option value=""></option>${(validEntries.homeaway||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
           <div class="field">
             <div class="field-label">Surface</div>
-            <select id="e-surface" onchange="onEntryNewSelect('surface')">
-              <option value="">— Select —</option>
-              <option value="__new__">+ Add new…</option>
-              ${(validEntries.surface||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-surface"><div class="ssel-trigger" id="ssel-trigger-surface" tabindex="0" onclick="sselToggle('surface')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('surface');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-surface"></div><select class="ssel-native" id="e-surface"><option value=""></option>${(validEntries.surface||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
         </div>
         
@@ -6627,10 +7157,7 @@ function renderEntry() {
         <div class="entry-pair" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Time</div>
-            <select id="e-time">
-              <option value="">— Select —</option>
-              ${(validEntries.time||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-time"><div class="ssel-trigger" id="ssel-trigger-time" tabindex="0" onclick="sselToggle('time')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('time');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-time"></div><select class="ssel-native" id="e-time"><option value=""></option>${(validEntries.time||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
           <div class="field">
             <div class="field-label">Location</div>
@@ -6643,10 +7170,7 @@ function renderEntry() {
         <div class="cond cond-hidden" id="e-playoff-row" style="margin-top:4px">
           <div class="field">
             <div class="field-label">Playoff Round</div>
-            <select id="e-playoffround">
-              <option value="">— Select —</option>
-              ${(validEntries.playoffround||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}
-            </select>
+            <div class="ssel-wrap" id="ssel-wrap-playoffround"><div class="ssel-trigger" id="ssel-trigger-playoffround" tabindex="0" onclick="sselToggle('playoffround')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sselToggle('playoffround');}"><span class="ssel-placeholder">— Select —</span></div><svg class="ssel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg><div class="ssel-dropdown" id="ssel-drop-playoffround"></div><select class="ssel-native" id="e-playoffround"><option value=""></option>${(validEntries.playoffround||[]).map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('')}</select></div>
           </div>
           
         </div>
@@ -6684,6 +7208,7 @@ function renderEntry() {
   Object.entries(defMap).forEach(([id, val]) => {
     if (val) { const el = document.getElementById(id); if (el) el.value = val; }
   });
+  Object.keys(sselConfig).forEach(f => sselSetTriggerText(f));
   if (defMap['e-type']) onEntryTypeChange();
   const defHomeAway = localStorage.getItem('defaultHomeAway') || '';
   if (defHomeAway.toLowerCase() === 'home') {
@@ -6692,6 +7217,8 @@ function renderEntry() {
     if (defLoc && locEl && !locEl.value) locEl.value = defLoc;
   }
   applyDefaultPartner();
+  initCombos();
+  sselBuildAll();
 }
 
 function onEntryHomeAwayChange() {
@@ -6937,7 +7464,682 @@ function tbAdvance2(currentId, nextId) {
   if (next) { next.focus(); next.select(); }
 }
 
-function showEntryNewModal(field) {
+
+// ── Filter Styled Select Engine ──────────────────────────
+// Lightweight custom dropdown for filter/topbar selects.
+// fsel(id, options, currentVal, onchange, extraClass) → HTML string
+// Options: [{value, label}] or strings
+// The hidden <select> keeps .value readable by all existing filterState syncs.
+
+const fselState = {};
+
+function fselHtml(id, options, currentVal, onchangeJs, extraClass) {
+  // extraClass goes on the wrap (for layout) and trigger (for sizing)
+  // Filter out layout-only classes from trigger
+  const wrapExtra  = (extraClass||'').includes('hist-filter-sel') ? ' hist-filter-sel' : '';
+  const isBlock    = (extraClass||'').includes('fsel-block');
+  const trigExtra  = (extraClass||'').replace('hist-filter-sel','').trim();
+  const opts = options.map(o => typeof o === 'string' ? {value:o,label:o} : o);
+  const selected = opts.find(o => String(o.value) === String(currentVal)) || opts[0];
+  const displayLabel = selected ? (selected.label || selected.value || '— Select —') : '— Select —';
+  const nativeOpts = opts.map(o =>
+    `<option value="${o.value}"${String(o.value)===String(currentVal)?' selected':''}>${o.label||o.value}</option>`
+  ).join('');
+  return `<div class="fsel-wrap${isBlock?' fsel-block':''}${wrapExtra}" id="fselwrap-${id}">` +
+    `<div class="fsel-trigger${trigExtra?' '+trigExtra:''}" id="fseltrig-${id}" tabindex="0"` +
+    ` onclick="fselToggle('${id}')"` +
+    ` onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('${id}');}"` +
+    `>${displayLabel}</div>` +
+    `<svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>` +
+    `<div class="fsel-dropdown" id="fseldrop-${id}"></div>` +
+    `<select class="ssel-native" id="${id}" onchange="${onchangeJs}">${nativeOpts}</select>` +
+    `</div>`;
+}
+
+function fselPosition(id) {
+  const trig = document.getElementById('fseltrig-' + id);
+  const drop = document.getElementById('fseldrop-' + id);
+  if (!trig || !drop) return;
+  const r = trig.getBoundingClientRect();
+  // Measure actual rendered height: make visible off-screen first if hidden
+  const wasHidden = !drop.classList.contains('open');
+  if (wasHidden) {
+    drop.style.visibility = 'hidden';
+    drop.style.display = 'block';
+  }
+  const dropH = Math.min(260, drop.scrollHeight);
+  if (wasHidden) {
+    drop.style.display = '';
+    drop.style.visibility = '';
+  }
+  drop.style.width    = 'auto';
+  drop.style.minWidth = Math.max(r.width, 140) + 'px';
+  drop.style.left     = r.left + 'px';
+  const spaceBelow = window.innerHeight - r.bottom;
+  const spaceAbove = r.top;
+  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
+    drop.style.top = (r.top - dropH - 2) + 'px';
+  } else {
+    drop.style.top = (r.bottom + 2) + 'px';
+  }
+}
+
+function fselOpen(id) {
+  // close others
+  Object.keys(fselState).forEach(k => { if (k !== id && fselState[k]) fselClose(k); });
+  ['partner','level'].forEach(f => comboClose(f));
+  Object.keys(typeof sselState !== 'undefined' ? sselState : {}).forEach(f => {
+    if (typeof sselClose === 'function') sselClose(f);
+  });
+
+  const trig = document.getElementById('fseltrig-' + id);
+  const drop = document.getElementById('fseldrop-' + id);
+  const native = document.getElementById(id);
+  if (!trig || !drop || !native) return;
+
+  // Build options from native select
+  drop.innerHTML = '';
+  Array.from(native.options).forEach((opt, i) => {
+    const el = document.createElement('div');
+    const isSelected = opt.value === native.value;
+    el.className = 'fsel-option' + (isSelected ? ' selected' : '') + (!opt.value ? ' fsel-muted' : '');
+    el.textContent = opt.text;
+    el.dataset.value = opt.value;
+    el.onmousedown = (e) => { e.preventDefault(); fselSelect(id, opt.value, opt.text); };
+    drop.appendChild(el);
+  });
+
+  fselPosition(id);
+  trig.classList.add('open');
+  drop.classList.add('open');
+  fselState[id] = true;
+
+  // scroll selected into view
+  const selEl = drop.querySelector('.selected');
+  if (selEl) setTimeout(() => selEl.scrollIntoView({block:'nearest'}), 0);
+
+  const scrollHandler = () => {
+    if (fselState[id]) fselPosition(id);
+    else document.removeEventListener('scroll', scrollHandler, true);
+  };
+  document.addEventListener('scroll', scrollHandler, true);
+}
+
+function fselClose(id) {
+  document.getElementById('fseltrig-' + id)?.classList.remove('open');
+  document.getElementById('fseldrop-' + id)?.classList.remove('open');
+  fselState[id] = false;
+}
+
+function fselToggle(id) {
+  if (fselState[id]) fselClose(id); else fselOpen(id);
+}
+
+function fselSelect(id, value, label) {
+  const native = document.getElementById(id);
+  if (native) {
+    native.value = value;
+    // Fire the native onchange so all existing handlers run
+    native.dispatchEvent(new Event('change'));
+  }
+  // Update trigger text
+  const trig = document.getElementById('fseltrig-' + id);
+  if (trig) trig.textContent = label || value || '— Select —';
+  fselClose(id);
+}
+
+// Close on outside click
+document.addEventListener('mousedown', function(e) {
+  Object.keys(fselState).forEach(id => {
+    if (!fselState[id]) return;
+    const wrap = document.getElementById('fselwrap-' + id);
+    const drop = document.getElementById('fseldrop-' + id);
+    if (wrap && !wrap.contains(e.target) && drop && !drop.contains(e.target)) {
+      fselClose(id);
+    }
+  });
+}, true);
+
+// After re-render, update trigger text to match current native value
+function fselSync(id) {
+  const native = document.getElementById(id);
+  const trig   = document.getElementById('fseltrig-' + id);
+  if (!native || !trig) return;
+  const opt = Array.from(native.options).find(o => o.value === native.value);
+  if (opt) trig.textContent = opt.text || '— Select —';
+}
+
+
+// ── Entry Form Styled Select Engine ──────────────────────
+const sselState = {};
+
+function sselGetNative(field)  { return document.getElementById('e-' + field); }
+function sselGetTrigger(field) { return document.getElementById('ssel-trigger-' + field); }
+function sselGetDrop(field)    { return document.getElementById('ssel-drop-' + field); }
+function sselGetWrap(field)    { return document.getElementById('ssel-wrap-' + field); }
+
+function sselPosition(field) {
+  const trigger = sselGetTrigger(field);
+  const drop    = sselGetDrop(field);
+  if (!trigger || !drop) return;
+  const rect = trigger.getBoundingClientRect();
+  const wasHidden = !drop.classList.contains('open');
+  if (wasHidden) { drop.style.visibility = 'hidden'; drop.style.display = 'block'; }
+  const dropH = Math.min(220, drop.scrollHeight);
+  if (wasHidden) { drop.style.display = ''; drop.style.visibility = ''; }
+  drop.style.width    = 'auto';
+  drop.style.minWidth = Math.max(rect.width, 160) + 'px';
+  drop.style.left     = rect.left + 'px';
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  if (spaceBelow < dropH + 8 && spaceAbove > spaceBelow) {
+    drop.style.top = (rect.top - dropH - 2) + 'px';
+  } else {
+    drop.style.top = (rect.bottom + 2) + 'px';
+  }
+}
+
+function sselOpen(field) {
+  Object.keys(sselState).forEach(f => { if (f !== field && sselState[f]?.open) sselClose(f); });
+  ['partner','level'].forEach(f => { if (typeof comboClose === 'function') comboClose(f); });
+  Object.keys(fselState||{}).forEach(f => { if (typeof fselClose === 'function') fselClose(f); });
+
+  const trigger = sselGetTrigger(field);
+  const drop    = sselGetDrop(field);
+  const native  = sselGetNative(field);
+  if (!trigger || !drop || !native) return;
+
+  // Build option list from native select + add-new if applicable
+  const hasAddNew = ['type','season','league','line','surface'].includes(field);
+  drop.innerHTML = '';
+  Array.from(native.options).forEach(opt => {
+    if (opt.value === '__new__') return; // skip old __new__ option if present
+    const el = document.createElement('div');
+    el.className = 'ssel-option' + (opt.value === native.value ? ' selected' : '');
+    el.dataset.value = opt.value;
+    el.textContent = opt.text || '— Select —';
+    if (!opt.value) el.style.color = 'var(--muted)';
+    el.onmousedown = (e) => { e.preventDefault(); sselSelect(field, opt.value, opt.text); };
+    drop.appendChild(el);
+  });
+  if (hasAddNew) {
+    const addEl = document.createElement('div');
+    addEl.className = 'ssel-option add-new';
+    addEl.textContent = '+ Add new…';
+    addEl.onmousedown = (e) => {
+      e.preventDefault();
+      sselClose(field);
+      showEntryNewModal(field, '').then(value => {
+        if (!value) return;
+        const nat = sselGetNative(field);
+        if (nat && !Array.from(nat.options).find(o => o.value === value)) {
+          const opt = document.createElement('option');
+          opt.value = value; opt.textContent = value;
+          nat.appendChild(opt);
+        }
+        if (!validEntries[field]) validEntries[field] = [];
+        if (!validEntries[field].includes(value)) validEntries[field].push(value);
+        sselBuild(field);
+        sselSelect(field, value, value);
+        entryNewValues[field] = value;
+      });
+    };
+    drop.appendChild(addEl);
+  }
+
+  sselPosition(field);
+  trigger.classList.add('open');
+  drop.classList.add('open');
+  sselState[field] = sselState[field] || {};
+  sselState[field].open = true;
+
+  const sel = drop.querySelector('.selected');
+  if (sel) setTimeout(() => sel.scrollIntoView({block:'nearest'}), 0);
+
+  const scrollHandler = () => {
+    if (sselState[field]?.open) sselPosition(field);
+    else document.removeEventListener('scroll', scrollHandler, true);
+  };
+  document.addEventListener('scroll', scrollHandler, true);
+}
+
+function sselClose(field) {
+  sselGetTrigger(field)?.classList.remove('open');
+  sselGetDrop(field)?.classList.remove('open');
+  if (sselState[field]) sselState[field].open = false;
+}
+
+function sselToggle(field) {
+  if (sselState[field]?.open) sselClose(field); else sselOpen(field);
+}
+
+function sselSelect(field, value, label) {
+  const native = sselGetNative(field);
+  if (native) native.value = value;
+  sselSetTriggerText(field);
+  sselClose(field);
+  // Fire original handlers
+  if (field === 'type')     { if (value !== '__new__') onEntryTypeChange(); onEntryNewSelect('type'); }
+  else if (field === 'season')  onEntryNewSelect('season');
+  else if (field === 'league')  onEntryNewSelect('league');
+  else if (field === 'line')    onEntryNewSelect('line');
+  else if (field === 'surface') onEntryNewSelect('surface');
+  else if (field === 'homeaway') onEntryHomeAwayChange();
+  // time and playoffround have no special handler
+  // Clear validation error
+  const errEl = document.getElementById('err-' + field);
+  if (errEl) errEl.style.display = 'none';
+  const trig = sselGetTrigger(field);
+  if (trig) trig.style.borderColor = '';
+}
+
+function sselSetTriggerText(field) {
+  const native  = sselGetNative(field);
+  const trigger = sselGetTrigger(field);
+  if (!native || !trigger) return;
+  const val = native.value;
+  if (val && val !== '__new__') {
+    trigger.innerHTML = '<span>' + escHtml(val) + '</span>';
+  } else {
+    trigger.innerHTML = '<span class="ssel-placeholder">— Select —</span>';
+  }
+}
+
+const sselConfig = {
+  type: {}, season: {}, league: {}, line: {},
+  homeaway: {}, surface: {}, time: {}, playoffround: {}
+};
+
+function sselBuild(field) {
+  // Rebuild native options from validEntries then refresh trigger text
+  // (native options are already set in the template — this just refreshes text)
+  sselSetTriggerText(field);
+}
+
+function sselBuildAll() {
+  Object.keys(sselConfig).forEach(f => sselSetTriggerText(f));
+}
+
+// Close on outside click
+document.addEventListener('mousedown', function(e) {
+  Object.keys(sselState).forEach(field => {
+    if (!sselState[field]?.open) return;
+    const wrap = sselGetWrap(field);
+    const drop = sselGetDrop(field);
+    if (wrap && !wrap.contains(e.target) && drop && !drop.contains(e.target)) {
+      sselClose(field);
+    }
+  });
+}, true);
+
+
+// ── Settings Combo Engine ─────────────────────────────────
+// Reuses the combo dropdown CSS but operates on settings fields.
+
+function settingsComboGetOptions(fieldId) {
+  if (fieldId === 'def-level-combo') return sortedLevels(validEntries.level || []);
+  if (fieldId.startsWith('defp-')) return ['', ...sortedPartners(validEntries.partner || [])];
+  return [];
+}
+
+function onSettingsComboFocus(fieldId) {
+  settingsComboRender(fieldId, document.getElementById(fieldId)?.value || '');
+}
+
+function onSettingsComboInput(fieldId) {
+  const q = document.getElementById(fieldId)?.value || '';
+  settingsComboRender(fieldId, q);
+}
+
+function onSettingsComboKeydown(e, fieldId) {
+  const drop = document.getElementById('combo-drop-' + fieldId);
+  const isOpen = drop?.classList.contains('open');
+  const opts = drop ? Array.from(drop.querySelectorAll('.combo-option:not(.add-new)')) : [];
+  const state = comboState[fieldId] || {};
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!isOpen) { settingsComboRender(fieldId, document.getElementById(fieldId)?.value||''); return; }
+    state.highlighted = Math.min((state.highlighted??-1)+1, opts.length-1);
+    opts.forEach((o,i)=>o.classList.toggle('highlighted', i===state.highlighted));
+    if (opts[state.highlighted]) opts[state.highlighted].scrollIntoView({block:'nearest'});
+    comboState[fieldId] = state; return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    state.highlighted = Math.max((state.highlighted??0)-1, 0);
+    opts.forEach((o,i)=>o.classList.toggle('highlighted', i===state.highlighted));
+    comboState[fieldId] = state; return;
+  }
+  if (e.key === 'Escape') { comboClose(fieldId); return; }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const hi = state.highlighted??-1;
+    if (isOpen && hi >= 0 && opts[hi]) {
+      document.getElementById(fieldId).value = opts[hi].dataset.value;
+      comboClose(fieldId);
+    } else {
+      const typed = document.getElementById(fieldId)?.value.trim()||'';
+      const all = settingsComboGetOptions(fieldId);
+      const exact = all.find(o=>o.toLowerCase()===typed.toLowerCase());
+      if (exact) { document.getElementById(fieldId).value = exact; comboClose(fieldId); }
+    }
+    return;
+  }
+  if (e.key === 'Tab') {
+    const typed = document.getElementById(fieldId)?.value.trim()||'';
+    const all = settingsComboGetOptions(fieldId);
+    const exact = all.find(o=>o.toLowerCase()===typed.toLowerCase());
+    if (exact) document.getElementById(fieldId).value = exact;
+    comboClose(fieldId); return;
+  }
+}
+
+function settingsComboRender(fieldId, query) {
+  const drop = document.getElementById('combo-drop-' + fieldId);
+  const input = document.getElementById(fieldId);
+  if (!drop || !input) return;
+
+  const all = settingsComboGetOptions(fieldId);
+  const q = (query||'').toLowerCase();
+  const filtered = q.length >= 1 ? all.filter(o=>o.toLowerCase().includes(q)) : all;
+
+  drop.innerHTML = '';
+  const state = comboState[fieldId] || {};
+  state.highlighted = -1;
+  comboState[fieldId] = state;
+
+  filtered.forEach((opt, i) => {
+    if (!opt) return; // skip blank
+    const el = document.createElement('div');
+    el.className = 'combo-option';
+    el.dataset.value = opt;
+    if (q.length >= 1) {
+      const idx = opt.toLowerCase().indexOf(q);
+      el.innerHTML = escHtml(opt.slice(0,idx))+'<strong>'+escHtml(opt.slice(idx,idx+q.length))+'</strong>'+escHtml(opt.slice(idx+q.length));
+    } else {
+      el.textContent = opt;
+    }
+    el.onmousedown = (e) => {
+      e.preventDefault();
+      input.value = opt;
+      comboClose(fieldId);
+    };
+    drop.appendChild(el);
+  });
+
+  if (filtered.length === 0 && q.length >= 1) {
+    const empty = document.createElement('div');
+    empty.className = 'combo-no-match';
+    empty.textContent = 'No matches';
+    drop.appendChild(empty);
+  }
+
+    // Position now that content is built — measure actual height
+  const rect = input.getBoundingClientRect();
+  drop.style.visibility = 'hidden';
+  drop.style.display = '';
+  drop.style.visibility = '';
+  drop.style.width    = 'auto';
+  drop.style.minWidth = rect.width + 'px';
+  drop.style.left     = rect.left + 'px';
+  // Settings typeahead combos always open below so user can see their typing
+  drop.style.top = (rect.bottom + 2) + 'px';
+  drop.classList.add('open');
+}// ── Combo Box Engine ─────────────────────────────────────
+// State per field
+const comboState = {};
+
+function comboGetOptions(field) {
+  if (field === 'partner') return sortedPartners(validEntries.partner || []);
+  if (field === 'level')   return sortedLevels(validEntries.level || []);
+  return [];
+}
+
+function comboGetValue(field) {
+  const el = document.getElementById('e-' + field);
+  return el ? el.value : '';
+}
+
+function comboSetValue(field, value) {
+  const el = document.getElementById('e-' + field);
+  if (el) el.value = value;
+  if (field === 'partner') {
+    // store for submit
+    entryNewValues[field] = value;
+  }
+  if (field === 'level') {
+    entryNewValues[field] = value;
+  }
+}
+
+function comboPositionDropdown(field) {
+  const input = document.getElementById('e-' + field);
+  const drop = document.getElementById('combo-drop-' + field);
+  if (!input || !drop) return;
+  const rect = input.getBoundingClientRect();
+  drop.style.width    = 'auto';
+  drop.style.minWidth = rect.width + 'px';
+  drop.style.left     = rect.left + 'px';
+  // Typeahead combos always open BELOW so user can see what they're typing
+  drop.style.top = (rect.bottom + 2) + 'px';
+}
+
+function comboRenderDropdown(field, filterText) {
+  const drop = document.getElementById('combo-drop-' + field);
+  if (!drop) return;
+  comboPositionDropdown(field);
+  const options = comboGetOptions(field);
+  const query = (filterText || '').toLowerCase();
+  const filtered = query.length >= 1
+    ? options.filter(o => o.toLowerCase().includes(query))
+    : options;
+
+  drop.innerHTML = '';
+  const state = comboState[field] || {};
+  state.highlighted = -1;
+  comboState[field] = state;
+
+  if (filtered.length === 0 && query.length >= 1) {
+    // No matches — show add option only
+    const addOpt = document.createElement('div');
+    addOpt.className = 'combo-option add-new';
+    addOpt.textContent = '+ Add "' + filterText + '"';
+    addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
+    drop.appendChild(addOpt);
+  } else {
+    filtered.forEach((opt, i) => {
+      const el = document.createElement('div');
+      el.className = 'combo-option';
+      el.dataset.value = opt;
+      el.dataset.index = i;
+      // Bold matching portion
+      if (query.length >= 1) {
+        const idx = opt.toLowerCase().indexOf(query);
+        el.innerHTML = escHtml(opt.slice(0, idx))
+          + '<strong>' + escHtml(opt.slice(idx, idx + query.length)) + '</strong>'
+          + escHtml(opt.slice(idx + query.length));
+      } else {
+        el.textContent = opt;
+      }
+      el.onmousedown = (e) => { e.preventDefault(); comboSelectOption(field, opt); };
+      drop.appendChild(el);
+    });
+    // Always append + Add new at bottom
+    const addOpt = document.createElement('div');
+    addOpt.className = 'combo-option add-new';
+    if (query.length >= 1 && !filtered.some(o => o.toLowerCase() === query)) {
+      addOpt.textContent = '+ Add "' + filterText + '"';
+      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
+    } else {
+      addOpt.textContent = '+ Add new…';
+      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, ''); };
+    }
+    drop.appendChild(addOpt);
+  }
+  drop.classList.add('open');
+}
+
+function comboSelectOption(field, value) {
+  comboSetValue(field, value);
+  comboClose(field);
+  // clear error
+  const errEl = document.getElementById('err-' + field);
+  if (errEl) { errEl.style.display = 'none'; }
+  const inputEl = document.getElementById('e-' + field);
+  if (inputEl) inputEl.classList.remove('error');
+}
+
+function comboClose(field) {
+  const drop = document.getElementById('combo-drop-' + field);
+  if (drop) drop.classList.remove('open');
+  if (comboState[field]) comboState[field].highlighted = -1;
+}
+
+function comboOpen(field) {
+  const input = document.getElementById('e-' + field);
+  comboRenderDropdown(field, input ? input.value : '');
+}
+
+function onComboFocus(field) {
+  comboRenderDropdown(field, document.getElementById('e-' + field)?.value || '');
+  // Reposition on scroll so dropdown tracks the input
+  const scroller = document.querySelector('.content') || document.documentElement;
+  const scrollHandler = () => {
+    if (document.getElementById('combo-drop-' + field)?.classList.contains('open')) {
+      comboPositionDropdown(field);
+    } else {
+      scroller.removeEventListener('scroll', scrollHandler, true);
+    }
+  };
+  scroller.addEventListener('scroll', scrollHandler, true);
+}
+
+function onComboBlur(field) {
+  // Delay to allow mousedown on option to fire first
+  setTimeout(() => {
+    const drop = document.getElementById('combo-drop-' + field);
+    if (drop) drop.classList.remove('open');
+  }, 150);
+}
+
+function onComboInput(field) {
+  const input = document.getElementById('e-' + field);
+  const query = input ? input.value : '';
+  if (query.length === 0) {
+    comboRenderDropdown(field, '');
+  } else {
+    comboRenderDropdown(field, query);
+  }
+}
+
+function onComboKeydown(e, field) {
+  const drop = document.getElementById('combo-drop-' + field);
+  const isOpen = drop && drop.classList.contains('open');
+  const state = comboState[field] || {};
+  const options = drop ? Array.from(drop.querySelectorAll('.combo-option:not(.add-new)')) : [];
+  const addNew = drop ? drop.querySelector('.combo-option.add-new') : null;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!isOpen) { comboOpen(field); return; }
+    state.highlighted = Math.min((state.highlighted ?? -1) + 1, options.length - 1);
+    comboHighlight(field, options, state.highlighted);
+    comboState[field] = state;
+    return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    state.highlighted = Math.max((state.highlighted ?? 0) - 1, 0);
+    comboHighlight(field, options, state.highlighted);
+    comboState[field] = state;
+    return;
+  }
+  if (e.key === 'Escape') {
+    comboClose(field);
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const highlighted = state.highlighted ?? -1;
+    if (isOpen && highlighted >= 0 && options[highlighted]) {
+      comboSelectOption(field, options[highlighted].dataset.value);
+    } else {
+      // Check if typed value matches an existing option exactly (case-insensitive)
+      const input = document.getElementById('e-' + field);
+      const typed = (input ? input.value : '').trim();
+      const allOpts = comboGetOptions(field);
+      const exact = allOpts.find(o => o.toLowerCase() === typed.toLowerCase());
+      if (exact) {
+        comboSelectOption(field, exact);
+      } else if (typed.length > 0) {
+        // Not a match — open Add New modal
+        comboClose(field);
+        comboTriggerAddNew(field, typed);
+      }
+    }
+    return;
+  }
+  if (e.key === 'Tab') {
+    // Tab: if typed value matches existing option, select it; otherwise accept as-is
+    const input = document.getElementById('e-' + field);
+    const typed = (input ? input.value : '').trim();
+    if (typed.length > 0) {
+      const allOpts = comboGetOptions(field);
+      const exact = allOpts.find(o => o.toLowerCase() === typed.toLowerCase());
+      if (exact) {
+        comboSelectOption(field, exact);
+      } else if (isOpen && state.highlighted >= 0 && options[state.highlighted]) {
+        comboSelectOption(field, options[state.highlighted].dataset.value);
+      }
+      // If no match, just leave typed value and let focus move naturally
+    }
+    comboClose(field);
+    return;
+  }
+}
+
+function comboHighlight(field, options, idx) {
+  options.forEach((o, i) => o.classList.toggle('highlighted', i === idx));
+  if (options[idx]) options[idx].scrollIntoView({ block: 'nearest' });
+}
+
+async function comboTriggerAddNew(field, prefill) {
+  const input = document.getElementById('e-' + field);
+  const value = await showEntryNewModal(field, prefill);
+  if (!value) {
+    // Cancelled — clear the input
+    if (input) input.value = '';
+    return;
+  }
+  // Add to validEntries if not already there
+  const arr = field === 'partner' ? (validEntries.partner || []) : (validEntries.level || []);
+  if (!arr.find(v => v.toLowerCase() === value.toLowerCase())) {
+    arr.push(value);
+    if (field === 'partner') validEntries.partner = arr;
+    if (field === 'level') validEntries.level = arr;
+    // Persist to veEntries too
+    if (!veEntries[field]) veEntries[field] = [];
+    if (!veEntries[field].find(v => v.toLowerCase() === value.toLowerCase())) {
+      veEntries[field].push(value);
+    }
+  }
+  comboSelectOption(field, value);
+  // Save to sheet via existing mechanism
+  entryNewValues[field] = value;
+}
+
+// Initialise combo boxes after entry form renders
+function initCombos() {
+  // Set stored default values if any
+  const defLevel = localStorage.getItem('defaultLevel') || '';
+  if (defLevel) {
+    const levelEl = document.getElementById('e-level');
+    if (levelEl) levelEl.value = defLevel;
+  }
+}
+
+function showEntryNewModal(field, prefill) {
   const labels = {
     type: 'Match Type', season: 'Season', league: 'League', level: 'Level',
     line: 'Line', homeaway: 'Home / Away', surface: 'Surface', time: 'Time',
@@ -6962,7 +8164,8 @@ function showEntryNewModal(field) {
       </div>`;
     document.body.appendChild(overlay);
     const input = overlay.querySelector('#entry-new-modal-input');
-    setTimeout(() => input.focus(), 50);
+    if (prefill) { input.value = prefill; }
+    setTimeout(() => { input.focus(); input.select(); }, 50);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') overlay.querySelector('#entry-new-modal-ok').click(); });
     overlay.querySelector('#entry-new-modal-cancel').onclick = () => {
       document.body.removeChild(overlay);
@@ -7066,11 +8269,12 @@ async function submitEntry() {
       boxEl.style.borderColor = show ? 'var(--danger)' : 'var(--border)';
       return; // box handles the visual — done
     }
-    // Regular fields: outline the input/select directly
+    // For ssel fields, target the trigger div
+    const sseltrig = document.getElementById('ssel-trigger-'+id);
+    if (sseltrig) { sseltrig.style.borderColor = show ? 'var(--danger)' : ''; return; }
+    // Regular fields
     const fieldEl = document.getElementById('e-'+id);
-    if (fieldEl) {
-      fieldEl.style.borderColor = show ? 'var(--danger)' : '';
-    }
+    if (fieldEl) { fieldEl.style.borderColor = show ? 'var(--danger)' : ''; }
   };
 
   function validSetScore(w, l, isThird) {
@@ -7172,6 +8376,10 @@ async function submitEntry() {
         if (!validEntries[k].includes(v)) validEntries[k].push(v);
       });
       Object.keys(entryNewValues).forEach(k => delete entryNewValues[k]);
+  Object.keys(sselState).forEach(f => sselClose(f));
+  Object.keys(fselState||{}).forEach(f => { if(typeof fselClose==='function') fselClose(f); });
+  // Close any open combo dropdowns
+  ['partner','level'].forEach(f => comboClose(f));
     }
     const res = await fetch(webAppUrl, { method:'POST', body: JSON.stringify({match}) });
     const data = await res.json();
@@ -7239,6 +8447,7 @@ async function submitEntry() {
           const el = document.getElementById(id);
           if (el && val) el.value = val;
         });
+        Object.keys(sselConfig).forEach(f => sselSetTriggerText(f));
         ['e-opp1','e-opp2','e-s1w','e-s1l','e-s2w','e-s2l','e-s3w','e-s3l',
          'e-tb1w','e-tb1l','e-tb2w','e-tb2l','e-tb3w','e-tb3l','e-tb3stdw','e-tb3stdl','e-notes'].forEach(id => {
           const el = document.getElementById(id);
@@ -7280,6 +8489,7 @@ function anotherMatchYes() {
   Object.keys(entryNewValues).forEach(k => delete entryNewValues[k]);
   // Re-render the entry form fresh then restore kept fields
   renderEntry();
+  sselBuildAll();
   if (!keep) return;
   // Use requestAnimationFrame to wait for renderEntry to finish painting
   requestAnimationFrame(() => {
@@ -8274,14 +9484,65 @@ function buildBadgeShelf() {
     <div class="dash-filter-sheet-body">
       <div class="dash-filter-row">
         <div class="dash-filter-row-label">Match Type</div>
-        <select class="dash-filter-select" id="sheet-type-filter" onchange="filterState.dash.type=this.value"></select>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-type-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-type-filter" tabindex="0"
+            onclick="fselToggle('sheet-type-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-type-filter');}">All Types</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-type-filter"></div>
+          <select class="ssel-native" id="sheet-type-filter" onchange="filterState.dash.type=this.value;dashFilterOnChange('type')"></select>
+        </div>
       </div>
       <div class="dash-filter-row">
-        <div class="dash-filter-row-label">Match Quality <span class="tip-icon" data-tip="Competitive matches are those where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
-        <select class="dash-filter-select" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.value==='competitive'">
-          <option value="all">All Matches</option>
-          <option value="competitive">Competitive Only</option>
-        </select>
+        <div class="dash-filter-row-label">Season</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-season-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-season-filter" tabindex="0"
+            onclick="fselToggle('sheet-season-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-season-filter');}">All Seasons</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-season-filter"></div>
+          <select class="ssel-native" id="sheet-season-filter" onchange="filterState.dash.season=this.value;dashFilterOnChange('season')"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">League</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-league-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-league-filter" tabindex="0"
+            onclick="fselToggle('sheet-league-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-league-filter');}">All Leagues</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-league-filter"></div>
+          <select class="ssel-native" id="sheet-league-filter" onchange="filterState.dash.league=this.value;dashFilterOnChange('league')"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Level</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-level-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-level-filter" tabindex="0"
+            onclick="fselToggle('sheet-level-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-level-filter');}">All Levels</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-level-filter"></div>
+          <select class="ssel-native" id="sheet-level-filter" onchange="filterState.dash.level=this.value;dashFilterOnChange('level')"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row">
+        <div class="dash-filter-row-label">Line</div>
+        <div class="fsel-wrap fsel-block" id="fselwrap-sheet-line-filter">
+          <div class="fsel-trigger" id="fseltrig-sheet-line-filter" tabindex="0"
+            onclick="fselToggle('sheet-line-filter')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fselToggle('sheet-line-filter');}">All Lines</div>
+          <svg class="fsel-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div class="fsel-dropdown" id="fseldrop-sheet-line-filter"></div>
+          <select class="ssel-native" id="sheet-line-filter" onchange="filterState.dash.line=this.value;dashFilterOnChange('line')"></select>
+        </div>
+      </div>
+      <div class="dash-filter-row" style="flex-direction:row;align-items:center;justify-content:space-between;padding:4px 0">
+        <div class="dash-filter-row-label" style="margin:0">Close Matches Only <span class="tip-icon" data-tip="Matches where the losing side won at least 60% as many total games as the winning side — e.g. 6–4, 6–4 qualifies; 6–1, 6–2 does not.">ⓘ</span></div>
+        <label class="form-toggle">
+          <input type="checkbox" id="sheet-comp-filter" onchange="filterState.dash.competitive=this.checked">
+          <span class="form-toggle-slider"></span>
+        </label>
       </div>
     </div>
     <div class="dash-filter-sheet-footer">
