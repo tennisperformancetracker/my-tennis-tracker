@@ -7362,6 +7362,10 @@ function editMTBAutoFill() {
   }
 }
 
+function onEditMTBScoreChange() {
+  if (document.getElementById('edit-mtb-check')?.checked) editMTBAutoFill();
+}
+
 function onEditScoreChange() {
   const s1w = document.getElementById('edit-s1w')?.value;
   const s1l = document.getElementById('edit-s1l')?.value;
@@ -7402,6 +7406,7 @@ function onEditScoreChange() {
     if (!show2) { const w=document.getElementById('edit-tb2w'),l=document.getElementById('edit-tb2l'); if(w)w.value=''; if(l)l.value=''; }
   }
   const mtbOn = document.getElementById('edit-mtb-check')?.checked;
+  if (mtbOn) { editMTBAutoFill(); }
   if (!mtbOn) {
     const s3w = document.getElementById('edit-s3w')?.value;
     const s3l = document.getElementById('edit-s3l')?.value;
