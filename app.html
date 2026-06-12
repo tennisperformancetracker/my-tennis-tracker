@@ -5224,7 +5224,7 @@ function openEditMode(idx) {
   function scoreBox(id, val) {
     return `<input type="number" id="edit-${id}" value="${val!==''&&val!=null?val:''}" min="0" max="99" placeholder="" inputmode="numeric"
       style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none;box-sizing:border-box"
-      onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">`;
+      onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'" onchange="onEditScoreChange()">`;
   }
 
   const isDb = m.opp2 && m.opp2 !== '';
@@ -5281,6 +5281,13 @@ function openEditMode(idx) {
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s1w',m.s1w)}</div>
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s1l',m.s1l)}</div>
               </div>
+              <div id="edit-tb1-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:11px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak (Optional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('tb1w',m.tb1w||'')}</div>
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('tb1l',m.tb1l||'')}</div>
+                </div>
+              </div>
             </div>
             <div id="edit-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
@@ -5288,7 +5295,9 @@ function openEditMode(idx) {
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s2w',m.s2w)}</div>
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s2l',m.s2l)}</div>
               </div>
-            </div>
+              <div id="edit-tb2-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:11px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak (Optional)</div>
+                <div style="display:gri
             <div id="edit-s3-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box;${s3Disabled}">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
@@ -7285,6 +7294,47 @@ function onEntryPlayoffChange() {
   document.getElementById('e-playoff-row')?.classList.toggle('cond-hidden', !checked);
 }
 function onEntryRetiredChange() { onEntryScoreChange(); onEntryUpdateTBReveals(); }
+
+function onEditScoreChange() {
+  const s1w = document.getElementById('edit-s1w')?.value;
+  const s1l = document.getElementById('edit-s1l')?.value;
+  const s2w = document.getElementById('edit-s2w')?.value;
+  const s2l = document.getElementById('edit-s2l')?.value;
+  let needS3 = false;
+  if (s1w!==''&&s1w!==undefined && s1l!==''&&s1l!==undefined &&
+      s2w!==''&&s2w!==undefined && s2l!==''&&s2l!==undefined) {
+    const nS1w=parseInt(s1w), nS1l=parseInt(s1l), nS2w=parseInt(s2w), nS2l=parseInt(s2l);
+    if (!isNaN(nS1w)&&!isNaN(nS1l)&&!isNaN(nS2w)&&!isNaN(nS2l)) {
+      needS3 = (nS1w > nS1l) !== (nS2w > nS2l);
+    }
+  }
+  const s3box = document.getElementById('edit-s3-box');
+  if (s3box) {
+    s3box.style.opacity = needS3 ? '1' : '0.3';
+    s3box.style.pointerEvents = needS3 ? '' : 'none';
+  }
+  if (!needS3) {
+    const s3w = document.getElementById('edit-s3w');
+    const s3l = document.getElementById('edit-s3l');
+    if (s3w) s3w.value = '';
+    if (s3l) s3l.value = '';
+  }
+  const isStdTB = (w,l) => (w===7&&l===6)||(w===6&&l===7);
+  const n1w=parseInt(s1w), n1l=parseInt(s1l);
+  const show1 = !isNaN(n1w)&&!isNaN(n1l) && isStdTB(n1w,n1l);
+  const tb1 = document.getElementById('edit-tb1-reveal');
+  if (tb1) {
+    tb1.style.display = show1 ? 'block' : 'none';
+    if (!show1) { const w=document.getElementById('edit-tb1w'),l=document.getElementById('edit-tb1l'); if(w)w.value=''; if(l)l.value=''; }
+  }
+  const n2w=parseInt(s2w), n2l=parseInt(s2l);
+  const show2 = !isNaN(n2w)&&!isNaN(n2l) && isStdTB(n2w,n2l);
+  const tb2 = document.getElementById('edit-tb2-reveal');
+  if (tb2) {
+    tb2.style.display = show2 ? 'block' : 'none';
+    if (!show2) { const w=document.getElementById('edit-tb2w'),l=document.getElementById('edit-tb2l'); if(w)w.value=''; if(l)l.value=''; }
+  }
+}
 
 // ── Tiebreak helpers ──────────────────────────────────────────────────────────
 function entryGetNum(id) { const v=parseInt(document.getElementById('e-'+id)?.value); return isNaN(v)?null:v; }
