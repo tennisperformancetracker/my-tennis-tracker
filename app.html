@@ -2738,7 +2738,7 @@ function buildKPIs(matches, curYearMatches) {
       }
 
       case 'active_league': {
-        var badge = alTopType ? kpiBadge(escHtml(alTopType), 'kpi2-badge-navy') : '';
+        var badge = '';
         var alYears = alData ? (function(){
           var ys = {}; alData.matches.forEach(function(m){ if(m.year) ys[m.year]=1; });
           var sorted = Object.keys(ys).map(Number).sort();
