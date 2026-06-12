@@ -3957,7 +3957,7 @@ function drillSplit(key, partner, opponent) {
   filterState.history = {
     year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '',
     partner:  partner  || '',
-    opponent: (opponent||'').toLowerCase(),
+    opponent: opponent||'',
     splitFilter: key,
     type:   df.type   || '',
     level:  df.level  || '',
@@ -4167,7 +4167,7 @@ function viewOpponentHistory(name) {
   filterState.history = {
     year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '', splitFilter: null,
     partner: '',
-    opponent: name.toLowerCase(),
+    opponent: name,
     type:   _dfo.type   || '',
     level:  _dfo.level  || '',
     league: _dfo.league || '',
@@ -4804,7 +4804,7 @@ function applyHistoryFilter() {
     if (lev  && m.level  !== lev)  return false;
     if (typ  && m.type   !== typ)  return false;
     if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
-    if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
+    if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp.toLowerCase()) === -1) return false;
     if (filterState.history.notes && !(m.notes||'').toLowerCase().includes(filterState.history.notes.toLowerCase())) return false;
     if (po   && !m.playoff) return false;
       if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
