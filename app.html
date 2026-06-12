@@ -4239,6 +4239,7 @@ function renderHistory(page, preFilterPartner) {
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
   const opponentFilter = (filterState.history.opponent || '').toLowerCase();
+  const opponentDisplay = filterState.history.opponent || '';
   const notesFilter    = filterState.history.notes || '';
   const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
@@ -4270,11 +4271,11 @@ function renderHistory(page, preFilterPartner) {
     };
     const baseLabel = sfLabels[filterState.history.splitFilter] || 'Match History';
     if (partnerFilter) histTitle = `${baseLabel}\nwith ${formatPartnerName(partnerFilter)}`;
-    else if (opponentFilter) histTitle = `${baseLabel}\nvs ${opponentFilter}`;
+    else if (opponentFilter) histTitle = `${baseLabel}\nvs ${opponentDisplay}`;
     else histTitle = baseLabel;
-  } else if (partnerFilter && opponentFilter) histTitle = `Match History\nwith ${partnerFilter} against ${opponentFilter}`;
+  } else if (partnerFilter && opponentFilter) histTitle = `Match History\nwith ${partnerFilter} against ${opponentDisplay}`;
   else if (partnerFilter)  histTitle = `Match History\nwith ${partnerFilter}`;
-  else if (opponentFilter) histTitle = `Match History\nagainst ${opponentFilter}`;
+  else if (opponentFilter) histTitle = `Match History\nagainst ${opponentDisplay}`;
   document.getElementById('topbar-title').innerHTML = histTitle.replace(/\n/g, '<br>');
 
   document.getElementById('mobile-filters').innerHTML = '';
