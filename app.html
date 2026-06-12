@@ -5386,9 +5386,9 @@ async function saveEdit(idx) {
     opponent1: get('opp1'), opponent2: get('opp2'), partner: get('partner'),
     set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
     set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
-    tb1wins: m.tb1w||'', tb1losses: m.tb1l||'',
-    tb2wins: m.tb2w||'', tb2losses: m.tb2l||'',
-    tb3wins: m.tb3w||'', tb3losses: m.tb3l||'',
+    tb1wins: get('tb1w'), tb1losses: get('tb1l'),
+    tb2wins: get('tb2w'), tb2losses: get('tb2l'),
+    tb3wins: get('tb3w'), tb3losses: get('tb3l'),
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
     notes: (document.getElementById('edit-notes')?.value || '').trim()
   };
