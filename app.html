@@ -4238,8 +4238,8 @@ function renderHistory(page, preFilterPartner) {
   const levelFilter    = filterState.history.level;
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
-  const opponentFilter = (filterState.history.opponent || '').toLowerCase();
   const opponentDisplay = filterState.history.opponent || '';
+  const opponentFilter = opponentDisplay.toLowerCase();
   const notesFilter    = filterState.history.notes || '';
   const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
@@ -4360,7 +4360,7 @@ function renderHistory(page, preFilterPartner) {
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
           style="flex:1 1 100px;min-width:0">
-        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
+        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentDisplay)}"
           oninput="onHistOpponentInput(this.value)"
           style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
