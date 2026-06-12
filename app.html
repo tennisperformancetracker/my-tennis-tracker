@@ -5297,7 +5297,12 @@ function openEditMode(idx) {
               </div>
               <div id="edit-tb2-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
                 <div style="font-size:11px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak (Optional)</div>
-                <div style="display:gri
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('tb2w',m.tb2w||'')}</div>
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('tb2l',m.tb2l||'')}</div>
+                </div>
+              </div>
+            </div>
             <div id="edit-s3-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box;${s3Disabled}">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
