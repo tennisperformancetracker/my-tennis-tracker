@@ -4763,7 +4763,7 @@ var histInsightsWasCollapsed = false; // preserved after reset for post-render D
 var dashboardReturnState = null; // stores scroll + drill state for back-to-dashboard
 
 function onHistOpponentInput(val) {
-  filterState.history.opponent = val.trim().toLowerCase();
+  filterState.history.opponent = val.trim();
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
 }
