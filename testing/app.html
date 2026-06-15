@@ -2738,7 +2738,7 @@ function buildKPIs(matches, curYearMatches) {
       }
 
       case 'active_league': {
-        var badge = alTopType ? kpiBadge(escHtml(alTopType), 'kpi2-badge-navy') : '';
+        var badge = '';
         var alYears = alData ? (function(){
           var ys = {}; alData.matches.forEach(function(m){ if(m.year) ys[m.year]=1; });
           var sorted = Object.keys(ys).map(Number).sort();
@@ -3957,7 +3957,7 @@ function drillSplit(key, partner, opponent) {
   filterState.history = {
     year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '',
     partner:  partner  || '',
-    opponent: (opponent||'').toLowerCase(),
+    opponent: opponent||'',
     splitFilter: key,
     type:   df.type   || '',
     level:  df.level  || '',
@@ -4167,7 +4167,7 @@ function viewOpponentHistory(name) {
   filterState.history = {
     year: '', notes: '', sort: 'newest', playoff: false, surface: '', time: '', splitFilter: null,
     partner: '',
-    opponent: name.toLowerCase(),
+    opponent: name,
     type:   _dfo.type   || '',
     level:  _dfo.level  || '',
     league: _dfo.league || '',
@@ -4238,7 +4238,8 @@ function renderHistory(page, preFilterPartner) {
   const levelFilter    = filterState.history.level;
   const typeFilter     = filterState.history.type;
   const partnerFilter  = filterState.history.partner;
-  const opponentFilter = (filterState.history.opponent || '').toLowerCase();
+  const opponentDisplay = filterState.history.opponent || '';
+  const opponentFilter = opponentDisplay.toLowerCase();
   const notesFilter    = filterState.history.notes || '';
   const playoffFilter  = filterState.history.playoff;
   const sortOrder      = filterState.history.sort || 'newest';
@@ -4270,11 +4271,11 @@ function renderHistory(page, preFilterPartner) {
     };
     const baseLabel = sfLabels[filterState.history.splitFilter] || 'Match History';
     if (partnerFilter) histTitle = `${baseLabel}\nwith ${formatPartnerName(partnerFilter)}`;
-    else if (opponentFilter) histTitle = `${baseLabel}\nvs ${opponentFilter}`;
+    else if (opponentFilter) histTitle = `${baseLabel}\nvs ${opponentDisplay}`;
     else histTitle = baseLabel;
-  } else if (partnerFilter && opponentFilter) histTitle = `Match History\nwith ${partnerFilter} against ${opponentFilter}`;
+  } else if (partnerFilter && opponentFilter) histTitle = `Match History\nwith ${partnerFilter} against ${opponentDisplay}`;
   else if (partnerFilter)  histTitle = `Match History\nwith ${partnerFilter}`;
-  else if (opponentFilter) histTitle = `Match History\nagainst ${opponentFilter}`;
+  else if (opponentFilter) histTitle = `Match History\nagainst ${opponentDisplay}`;
   document.getElementById('topbar-title').innerHTML = histTitle.replace(/\n/g, '<br>');
 
   document.getElementById('mobile-filters').innerHTML = '';
@@ -4359,7 +4360,7 @@ function renderHistory(page, preFilterPartner) {
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
           style="flex:1 1 100px;min-width:0">
-        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentFilter)}"
+        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentDisplay)}"
           oninput="onHistOpponentInput(this.value)"
           style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
@@ -4748,12 +4749,108 @@ function buildHistoryResults(filtered, sortOrder) {
     )
     + '<tbody>' + tableRows + '</tbody>'
     + '</table></div>'
-    + buildPagination(historyPage, pages);
+    + buildPagination(historyPage, pages)
+    + buildScoutingNotesSection(filtered);
 }
 
 
 
 
+
+function buildScoutingNotesSection(filtered) {
+  // Only show when a single specific opponent is selected via the opponent filter
+  const oppFilter = (filterState.history.opponent || '').trim();
+  if (!oppFilter) return '';
+
+  // Collect notes attributed to this specific opponent from all matching matches
+  // Each match row: determine which side the filtered opponent was on, pull that notes field
+  const noteItems = [];
+  allMatches.forEach(function(m) {
+    const opp1 = (m.opp1 || '').trim();
+    const opp2 = (m.opp2 || '').trim();
+    const opp1Match = opp1.toLowerCase() === oppFilter.toLowerCase();
+    const opp2Match = opp2.toLowerCase() === oppFilter.toLowerCase();
+    if (!opp1Match && !opp2Match) return;
+    const note = opp1Match ? (m.opp1Notes || '') : (m.opp2Notes || '');
+    if (!note.trim()) return;
+    noteItems.push({ note: note.trim(), date: m.date, result: m.result,
+      s1w: m.s1w, s1l: m.s1l, s2w: m.s2w, s2l: m.s2l, s3w: m.s3w, s3l: m.s3l });
+  });
+
+  // Sort newest first
+  noteItems.sort(function(a, b) { return parseDate(b.date) - parseDate(a.date); });
+
+  if (!noteItems.length) return '';
+
+  const SHOW = 2;
+  const hasMore = noteItems.length > SHOW;
+  const visible = noteItems.slice(0, SHOW);
+  const hidden  = noteItems.slice(SHOW);
+
+  function scoreStr(item) {
+    var parts = [];
+    [[item.s1w, item.s1l],[item.s2w, item.s2l],[item.s3w, item.s3l]].forEach(function(p) {
+      if (p[0] !== '' && p[0] !== null && p[0] !== undefined && p[1] !== '' && p[1] !== null && p[1] !== undefined)
+        parts.push(p[0] + '–' + p[1]);
+    });
+    return parts.join(', ');
+  }
+
+  function noteHtml(item, isLast) {
+    var scoreTag = '';
+    var sc = scoreStr(item);
+    if (item.result === 'W') scoreTag = '<span style="background:var(--green-bg,#e8f5ee);color:var(--win,#2e7d52);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap">W ' + escHtml(sc) + '</span>';
+    else if (item.result === 'L') scoreTag = '<span style="background:var(--loss-bg,#fdf0ee);color:var(--loss,#c0392b);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap">L ' + escHtml(sc) + '</span>';
+    return '<div style="padding-bottom:' + (isLast?'0':'12px') + ';margin-bottom:' + (isLast?'0':'12px') + ';border-bottom:' + (isLast?'none':'1px solid var(--border)') + '">'
+      + '<div style="font-size:13px;color:var(--text);line-height:1.55;margin-bottom:5px">' + escHtml(item.note) + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--muted)">'
+      + (item.date ? '<span>' + escHtml(item.date) + '</span>' : '')
+      + scoreTag
+      + '</div></div>';
+  }
+
+  var visibleHtml = visible.map(function(item, i) {
+    return noteHtml(item, i === visible.length - 1 && !hasMore);
+  }).join('');
+
+  var hiddenHtml = '';
+  var moreToggle = '';
+  if (hasMore) {
+    hiddenHtml = hidden.map(function(item, i) {
+      return noteHtml(item, i === hidden.length - 1);
+    }).join('');
+    moreToggle = '<div style="margin-top:12px">'
+      + '<button id="scout-more-btn" onclick="toggleScoutMore()" '
+      + 'style="background:var(--surface2);border:0.5px solid var(--border);border-radius:20px;padding:4px 16px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:5px">'
+      + '<svg id="scout-more-chev" width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
+      + '<span id="scout-more-label">' + hidden.length + ' more note' + (hidden.length !== 1 ? 's' : '') + '</span>'
+      + '</button></div>';
+  }
+
+  return '<div id="scout-section" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);margin-top:14px;overflow:hidden">'
+    + '<div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px">'
+    + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--slate,#6385a2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><line x1="9" y1="9" x2="10" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>'
+    + '<span style="font-size:12px;color:var(--muted)">Scouting notes —</span>'
+    + '<span style="font-size:12px;font-weight:600;color:var(--navy,#2f4157)">' + escHtml(oppFilter) + '</span>'
+    + '</div>'
+    + '<div style="padding:14px 16px">'
+    + visibleHtml
+    + (hasMore ? '<div id="scout-hidden" style="display:none">' + hiddenHtml + '</div>' : '')
+    + moreToggle
+    + '</div></div>';
+}
+
+function toggleScoutMore() {
+  var hidden = document.getElementById('scout-hidden');
+  var btn    = document.getElementById('scout-more-btn');
+  var label  = document.getElementById('scout-more-label');
+  var chev   = document.getElementById('scout-more-chev');
+  if (!hidden) return;
+  var isOpen = hidden.style.display !== 'none';
+  hidden.style.display = isOpen ? 'none' : 'block';
+  if (label) label.textContent = isOpen ? (hidden.querySelectorAll('[style*="padding-bottom"]').length || '?') + ' more note' + (hidden.querySelectorAll('[style*="padding-bottom"]').length !== 1 ? 's' : '') : 'Show less';
+  if (chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
 
 var _histTimer = null;
 var histFiltersOpen = false; // persists across re-renders
@@ -4762,7 +4859,7 @@ var histInsightsWasCollapsed = false; // preserved after reset for post-render D
 var dashboardReturnState = null; // stores scroll + drill state for back-to-dashboard
 
 function onHistOpponentInput(val) {
-  filterState.history.opponent = val.trim().toLowerCase();
+  filterState.history.opponent = val.trim();
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
 }
@@ -4803,7 +4900,7 @@ function applyHistoryFilter() {
     if (lev  && m.level  !== lev)  return false;
     if (typ  && m.type   !== typ)  return false;
     if (par  && (m.partner || '').toLowerCase().indexOf(par.toLowerCase()) === -1) return false;
-    if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp) === -1) return false;
+    if (opp  && ((m.opp1 || '') + ' ' + (m.opp2 || '')).toLowerCase().indexOf(opp.toLowerCase()) === -1) return false;
     if (filterState.history.notes && !(m.notes||'').toLowerCase().includes(filterState.history.notes.toLowerCase())) return false;
     if (po   && !m.playoff) return false;
       if (filterState.history.league  && m.league  !== filterState.history.league)  return false;
@@ -5221,10 +5318,11 @@ function openEditMode(idx) {
   function inp(id, val, type='text') {
     return `<input type="${type}" id="edit-${id}" value="${escHtml(String(val||''))}" ${type==='date'?'style="color-scheme:light"':''} class="field-input">`;
   }
-  function scoreBox(id, val) {
-    return `<input type="number" id="edit-${id}" value="${val!==''&&val!=null?val:''}" min="0" max="99" placeholder="" inputmode="numeric"
-      style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none;box-sizing:border-box"
-      onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">`;
+  function scoreBox(id, val, readonly=false) {
+    const roStyle = readonly ? 'color:var(--muted);background:var(--surface2);' : 'background:var(--surface);';
+    return `<input type="number" id="edit-${id}" value="${val!==''&&val!=null?val:''}" min="0" max="99" placeholder="" inputmode="numeric" ${readonly?'readonly':''}
+      style="text-align:center;padding:5px 2px;font-size:15px;font-weight:700;width:100%;${roStyle}border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);outline:none;box-sizing:border-box"
+      onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'" onchange="onEditScoreChange()">`;
   }
 
   const isDb = m.opp2 && m.opp2 !== '';
@@ -5235,6 +5333,9 @@ function openEditMode(idx) {
   const s1w=parseInt(m.s1w), s1l=parseInt(m.s1l), s2w=parseInt(m.s2w), s2l=parseInt(m.s2l);
   const setsSplit = !isNaN(s1w)&&!isNaN(s1l)&&!isNaN(s2w)&&!isNaN(s2l) && (s1w>s1l) !== (s2w>s2l);
   const s3Disabled = !setsSplit ? 'opacity:0.3;pointer-events:none;' : '';
+  const s3w_val = parseInt(m.s3w), s3l_val = parseInt(m.s3l);
+  const isMTB = setsSplit && !isNaN(s3w_val)&&!isNaN(s3l_val) && ((s3w_val===1&&s3l_val===0)||(s3w_val===0&&s3l_val===1));
+  const isStdS3TB = setsSplit && !isNaN(s3w_val)&&!isNaN(s3l_val) && ((s3w_val===7&&s3l_val===6)||(s3w_val===6&&s3l_val===7));
 
   document.getElementById('modal-box').classList.add('edit-mode');
   document.getElementById('modal-body').className = 'modal-body edit-mode';
@@ -5281,6 +5382,13 @@ function openEditMode(idx) {
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s1w',m.s1w)}</div>
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s1l',m.s1l)}</div>
               </div>
+              <div id="edit-tb1-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:11px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak (Optional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('tb1w',m.tb1w||'')}</div>
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('tb1l',m.tb1l||'')}</div>
+                </div>
+              </div>
             </div>
             <div id="edit-s2-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 2 <span class="required-dot"></span></div>
@@ -5288,12 +5396,37 @@ function openEditMode(idx) {
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s2w',m.s2w)}</div>
                 <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s2l',m.s2l)}</div>
               </div>
+              <div id="edit-tb2-reveal" style="display:none;margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:11px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak (Optional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('tb2w',m.tb2w||'')}</div>
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('tb2l',m.tb2l||'')}</div>
+                </div>
+              </div>
             </div>
-            <div id="edit-s3-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box;${s3Disabled}">
+            <div id="edit-s3-box" style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--surface2);box-sizing:border-box;display:flex;flex-direction:column;${s3Disabled}${isMTB?'border-color:var(--slate,#6385a2);':''}">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);text-align:center;margin-bottom:5px">Set 3</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
-                <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s3w',setsSplit?m.s3w:'')}</div>
-                <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s3l',setsSplit?m.s3l:'')}</div>
+                <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('s3w', isMTB?m.s3w:(setsSplit?m.s3w:''), isMTB)}</div>
+                <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('s3l', isMTB?m.s3l:(setsSplit?m.s3l:''), isMTB)}</div>
+              </div>
+              <div id="edit-mtb-check-row" style="display:flex;align-items:center;gap:4px;cursor:pointer;margin-top:5px">
+                <input type="checkbox" id="edit-mtb-check" ${isMTB?'checked':''} style="width:12px;height:12px;cursor:pointer;accent-color:var(--navy,#2f4157);flex-shrink:0" onchange="onEditMTBToggle()">
+                <label for="edit-mtb-check" style="font-size:10px;color:var(--muted);cursor:pointer;line-height:1.3">Match tiebreak</label>
+              </div>
+              <div id="edit-tb3std-reveal" style="display:${isStdS3TB?'block':'none'};margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:11px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Tiebreak (Optional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('tb3stdw', isStdS3TB?m.tb3w||'':'')}</div>
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('tb3stdl', isStdS3TB?m.tb3l||'':'')}</div>
+                </div>
+              </div>
+              <div id="edit-tb3mtb-reveal" style="display:${isMTB?'block':'none'};margin-top:5px;background:rgba(74,144,184,0.08);border:1px solid rgba(74,144,184,0.25);border-radius:4px;padding:5px 6px">
+                <div style="font-size:11px;color:var(--accent,#4a90b8);font-weight:600;margin-bottom:4px">Match tiebreak score (Optional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Us</div>${scoreBox('tb3w', isMTB?m.tb3w||'':'')}</div>
+                  <div><div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px">Opp</div>${scoreBox('tb3l', isMTB?m.tb3l||'':'')}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -5333,13 +5466,28 @@ function openEditMode(idx) {
           ${sel('playoffround', validEntries.playoffround||[], m.playoffround)}
         </div>
 
-        <div class="section-title" style="margin-top:14px">Notes</div>
+        <div class="section-title" style="margin-top:14px">Match Notes</div>
         <div class="field">
           <textarea id="edit-notes" rows="4"
             style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
             onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
             placeholder="Add any notes about this match…">${escHtml(m.notes || '')}</textarea>
         </div>
+        <div class="section-title" style="margin-top:14px">Scouting Notes — <span>${escHtml(m.opp1 || 'Opponent 1')}</span></div>
+        <div class="field">
+          <textarea id="edit-opp1notes" rows="3"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
+            placeholder="Notes about this opponent — strategy, tendencies, weaknesses…">${escHtml(m.opp1Notes || '')}</textarea>
+        </div>
+        ${m.opp2 ? `
+        <div class="section-title" style="margin-top:14px">Scouting Notes — <span>${escHtml(m.opp2)}</span></div>
+        <div class="field">
+          <textarea id="edit-opp2notes" rows="3"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
+            placeholder="Notes about this opponent…">${escHtml(m.opp2Notes || '')}</textarea>
+        </div>` : ''}
       </div>
     </div>
     <div class="edit-modal-footer">
@@ -5347,6 +5495,7 @@ function openEditMode(idx) {
       <button class="btn btn-modal-save" onclick="saveEdit(${idx})">💾 Save</button>
     </div>
   `;
+  onEditScoreChange();
 }
 
 async function saveEdit(idx) {
@@ -5371,11 +5520,14 @@ async function saveEdit(idx) {
     opponent1: get('opp1'), opponent2: get('opp2'), partner: get('partner'),
     set1wins: get('s1w'), set1losses: get('s1l'), set2wins: get('s2w'),
     set2losses: get('s2l'), set3wins: get('s3w'), set3losses: get('s3l'),
-    tb1wins: m.tb1w||'', tb1losses: m.tb1l||'',
-    tb2wins: m.tb2w||'', tb2losses: m.tb2l||'',
-    tb3wins: m.tb3w||'', tb3losses: m.tb3l||'',
+    tb1wins: get('tb1w'), tb1losses: get('tb1l'),
+    tb2wins: get('tb2w'), tb2losses: get('tb2l'),
+    tb3wins: getCheck('mtb-check') ? get('tb3w') : get('tb3stdw'),
+    tb3losses: getCheck('mtb-check') ? get('tb3l') : get('tb3stdl'),
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
-    notes: (document.getElementById('edit-notes')?.value || '').trim()
+    notes: (document.getElementById('edit-notes')?.value || '').trim(),
+    opp1Notes: (document.getElementById('edit-opp1notes')?.value || '').trim(),
+    opp2Notes: (document.getElementById('edit-opp2notes')?.value || '').trim()
   };
 
   // Find the actual sheet row — we need to identify which row this is
@@ -5411,7 +5563,8 @@ async function saveEdit(idx) {
         tb2w: updated.tb2wins, tb2l: updated.tb2losses,
         tb3w: updated.tb3wins, tb3l: updated.tb3losses,
         oppRet: updated.opponentretired, weRet: updated.weretired,
-        result: eu_result, notes: updated.notes
+        result: eu_result, notes: updated.notes,
+        opp1Notes: updated.opp1Notes || '', opp2Notes: updated.opp2Notes || ''
       }};
       hideSaving();
       closeModal();
@@ -6982,13 +7135,13 @@ function renderEntry() {
         <div style="margin-top:10px">
           <div class="field">
             <div class="field-label">Opponent 1 <span class="required-dot"></span></div>
-            <input type="text" id="e-opp1" placeholder="First Last">
+            <input type="text" id="e-opp1" placeholder="First Last" oninput="updateScoutingLabels()">
             <div class="field-error" id="err-opp1">Required</div>
           </div>
           <div id="e-opp2-field" class="cond cond-hidden">
             <div class="field">
               <div class="field-label">Opponent 2 <span class="required-dot"></span></div>
-              <input type="text" id="e-opp2" placeholder="First Last" tabindex="-1">
+              <input type="text" id="e-opp2" placeholder="First Last" tabindex="-1" oninput="updateScoutingLabels()">
               <div class="field-error" id="err-opp2">Opponent 2 is required for doubles</div>
             </div>
           </div>
@@ -7175,10 +7328,20 @@ function renderEntry() {
           
         </div>
 
-        <!-- Notes -->
-        <div class="section-title" style="margin-top:14px">Notes</div>
+        <!-- Match Notes + Scouting Notes -->
+        <div class="section-title" style="margin-top:14px">Match Notes</div>
         <div class="field">
           <textarea id="e-notes" rows="3" placeholder="Add any notes about this match…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+        </div>
+        <div class="section-title" id="e-opp1notes-label" style="margin-top:14px">Scouting Notes — <span id="e-opp1notes-name">Opponent 1</span></div>
+        <div class="field">
+          <textarea id="e-opp1notes" rows="3" placeholder="Notes about this opponent — strategy, tendencies, weaknesses…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+        </div>
+        <div id="e-opp2notes-block" style="display:none">
+          <div class="section-title" style="margin-top:14px">Scouting Notes — <span id="e-opp2notes-name">Opponent 2</span></div>
+          <div class="field">
+            <textarea id="e-opp2notes" rows="3" placeholder="Notes about this opponent…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+          </div>
         </div>
       </div>
 
@@ -7249,6 +7412,17 @@ function onRetireToggle(which) {
   }
 }
 
+function updateScoutingLabels() {
+  const opp1 = (document.getElementById('e-opp1')?.value || '').trim();
+  const opp2 = (document.getElementById('e-opp2')?.value || '').trim();
+  const nameEl1 = document.getElementById('e-opp1notes-name');
+  if (nameEl1) nameEl1.textContent = opp1 || 'Opponent 1';
+  const opp2Block = document.getElementById('e-opp2notes-block');
+  const nameEl2 = document.getElementById('e-opp2notes-name');
+  if (opp2Block) opp2Block.style.display = opp2 ? 'block' : 'none';
+  if (nameEl2) nameEl2.textContent = opp2 || 'Opponent 2';
+}
+
 function onEntryTypeChange() {
   const type = document.getElementById('e-type')?.value.toLowerCase() || '';
   const isDb = type.includes('doubles') || type.includes('mixed');
@@ -7285,6 +7459,102 @@ function onEntryPlayoffChange() {
   document.getElementById('e-playoff-row')?.classList.toggle('cond-hidden', !checked);
 }
 function onEntryRetiredChange() { onEntryScoreChange(); onEntryUpdateTBReveals(); }
+
+function onEditMTBToggle() {
+  const on = document.getElementById('edit-mtb-check')?.checked;
+  const s3wEl = document.getElementById('edit-s3w');
+  const s3lEl = document.getElementById('edit-s3l');
+  const s3box = document.getElementById('edit-s3-box');
+  if (on) {
+    if(s3wEl){s3wEl.readOnly=true;s3wEl.style.color='var(--muted)';s3wEl.style.background='var(--surface2)';}
+    if(s3lEl){s3lEl.readOnly=true;s3lEl.style.color='var(--muted)';s3lEl.style.background='var(--surface2)';}
+    document.getElementById('edit-tb3std-reveal').style.display='none';
+    document.getElementById('edit-tb3mtb-reveal').style.display='block';
+    if(s3box) s3box.style.borderColor='var(--slate,#6385a2)';
+    editMTBAutoFill();
+  } else {
+    if(s3wEl){s3wEl.readOnly=false;s3wEl.style.color='';s3wEl.style.background='';}
+    if(s3lEl){s3lEl.readOnly=false;s3lEl.style.color='';s3lEl.style.background='';}
+    if(s3wEl) s3wEl.value=''; if(s3lEl) s3lEl.value='';
+    document.getElementById('edit-tb3mtb-reveal').style.display='none';
+    const tb3w=document.getElementById('edit-tb3w'),tb3l=document.getElementById('edit-tb3l');
+    if(tb3w)tb3w.value=''; if(tb3l)tb3l.value='';
+    if(s3box) s3box.style.borderColor='';
+    onEditScoreChange();
+  }
+}
+
+function editMTBAutoFill() {
+  const tbw = parseInt(document.getElementById('edit-tb3w')?.value);
+  const tbl = parseInt(document.getElementById('edit-tb3l')?.value);
+  const s3wEl = document.getElementById('edit-s3w');
+  const s3lEl = document.getElementById('edit-s3l');
+  if (!s3wEl||!s3lEl) return;
+  if (!isNaN(tbw)&&!isNaN(tbl)&&tbw!==tbl) {
+    s3wEl.value = tbw>tbl?'1':'0';
+    s3lEl.value = tbl>tbw?'1':'0';
+  } else {
+    s3wEl.value=''; s3lEl.value='';
+  }
+}
+
+function onEditMTBScoreChange() {
+  if (document.getElementById('edit-mtb-check')?.checked) editMTBAutoFill();
+}
+
+function onEditScoreChange() {
+  const s1w = document.getElementById('edit-s1w')?.value;
+  const s1l = document.getElementById('edit-s1l')?.value;
+  const s2w = document.getElementById('edit-s2w')?.value;
+  const s2l = document.getElementById('edit-s2l')?.value;
+  let needS3 = false;
+  if (s1w!==''&&s1w!==undefined && s1l!==''&&s1l!==undefined &&
+      s2w!==''&&s2w!==undefined && s2l!==''&&s2l!==undefined) {
+    const nS1w=parseInt(s1w), nS1l=parseInt(s1l), nS2w=parseInt(s2w), nS2l=parseInt(s2l);
+    if (!isNaN(nS1w)&&!isNaN(nS1l)&&!isNaN(nS2w)&&!isNaN(nS2l)) {
+      needS3 = (nS1w > nS1l) !== (nS2w > nS2l);
+    }
+  }
+  const s3box = document.getElementById('edit-s3-box');
+  if (s3box) {
+    s3box.style.opacity = needS3 ? '1' : '0.3';
+    s3box.style.pointerEvents = needS3 ? '' : 'none';
+  }
+  if (!needS3) {
+    const s3w = document.getElementById('edit-s3w');
+    const s3l = document.getElementById('edit-s3l');
+    if (s3w) s3w.value = '';
+    if (s3l) s3l.value = '';
+  }
+  const isStdTB = (w,l) => (w===7&&l===6)||(w===6&&l===7);
+  const n1w=parseInt(s1w), n1l=parseInt(s1l);
+  const show1 = !isNaN(n1w)&&!isNaN(n1l) && isStdTB(n1w,n1l);
+  const tb1 = document.getElementById('edit-tb1-reveal');
+  if (tb1) {
+    tb1.style.display = show1 ? 'block' : 'none';
+    if (!show1) { const w=document.getElementById('edit-tb1w'),l=document.getElementById('edit-tb1l'); if(w)w.value=''; if(l)l.value=''; }
+  }
+  const n2w=parseInt(s2w), n2l=parseInt(s2l);
+  const show2 = !isNaN(n2w)&&!isNaN(n2l) && isStdTB(n2w,n2l);
+  const tb2 = document.getElementById('edit-tb2-reveal');
+  if (tb2) {
+    tb2.style.display = show2 ? 'block' : 'none';
+    if (!show2) { const w=document.getElementById('edit-tb2w'),l=document.getElementById('edit-tb2l'); if(w)w.value=''; if(l)l.value=''; }
+  }
+  const mtbOn = document.getElementById('edit-mtb-check')?.checked;
+  if (mtbOn) { editMTBAutoFill(); }
+  if (!mtbOn) {
+    const s3w = document.getElementById('edit-s3w')?.value;
+    const s3l = document.getElementById('edit-s3l')?.value;
+    const n3w=parseInt(s3w), n3l=parseInt(s3l);
+    const show3std = !isNaN(n3w)&&!isNaN(n3l) && isStdTB(n3w,n3l);
+    const tb3std = document.getElementById('edit-tb3std-reveal');
+    if (tb3std) {
+      tb3std.style.display = show3std ? 'block' : 'none';
+      if (!show3std) { const w=document.getElementById('edit-tb3stdw'),l=document.getElementById('edit-tb3stdl'); if(w)w.value=''; if(l)l.value=''; }
+    }
+  }
+}
 
 // ── Tiebreak helpers ──────────────────────────────────────────────────────────
 function entryGetNum(id) { const v=parseInt(document.getElementById('e-'+id)?.value); return isNaN(v)?null:v; }
@@ -8363,7 +8633,9 @@ async function submitEntry() {
     tb3wins: entryMTBOn() ? get('tb3w') : get('tb3stdw'),
     tb3losses: entryMTBOn() ? get('tb3l') : get('tb3stdl'),
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
-    notes: document.getElementById('e-notes')?.value?.trim() || ''
+    notes: document.getElementById('e-notes')?.value?.trim() || '',
+    opp1Notes: document.getElementById('e-opp1notes')?.value?.trim() || '',
+    opp2Notes: document.getElementById('e-opp2notes')?.value?.trim() || ''
   };
 
   showSaving('Saving match…');
@@ -8414,7 +8686,8 @@ async function submitEntry() {
         tb2w: match.tb2wins, tb2l: match.tb2losses,
         tb3w: match.tb3wins, tb3l: match.tb3losses,
         oppRet: match.opponentretired, weRet: match.weretired,
-        result, notes: match.notes || ''
+        result, notes: match.notes || '',
+        opp1Notes: match.opp1Notes || '', opp2Notes: match.opp2Notes || ''
       });
       showToast('Match submitted!');
       const _newBadges = await computeBadges(allMatches);
