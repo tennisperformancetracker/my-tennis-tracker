@@ -4360,16 +4360,13 @@ function renderHistory(page, preFilterPartner) {
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
           style="flex:1 1 100px;min-width:0">
-        <div style="flex:1 1 100px;min-width:0;position:relative">
-          <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentDisplay)}"
-            oninput="onHistOpponentInput(this.value);histOppComboRender()"
-            onfocus="histOppComboRender()"
-            onblur="setTimeout(histOppComboClose,150)"
-            onkeydown="histOppComboKeydown(event)"
-            autocomplete="off"
-            style="width:100%">
-          <div id="hist-opp-drop" style="display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:9999;max-height:220px;overflow-y:auto;min-width:160px"></div>
-        </div>
+        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentDisplay)}"
+          oninput="onHistOpponentInput(this.value);histOppComboRender()"
+          onfocus="histOppComboRender()"
+          onblur="setTimeout(histOppComboClose,150)"
+          onkeydown="histOppComboKeydown(event)"
+          autocomplete="off"
+          style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
           oninput="onHistNotesInput(this.value)"
           style="flex:1 1 100px;min-width:0">
@@ -4882,8 +4879,16 @@ var _histOppHighlighted = -1;
 
 function histOppComboRender() {
   const input = document.getElementById('hist-opponent');
-  const drop  = document.getElementById('hist-opp-drop');
-  if (!input || !drop) return;
+  if (!input) return;
+
+  // Create the dropdown on body once so it is never clipped by parent overflow
+  let drop = document.getElementById('hist-opp-drop');
+  if (!drop) {
+    drop = document.createElement('div');
+    drop.id = 'hist-opp-drop';
+    drop.style.cssText = 'display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:9999;max-height:220px;overflow-y:auto;min-width:160px';
+    document.body.appendChild(drop);
+  }
 
   // Position dropdown under input
   const rect = input.getBoundingClientRect();
@@ -4973,7 +4978,10 @@ function onHistPartnerInput(val) {
 }
 
 function collapseHistInsightCards() {
-  if (window.innerWidth <= 768) return; // mobile has its own collapse UI
+  if (window.innerWidth <= 768) return;
+  // Set the flag so buildHistoryResults + applyHistoryFilter collapse cards after re-render
+  histInsightsCollapsed = true;
+  // Also collapse immediately if cards already exist in DOM (e.g. typing character by character)
   ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
