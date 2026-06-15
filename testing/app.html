@@ -4360,9 +4360,16 @@ function renderHistory(page, preFilterPartner) {
         <input class="search-input" id="hist-partner" placeholder="🔍 Partner…" value="${escHtml(partnerFilter)}"
           oninput="onHistPartnerInput(this.value)"
           style="flex:1 1 100px;min-width:0">
-        <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentDisplay)}"
-          oninput="onHistOpponentInput(this.value)"
-          style="flex:1 1 100px;min-width:0">
+        <div style="flex:1 1 100px;min-width:0;position:relative">
+          <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentDisplay)}"
+            oninput="onHistOpponentInput(this.value);histOppComboRender()"
+            onfocus="histOppComboRender()"
+            onblur="setTimeout(histOppComboClose,150)"
+            onkeydown="histOppComboKeydown(event)"
+            autocomplete="off"
+            style="width:100%">
+          <div id="hist-opp-drop" style="display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:9999;max-height:220px;overflow-y:auto;min-width:160px"></div>
+        </div>
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
           oninput="onHistNotesInput(this.value)"
           style="flex:1 1 100px;min-width:0">
@@ -4858,16 +4865,123 @@ var histInsightsCollapsed = false; // set true when navigating from dashboard li
 var histInsightsWasCollapsed = false; // preserved after reset for post-render DOM use
 var dashboardReturnState = null; // stores scroll + drill state for back-to-dashboard
 
+// ── Match History opponent combo ─────────────────────────────
+function histOppGetOptions(query) {
+  const oppSet = new Set();
+  (allMatches || []).forEach(function(m) {
+    if (m.opp1 && m.opp1.trim()) oppSet.add(m.opp1.trim());
+    if (m.opp2 && m.opp2.trim()) oppSet.add(m.opp2.trim());
+  });
+  const all = Array.from(oppSet).sort(function(a,b){ return a.localeCompare(b); });
+  if (!query) return all;
+  const q = query.toLowerCase();
+  return all.filter(function(o){ return o.toLowerCase().includes(q); });
+}
+
+var _histOppHighlighted = -1;
+
+function histOppComboRender() {
+  const input = document.getElementById('hist-opponent');
+  const drop  = document.getElementById('hist-opp-drop');
+  if (!input || !drop) return;
+
+  // Position dropdown under input
+  const rect = input.getBoundingClientRect();
+  drop.style.left     = rect.left + 'px';
+  drop.style.top      = (rect.bottom + 2) + 'px';
+  drop.style.minWidth = rect.width + 'px';
+
+  const query   = input.value.trim();
+  const options = histOppGetOptions(query);
+
+  if (options.length === 0) { histOppComboClose(); return; }
+
+  _histOppHighlighted = -1;
+  drop.innerHTML = '';
+  options.forEach(function(opt) {
+    const el = document.createElement('div');
+    el.className = 'combo-option';
+    el.style.cssText = 'padding:8px 12px;font-size:13px;cursor:pointer;color:var(--text)';
+    if (query) {
+      const idx = opt.toLowerCase().indexOf(query.toLowerCase());
+      el.innerHTML = escHtml(opt.slice(0, idx))
+        + '<strong>' + escHtml(opt.slice(idx, idx + query.length)) + '</strong>'
+        + escHtml(opt.slice(idx + query.length));
+    } else {
+      el.textContent = opt;
+    }
+    el.onmousedown = function(e) {
+      e.preventDefault();
+      input.value = opt;
+      filterState.history.opponent = opt;
+      collapseHistInsightCards();
+      histOppComboClose();
+      clearTimeout(_histTimer);
+      _histTimer = setTimeout(applyHistoryFilter, 0);
+    };
+    drop.appendChild(el);
+  });
+  drop.style.display = 'block';
+}
+
+function histOppComboClose() {
+  const drop = document.getElementById('hist-opp-drop');
+  if (drop) drop.style.display = 'none';
+  _histOppHighlighted = -1;
+}
+
+function histOppComboKeydown(e) {
+  const drop = document.getElementById('hist-opp-drop');
+  const isOpen = drop && drop.style.display !== 'none';
+  const opts = drop ? Array.from(drop.querySelectorAll('.combo-option')) : [];
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!isOpen) { histOppComboRender(); return; }
+    _histOppHighlighted = Math.min(_histOppHighlighted + 1, opts.length - 1);
+    opts.forEach(function(o,i){ o.classList.toggle('highlighted', i === _histOppHighlighted); });
+    if (opts[_histOppHighlighted]) opts[_histOppHighlighted].scrollIntoView({block:'nearest'});
+    return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _histOppHighlighted = Math.max(_histOppHighlighted - 1, 0);
+    opts.forEach(function(o,i){ o.classList.toggle('highlighted', i === _histOppHighlighted); });
+    if (opts[_histOppHighlighted]) opts[_histOppHighlighted].scrollIntoView({block:'nearest'});
+    return;
+  }
+  if (e.key === 'Enter' && isOpen && _histOppHighlighted >= 0 && opts[_histOppHighlighted]) {
+    e.preventDefault();
+    opts[_histOppHighlighted].onmousedown(e);
+    return;
+  }
+  if (e.key === 'Escape') { histOppComboClose(); return; }
+}
+
 function onHistOpponentInput(val) {
   filterState.history.opponent = val.trim();
+  if (val.trim()) collapseHistInsightCards();
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
 }
 
 function onHistPartnerInput(val) {
   filterState.history.partner = val.trim();
+  if (val.trim()) collapseHistInsightCards();
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
+}
+
+function collapseHistInsightCards() {
+  if (window.innerWidth <= 768) return; // mobile has its own collapse UI
+  ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  var btn = document.getElementById('hist-cards-toggle-btn');
+  if (btn) {
+    btn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+  }
 }
 
 function onHistNotesInput(val) {
@@ -5040,6 +5154,7 @@ function clearHistoryFilters() {
   if (oppEl) oppEl.value = '';
   if (parEl) parEl.value = '';
   if (notEl) notEl.value = '';
+  histOppComboClose();
   const poEl = document.getElementById('hist-playoff');
   if (poEl) poEl.checked = false;
   renderHistory(1);
@@ -5137,9 +5252,21 @@ function openMatchDetail(idx) {
     </div>
     <hr class="detail-divider">
     <div style="padding:14px 20px">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Notes</div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Match Notes</div>
       <textarea class="note-textarea" id="detail-notes-input">${escHtml(m.notes || '')}</textarea>
     </div>
+    ${(m.opp1Notes || m.opp2Notes) ? `
+    <hr class="detail-divider">
+    <div style="padding:14px 20px">
+      ${m.opp1Notes ? `<div style="margin-bottom:${m.opp2Notes ? '14px' : '0'}">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Scouting — ${escHtml(m.opp1)}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px">${escHtml(m.opp1Notes)}</div>
+      </div>` : ''}
+      ${m.opp2Notes ? `<div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Scouting — ${escHtml(m.opp2)}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px">${escHtml(m.opp2Notes)}</div>
+      </div>` : ''}
+    </div>` : ''}
     <hr class="detail-divider">
     <div class="detail-modal-footer">
       <button class="btn btn-modal-delete" onclick="openConfirmDelete(${idx})">🗑 Delete</button>
@@ -8313,20 +8440,26 @@ function comboRenderDropdown(field, filterText) {
   state.highlighted = -1;
   comboState[field] = state;
 
-  if (filtered.length === 0 && query.length >= 1) {
-    // No matches — show add option only
-    const addOpt = document.createElement('div');
-    addOpt.className = 'combo-option add-new';
-    addOpt.textContent = '+ Add "' + filterText + '"';
-    addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
-    drop.appendChild(addOpt);
+  // Opponent fields: no "Add new" — just show matches, nothing if empty
+  const isOppField = field === 'opp1' || field === 'opp2';
+
+  if (filtered.length === 0) {
+    if (!isOppField && query.length >= 1) {
+      const addOpt = document.createElement('div');
+      addOpt.className = 'combo-option add-new';
+      addOpt.textContent = '+ Add "' + filterText + '"';
+      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
+      drop.appendChild(addOpt);
+    } else {
+      drop.classList.remove('open');
+      return;
+    }
   } else {
     filtered.forEach((opt, i) => {
       const el = document.createElement('div');
       el.className = 'combo-option';
       el.dataset.value = opt;
       el.dataset.index = i;
-      // Bold matching portion
       if (query.length >= 1) {
         const idx = opt.toLowerCase().indexOf(query);
         el.innerHTML = escHtml(opt.slice(0, idx))
@@ -8338,17 +8471,19 @@ function comboRenderDropdown(field, filterText) {
       el.onmousedown = (e) => { e.preventDefault(); comboSelectOption(field, opt); };
       drop.appendChild(el);
     });
-    // Always append + Add new at bottom
-    const addOpt = document.createElement('div');
-    addOpt.className = 'combo-option add-new';
-    if (query.length >= 1 && !filtered.some(o => o.toLowerCase() === query)) {
-      addOpt.textContent = '+ Add "' + filterText + '"';
-      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
-    } else {
-      addOpt.textContent = '+ Add new…';
-      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, ''); };
+    // Add new option — not for opponent fields
+    if (!isOppField) {
+      const addOpt = document.createElement('div');
+      addOpt.className = 'combo-option add-new';
+      if (query.length >= 1 && !filtered.some(o => o.toLowerCase() === query)) {
+        addOpt.textContent = '+ Add "' + filterText + '"';
+        addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
+      } else {
+        addOpt.textContent = '+ Add new…';
+        addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, ''); };
+      }
+      drop.appendChild(addOpt);
     }
-    drop.appendChild(addOpt);
   }
   drop.classList.add('open');
 }
