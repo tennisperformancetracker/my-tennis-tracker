@@ -4405,11 +4405,17 @@ function renderHistory(page, preFilterPartner) {
   content.insertAdjacentHTML('beforeend', `<div id="hist-results" style="max-width:100%;overflow:hidden;width:100%">${buildHistoryResults(filtered, sortOrder)}</div>`);
   autoOpenHistFilters();
   if (window.innerWidth > 768 && histInsightsWasCollapsed) {
-    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    });
     histInsightsWasCollapsed = false;
+    setTimeout(function() {
+      ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+        var bodyEl = document.getElementById(id);
+        if (bodyEl) { var card = bodyEl.parentElement; if (card) card.style.display = 'none'; }
+      });
+      var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+      }
+    }, 0);
   }
 }
 
@@ -4697,7 +4703,7 @@ function buildHistoryResults(filtered, sortOrder) {
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text)"><span class="tip" data-tip="' + opponent + '">' + opponent + '</span>' + playoffStar + '</td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text);max-width:0;width:60%"><span class="tip" data-tip="' + opponent + '" style="display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">' + opponent + '</span>' + playoffStar + '</td>'
       + '<td style="font-size:13px;color:var(--muted);max-width:160px">' + (partner ? '<span class="tip" data-tip="' + partnerFull + '" style="max-width:160px">' + partner + '</span>' : '—') + '</td>'
       + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
@@ -4999,15 +5005,19 @@ function applyHistoryFilter() {
     var _collapseAfterRender = histInsightsCollapsed;
     renderHistory(1);
     if (_collapseAfterRender && window.innerWidth > 768) {
-      ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      });
-      var toggleBtn = document.getElementById('hist-cards-toggle-btn');
-      if (toggleBtn) {
-        toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
-      }
       histInsightsCollapsed = false;
+      setTimeout(function() {
+        ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+          var bodyEl = document.getElementById(id);
+          if (bodyEl) bodyEl.style.display = 'none';
+          var ctrl = document.getElementById(id + '-ctrl');
+          if (ctrl) ctrl.style.display = 'none';
+        });
+        var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+        if (toggleBtn) {
+          toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+        }
+      }, 0);
     }
     return;
   }
@@ -5074,18 +5084,22 @@ function applyHistoryFilter() {
     var chev = document.getElementById('hc-insights-chev');
     if (chev) chev.textContent = '▲';
   }
-  // Collapse insight cards post-render when triggered by opponent/partner combo selection
-  if (!isMob && shouldCollapseCards) {
-    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    });
-    var toggleBtn = document.getElementById('hist-cards-toggle-btn');
-    if (toggleBtn) {
-      toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
-    }
+  // Collapse insight cards post-render — use setTimeout to ensure paint is complete
+  if (shouldCollapseCards && window.innerWidth > 768) {
     histInsightsWasCollapsed = false;
     histInsightsCollapsed = false;
+    setTimeout(function() {
+      ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+        var bodyEl = document.getElementById(id);
+        if (bodyEl) bodyEl.style.display = 'none';
+        var ctrl = document.getElementById(id + '-ctrl');
+        if (ctrl) ctrl.style.display = 'none';
+      });
+      var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+      }
+    }, 0);
   }
 }
 
@@ -5210,7 +5224,7 @@ function openMatchDetail(idx) {
   document.getElementById('modal-header').innerHTML = `
     <div style="flex:1;min-width:0;overflow:hidden">
       <div class="detail-date-header">Match Details</div>
-      ${hasPartner ? `<div class="detail-partner-line" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="${escHtml(m.partner)}" style="max-width:calc(100% - 24px)">${escHtml(m.partner)}</span></div>` : ''}
+      <div class="detail-partner-line" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${hasPartner ? `w/ <span class="tip" data-tip="${escHtml(m.partner)}" style="max-width:calc(100% - 24px)">${escHtml(m.partner)}</span>` : ''}<span style="color:var(--muted);font-size:12px${hasPartner ? ';margin-left:6px' : ''}">${m.date ? 'on ' + escHtml(m.date) : ''}</span></div>
     </div>
     <div class="detail-result-word ${m.result||'unknown'}">${resultWord}</div>
     <button class="btn btn-ghost" style="padding:4px 8px;font-size:16px;line-height:1;margin-left:10px" onclick="closeModal()">✕</button>
