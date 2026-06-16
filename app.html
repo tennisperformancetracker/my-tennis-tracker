@@ -8039,13 +8039,8 @@ function comboGetValue(field) {
 function comboSetValue(field, value) {
   const el = document.getElementById('e-' + field);
   if (el) el.value = value;
-  if (field === 'partner') {
-    // store for submit
-    entryNewValues[field] = value;
-  }
-  if (field === 'level') {
-    entryNewValues[field] = value;
-  }
+  // Do NOT set entryNewValues here — only comboTriggerAddNew should do that
+  // for genuinely new entries that need to be persisted to the sheet.
 }
 
 function comboPositionDropdown(field) {
@@ -8240,8 +8235,11 @@ function comboHighlight(field, options, idx) {
 }
 
 async function comboTriggerAddNew(field, prefill) {
+  if (comboTriggerAddNew._busy) return;
+  comboTriggerAddNew._busy = true;
   const input = document.getElementById('e-' + field);
   const value = await showEntryNewModal(field, prefill);
+  comboTriggerAddNew._busy = false;
   if (!value) {
     // Cancelled — clear the input
     if (input) input.value = '';
