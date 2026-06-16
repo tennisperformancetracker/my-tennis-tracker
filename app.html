@@ -8502,10 +8502,6 @@ async function submitEntry() {
         if (!validEntries[k].includes(v)) validEntries[k].push(v);
       });
       Object.keys(entryNewValues).forEach(k => delete entryNewValues[k]);
-  // Explicitly clear partner combo (input + close dropdown)
-  const partnerInput = document.getElementById('e-partner');
-  if (partnerInput) partnerInput.value = '';
-  comboClose('partner');
   Object.keys(sselState).forEach(f => sselClose(f));
   Object.keys(fselState||{}).forEach(f => { if(typeof fselClose==='function') fselClose(f); });
   // Close any open combo dropdowns
@@ -8678,6 +8674,10 @@ function resetEntryForm() {
   // Reset Set 3 label
   const s3label = document.getElementById('e-s3-label');
   if (s3label) s3label.innerHTML = 'Set 3';
+  // Explicitly clear partner combo and close its dropdown
+  const partnerInput = document.getElementById('e-partner');
+  if (partnerInput) partnerInput.value = '';
+  comboClose('partner');
 }
 
 // 
