@@ -8178,6 +8178,7 @@ function onComboBlur(field) {
   setTimeout(() => {
     const drop = document.getElementById('combo-drop-' + field);
     if (drop) drop.classList.remove('open');
+    comboClearUpdate(field);
   }, 150);
 }
 
