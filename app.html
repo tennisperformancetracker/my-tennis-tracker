@@ -514,6 +514,13 @@ textarea:focus { border-color: var(--accent2) !important; }
   position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
   pointer-events: none; color: var(--muted);
 }
+.combo-clear {
+  position: absolute; right: 28px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; border-radius: 50%; background: var(--muted);
+  color: #fff; font-size: 10px; line-height: 16px; text-align: center;
+  cursor: pointer; display: none; user-select: none; font-weight: 700;
+}
+.combo-clear.visible { display: block; }
 .combo-dropdown {
   position: fixed; background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); z-index: 8000; max-height: 220px;
@@ -7040,10 +7047,12 @@ function renderEntry() {
             <div class="combo-wrap" id="combo-wrap-partner">
               <input type="text" class="combo-input" id="e-partner"
                 placeholder="— Select or type —" autocomplete="off"
-                oninput="onComboInput('partner')"
+                style="padding-right:46px"
+                oninput="onComboInput('partner');comboClearUpdate('partner')"
                 onfocus="onComboFocus('partner')"
                 onblur="onComboBlur('partner')"
                 onkeydown="onComboKeydown(event,'partner')">
+              <span class="combo-clear" id="combo-clear-partner" onmousedown="event.preventDefault();comboClearPartner()">✕</span>
               <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
               <div class="combo-dropdown" id="combo-drop-partner"></div>
             </div>
@@ -7270,7 +7279,33 @@ function onEntryHomeAwayChange() {
 }
 
 function applyDefaultPartner() {
-  // Partner is intentionally left blank on load and after submission.
+  const typeEl = document.getElementById('e-type');
+  if (!typeEl || !typeEl.value) return;
+  const t = typeEl.value;
+  const defPartner = localStorage.getItem('defaultPartner_' + t) || '';
+  if (defPartner) {
+    const partnerEl = document.getElementById('e-partner');
+    if (partnerEl) partnerEl.value = defPartner;
+  }
+  comboClearUpdate('partner');
+}
+
+function comboClearUpdate(field) {
+  const input = document.getElementById('e-' + field);
+  const btn   = document.getElementById('combo-clear-' + field);
+  if (!btn) return;
+  if (input && input.value.trim().length > 0) {
+    btn.classList.add('visible');
+  } else {
+    btn.classList.remove('visible');
+  }
+}
+
+function comboClearPartner() {
+  const input = document.getElementById('e-partner');
+  if (input) input.value = '';
+  comboClose('partner');
+  comboClearUpdate('partner');
 }
 
 function onRetireToggle(which) {
