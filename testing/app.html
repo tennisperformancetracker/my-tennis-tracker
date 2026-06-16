@@ -4697,7 +4697,7 @@ function buildHistoryResults(filtered, sortOrder) {
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text);max-width:200px"><span class="tip" data-tip="' + opponent + '" style="max-width:200px">' + opponent + '</span>' + playoffStar + '</td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text)"><span class="tip" data-tip="' + opponent + '">' + opponent + '</span>' + playoffStar + '</td>'
       + '<td style="font-size:13px;color:var(--muted);max-width:160px">' + (partner ? '<span class="tip" data-tip="' + partnerFull + '" style="max-width:160px">' + partner + '</span>' : '—') + '</td>'
       + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
@@ -4995,7 +4995,22 @@ function renderHistoryFiltered() {
 
 function applyHistoryFilter() {
   var resultsEl = document.getElementById('hist-results');
-  if (!resultsEl) { renderHistory(1); return; }
+  if (!resultsEl) {
+    var _collapseAfterRender = histInsightsCollapsed;
+    renderHistory(1);
+    if (_collapseAfterRender && window.innerWidth > 768) {
+      ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+      }
+      histInsightsCollapsed = false;
+    }
+    return;
+  }
 
   var opp  = filterState.history.opponent  || '';
   var par  = filterState.history.partner   || '';
@@ -5047,6 +5062,7 @@ function applyHistoryFilter() {
   // Preserve mobile insights open/closed state before re-render
   var insightsEl = document.getElementById('hc-insights');
   var insightsWasOpen = insightsEl ? insightsEl.style.display !== 'none' : false;
+  var shouldCollapseCards = histInsightsCollapsed || histInsightsWasCollapsed;
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
   // Restore mobile insights open state after re-render
   var insightsElNew = document.getElementById('hc-insights');
@@ -5058,13 +5074,18 @@ function applyHistoryFilter() {
     var chev = document.getElementById('hc-insights-chev');
     if (chev) chev.textContent = '▲';
   }
-  // Collapse insight cards via DOM after render — avoids fragile string replace
-  if (!isMob && histInsightsWasCollapsed) {
+  // Collapse insight cards post-render when triggered by opponent/partner combo selection
+  if (!isMob && shouldCollapseCards) {
     ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
+    var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+    }
     histInsightsWasCollapsed = false;
+    histInsightsCollapsed = false;
   }
 }
 
