@@ -8549,25 +8549,19 @@ async function submitEntry() {
       }
       // Capture the fields to preserve for next entry
       const keepFields = {
-        type:       resolve('type'),
-        season:     resolve('season'),
-        league:     resolve('league'),
-        level:      resolve('level'),
-        line:       resolve('line'),
-        homeaway:   resolve('homeaway'),
-        surface:    resolve('surface'),
-        time:       get('time'),
+        type:    resolve('type'),
+        season:  resolve('season'),
+        league:  resolve('league'),
+        level:   resolve('level'),
+        surface: resolve('surface'),
       };
       requestAnimationFrame(() => {
         const fields = {
-          'e-type':     keepFields.type,
-          'e-season':   keepFields.season,
-          'e-league':   keepFields.league,
-          'e-level':    keepFields.level,
-          'e-line':     keepFields.line,
-          'e-homeaway': keepFields.homeaway,
-          'e-surface':  keepFields.surface,
-          'e-time':     keepFields.time,
+          'e-type':    keepFields.type,
+          'e-season':  keepFields.season,
+          'e-league':  keepFields.league,
+          'e-level':   keepFields.level,
+          'e-surface': keepFields.surface,
         };
         Object.entries(fields).forEach(([id, val]) => {
           const el = document.getElementById(id);
@@ -8620,14 +8614,11 @@ function anotherMatchYes() {
   // Use requestAnimationFrame to wait for renderEntry to finish painting
   requestAnimationFrame(() => {
     const fields = {
-      'e-type':     keep.type,
-      'e-season':   keep.season,
-      'e-league':   keep.league,
-      'e-level':    keep.level,
-      'e-line':     keep.line,
-      'e-homeaway': keep.homeaway,
-      'e-surface':  keep.surface,
-      'e-time':     keep.time,
+      'e-type':    keep.type,
+      'e-season':  keep.season,
+      'e-league':  keep.league,
+      'e-level':   keep.level,
+      'e-surface': keep.surface,
     };
     Object.entries(fields).forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -8674,10 +8665,20 @@ function resetEntryForm() {
   // Reset Set 3 label
   const s3label = document.getElementById('e-s3-label');
   if (s3label) s3label.innerHTML = 'Set 3';
-  // Explicitly clear partner combo and close its dropdown
+  // Reset all ssel trigger displays (native selects are cleared above but visuals need updating)
+  Object.keys(sselConfig).forEach(f => sselSetTriggerText(f));
+  // Close all ssel dropdowns
+  Object.keys(sselState).forEach(f => sselClose(f));
+  // Clear partner combo input and close its dropdown
   const partnerInput = document.getElementById('e-partner');
   if (partnerInput) partnerInput.value = '';
   comboClose('partner');
+  // Hide playoff toggle (clear may have left it on)
+  const playoffCheck = document.getElementById('e-playoff');
+  if (playoffCheck) playoffCheck.checked = false;
+  document.getElementById('e-playoff-row')?.classList.add('cond-hidden');
+  // Reset type-dependent UI
+  onEntryTypeChange();
 }
 
 // 
