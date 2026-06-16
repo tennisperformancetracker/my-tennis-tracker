@@ -6232,10 +6232,12 @@ function renderSettings() {
                           <input type="text" class="combo-input" id="defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"
                             data-type="${escHtml(t)}"
                             placeholder="— None —" autocomplete="off" value="${escHtml(saved)}"
-                            oninput="onSettingsComboInput(this.id)"
+                            style="padding-right:46px"
+                            oninput="onSettingsComboInput(this.id);comboClearUpdate(this.id)"
                             onfocus="onSettingsComboFocus(this.id)"
                             onblur="onComboBlur(this.id)"
                             onkeydown="onSettingsComboKeydown(event,this.id)">
+                          <span class="combo-clear${saved ? ' visible' : ''}" id="combo-clear-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}" onmousedown="event.preventDefault();comboClearField('defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}')">✕</span>
                           <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
                           <div class="combo-dropdown" id="combo-drop-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"></div>
                         </div>
@@ -6263,10 +6265,12 @@ function renderSettings() {
                     <input type="text" class="combo-input" id="def-level-combo"
                       placeholder="— None —" autocomplete="off"
                       value="${escHtml(localStorage.getItem('defaultLevel')||'')}"
-                      oninput="onSettingsComboInput('def-level-combo')"
+                      style="padding-right:46px"
+                      oninput="onSettingsComboInput('def-level-combo');comboClearUpdate('def-level-combo')"
                       onfocus="onSettingsComboFocus('def-level-combo')"
                       onblur="onComboBlur('def-level-combo')"
                       onkeydown="onSettingsComboKeydown(event,'def-level-combo')">
+                    <span class="combo-clear${localStorage.getItem('defaultLevel') ? ' visible' : ''}" id="combo-clear-def-level-combo" onmousedown="event.preventDefault();comboClearField('def-level-combo')">✕</span>
                     <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <div class="combo-dropdown" id="combo-drop-def-level-combo"></div>
                   </div>
@@ -7171,10 +7175,12 @@ function renderEntry() {
             <div class="combo-wrap" id="combo-wrap-level">
               <input type="text" class="combo-input" id="e-level"
                 placeholder="— Select or type —" autocomplete="off"
-                oninput="onComboInput('level')"
+                style="padding-right:46px"
+                oninput="onComboInput('level');comboClearUpdate('level')"
                 onfocus="onComboFocus('level')"
                 onblur="onComboBlur('level')"
                 onkeydown="onComboKeydown(event,'level')">
+              <span class="combo-clear" id="combo-clear-level" onmousedown="event.preventDefault();comboClearField('level')">✕</span>
               <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
               <div class="combo-dropdown" id="combo-drop-level"></div>
             </div>
@@ -7291,7 +7297,7 @@ function applyDefaultPartner() {
 }
 
 function comboClearUpdate(field) {
-  const input = document.getElementById('e-' + field);
+  const input = document.getElementById('e-' + field) || document.getElementById(field);
   const btn   = document.getElementById('combo-clear-' + field);
   if (!btn) return;
   if (input && input.value.trim().length > 0) {
@@ -7301,11 +7307,15 @@ function comboClearUpdate(field) {
   }
 }
 
-function comboClearPartner() {
-  const input = document.getElementById('e-partner');
+function comboClearField(field) {
+  const input = document.getElementById('e-' + field) || document.getElementById(field);
   if (input) input.value = '';
-  comboClose('partner');
-  comboClearUpdate('partner');
+  comboClose(field);
+  comboClearUpdate(field);
+}
+
+function comboClearPartner() {
+  comboClearField('partner');
 }
 
 function onRetireToggle(which) {
@@ -8027,6 +8037,7 @@ function settingsComboRender(fieldId, query) {
       e.preventDefault();
       input.value = opt;
       comboClose(fieldId);
+      comboClearUpdate(fieldId);
     };
     drop.appendChild(el);
   });
@@ -8299,6 +8310,8 @@ function initCombos() {
     const levelEl = document.getElementById('e-level');
     if (levelEl) levelEl.value = defLevel;
   }
+  comboClearUpdate('level');
+  comboClearUpdate('partner');
 }
 
 function showEntryNewModal(field, prefill) {
