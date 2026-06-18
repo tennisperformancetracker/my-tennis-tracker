@@ -233,8 +233,9 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 }
 .kpi2-ghost:hover .kpi2-ghost-dismiss { display: flex; }
 .kpi2-ghost-dismiss:hover { background: var(--surface2); color: var(--text); }
-@media (max-width: 768px) { .kpi2-ghost { display: none !important; } }
-@media (max-width: 768px) { .kpi-grid-ghosts-only { margin-bottom: 0; gap: 0; } }
+@media (max-width: 768px) { .kpi2-ghost { min-height: 60px; flex-direction: row; justify-content: flex-start; gap: 10px; border-radius: 10px; } }
+@media (max-width: 768px) { .kpi2-ghost-dismiss { display: flex !important; position: static; width: 20px; height: 20px; margin-left: auto; } }
+@media (max-width: 768px) { .kpi-grid-ghosts-only { grid-template-columns: 1fr !important; margin-bottom: 14px; } }
 
 .kpi-add-strip {
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -243,8 +244,6 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
   font-size: 12px; font-weight: 600; transition: border-color 0.15s, color 0.15s;
 }
 .kpi-add-strip:hover { border-color: var(--accent2); color: var(--accent2); }
-.kpi-add-strip-mobile { display: none; }
-@media (max-width: 768px) { .kpi-add-strip-mobile { display: flex; } }
 .kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
 .kpi2-mini-row {
   display: flex; gap: 0; border-top: 1px solid var(--border);
@@ -2834,17 +2833,16 @@ function buildKPIs(matches, curYearMatches) {
     }
     var ghostsOnly = '';
     for (var g = 0; g < colCount; g++) { ghostsOnly += kpiGhostCard(); }
-    return '<div class="kpi-grid kpi-grid-ghosts-only" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)">' + ghostsOnly + '</div>'
-      + '<div class="kpi-add-strip kpi-add-strip-mobile" onclick="navigateToSettingsSection(\'sec-appearance\')"><span style="font-size:14px;font-weight:700">+</span><span>Add stat cards</span></div>';
+    return '<div class="kpi-grid kpi-grid-ghosts-only" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)">' + ghostsOnly + '</div>';
   }
 
   var cardHtml = cardOrder.map(buildCard).join('');
   var ghostCount = dismissed ? 0 : ((colCount - (cardOrder.length % colCount)) % colCount);
   for (var i = 0; i < ghostCount; i++) { cardHtml += kpiGhostCard(); }
 
-  var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
+  var collapsible = cardOrder.length >= 1 ? ' data-collapsible="true"' : '';
   return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
-    + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '')
+    + (cardOrder.length >= 1 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '')
     + '<div id="kpi-desktop-bar" style="display:flex;justify-content:center;margin:-4px 0 14px">'
     + '<div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">'
     + '<button id="kpi-desktop-toggle" onclick="toggleKpiCollapse()" style="background:none;border:none;padding:4px 14px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;line-height:1.4" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'"><span id="kpi-desktop-label">Hide stat cards</span></button>'
@@ -2891,7 +2889,6 @@ function initKpiCollapse() {
   // Mobile toggle button
   if (!btn) return;
   if (window.innerWidth > 768) { btn.style.display = 'none'; return; }
-  if (!grid.hasAttribute('data-collapsible')) return;
   btn.style.display = 'flex';
   if (wasCollapsed) btn.classList.add('collapsed');
   var mobileLabel = document.getElementById('kpi-toggle-label');
