@@ -514,6 +514,13 @@ textarea:focus { border-color: var(--accent2) !important; }
   position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
   pointer-events: none; color: var(--muted);
 }
+.combo-clear {
+  position: absolute; right: 28px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; border-radius: 50%; background: var(--muted);
+  color: #fff; font-size: 10px; line-height: 16px; text-align: center;
+  cursor: pointer; display: none; user-select: none; font-weight: 700;
+}
+.combo-clear.visible { display: block; }
 .combo-dropdown {
   position: fixed; background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); z-index: 8000; max-height: 220px;
@@ -6143,7 +6150,7 @@ async function veProceedMerge() {
     const renameRes = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'renameValidEntry',field,oldValue,newValue})});
     const renameData = await renameRes.json();
     if (!renameData.success) throw new Error(renameData.error);
-    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'deleteValidEntry',field,value:newValue})});
+    const res  = await fetch(webAppUrl,{method:'POST',body:JSON.stringify({action:'deleteValidEntry',field,value:oldValue})});
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     data.matchesUpdated = renameData.matchesUpdated;
@@ -6499,10 +6506,12 @@ function renderSettings() {
                           <input type="text" class="combo-input" id="defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"
                             data-type="${escHtml(t)}"
                             placeholder="— None —" autocomplete="off" value="${escHtml(saved)}"
-                            oninput="onSettingsComboInput(this.id)"
+                            style="padding-right:46px"
+                            oninput="onSettingsComboInput(this.id);comboClearUpdate(this.id)"
                             onfocus="onSettingsComboFocus(this.id)"
                             onblur="onComboBlur(this.id)"
                             onkeydown="onSettingsComboKeydown(event,this.id)">
+                          <span class="combo-clear${saved ? ' visible' : ''}" id="combo-clear-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}" onmousedown="event.preventDefault();comboClearField('defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}')">✕</span>
                           <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
                           <div class="combo-dropdown" id="combo-drop-defp-${t.replace(/[^a-zA-Z0-9]/g,'_')}"></div>
                         </div>
@@ -6530,10 +6539,12 @@ function renderSettings() {
                     <input type="text" class="combo-input" id="def-level-combo"
                       placeholder="— None —" autocomplete="off"
                       value="${escHtml(localStorage.getItem('defaultLevel')||'')}"
-                      oninput="onSettingsComboInput('def-level-combo')"
+                      style="padding-right:46px"
+                      oninput="onSettingsComboInput('def-level-combo');comboClearUpdate('def-level-combo')"
                       onfocus="onSettingsComboFocus('def-level-combo')"
                       onblur="onComboBlur('def-level-combo')"
                       onkeydown="onSettingsComboKeydown(event,'def-level-combo')">
+                    <span class="combo-clear${localStorage.getItem('defaultLevel') ? ' visible' : ''}" id="combo-clear-def-level-combo" onmousedown="event.preventDefault();comboClearField('def-level-combo')">✕</span>
                     <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <div class="combo-dropdown" id="combo-drop-def-level-combo"></div>
                   </div>
@@ -7330,10 +7341,12 @@ function renderEntry() {
             <div class="combo-wrap" id="combo-wrap-partner">
               <input type="text" class="combo-input" id="e-partner"
                 placeholder="— Select or type —" autocomplete="off"
-                oninput="onComboInput('partner')"
+                style="padding-right:46px"
+                oninput="onComboInput('partner');comboClearUpdate('partner')"
                 onfocus="onComboFocus('partner')"
                 onblur="onComboBlur('partner')"
                 onkeydown="onComboKeydown(event,'partner')">
+              <span class="combo-clear" id="combo-clear-partner" onmousedown="event.preventDefault();comboClearField('partner')">✕</span>
               <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
               <div class="combo-dropdown" id="combo-drop-partner"></div>
             </div>
@@ -7452,10 +7465,12 @@ function renderEntry() {
             <div class="combo-wrap" id="combo-wrap-level">
               <input type="text" class="combo-input" id="e-level"
                 placeholder="— Select or type —" autocomplete="off"
-                oninput="onComboInput('level')"
+                style="padding-right:46px"
+                oninput="onComboInput('level');comboClearUpdate('level')"
                 onfocus="onComboFocus('level')"
                 onblur="onComboBlur('level')"
                 onkeydown="onComboKeydown(event,'level')">
+              <span class="combo-clear" id="combo-clear-level" onmousedown="event.preventDefault();comboClearField('level')">✕</span>
               <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
               <div class="combo-dropdown" id="combo-drop-level"></div>
             </div>
@@ -7590,6 +7605,29 @@ function applyDefaultPartner() {
     const partnerEl = document.getElementById('e-partner');
     if (partnerEl) partnerEl.value = defPartner;
   }
+  comboClearUpdate('partner');
+}
+
+function comboClearUpdate(field) {
+  const input = document.getElementById('e-' + field) || document.getElementById(field);
+  const btn   = document.getElementById('combo-clear-' + field);
+  if (!btn) return;
+  if (input && input.value.trim().length > 0) {
+    btn.classList.add('visible');
+  } else {
+    btn.classList.remove('visible');
+  }
+}
+
+function comboClearField(field) {
+  const input = document.getElementById('e-' + field) || document.getElementById(field);
+  if (input) input.value = '';
+  comboClose(field);
+  comboClearUpdate(field);
+}
+
+function comboClearPartner() {
+  comboClearField('partner');
 }
 
 function onRetireToggle(which) {
@@ -8385,6 +8423,7 @@ function settingsComboRender(fieldId, query) {
       e.preventDefault();
       input.value = opt;
       comboClose(fieldId);
+      comboClearUpdate(fieldId);
     };
     drop.appendChild(el);
   });
@@ -8434,12 +8473,8 @@ function comboGetValue(field) {
 function comboSetValue(field, value) {
   const el = document.getElementById('e-' + field);
   if (el) el.value = value;
-  if (field === 'partner') {
-    entryNewValues[field] = value;
-  }
-  if (field === 'level') {
-    entryNewValues[field] = value;
-  }
+  // Do NOT set entryNewValues here — only comboTriggerAddNew should do that
+  // for genuinely new entries that need to be persisted to the sheet.
   if (field === 'opp1' || field === 'opp2') {
     // Trigger scouting section update after selection
     setTimeout(updateEntryScouting, 0);
@@ -8524,6 +8559,7 @@ function comboRenderDropdown(field, filterText) {
 function comboSelectOption(field, value) {
   comboSetValue(field, value);
   comboClose(field);
+  comboClearUpdate(field);
   // clear error
   const errEl = document.getElementById('err-' + field);
   if (errEl) { errEl.style.display = 'none'; }
@@ -8561,6 +8597,7 @@ function onComboBlur(field) {
   setTimeout(() => {
     const drop = document.getElementById('combo-drop-' + field);
     if (drop) drop.classList.remove('open');
+    comboClearUpdate(field);
   }, 150);
 }
 
@@ -8682,6 +8719,8 @@ function initCombos() {
     const levelEl = document.getElementById('e-level');
     if (levelEl) levelEl.value = defLevel;
   }
+  comboClearUpdate('level');
+  comboClearUpdate('partner');
 }
 
 function showEntryNewModal(field, prefill) {
@@ -8971,25 +9010,19 @@ async function submitEntry() {
       }
       // Capture the fields to preserve for next entry
       const keepFields = {
-        type:       resolve('type'),
-        season:     resolve('season'),
-        league:     resolve('league'),
-        level:      resolve('level'),
-        line:       resolve('line'),
-        homeaway:   resolve('homeaway'),
-        surface:    resolve('surface'),
-        time:       get('time'),
+        type:    resolve('type'),
+        season:  resolve('season'),
+        league:  resolve('league'),
+        level:   resolve('level'),
+        surface: resolve('surface'),
       };
       requestAnimationFrame(() => {
         const fields = {
-          'e-type':     keepFields.type,
-          'e-season':   keepFields.season,
-          'e-league':   keepFields.league,
-          'e-level':    keepFields.level,
-          'e-line':     keepFields.line,
-          'e-homeaway': keepFields.homeaway,
-          'e-surface':  keepFields.surface,
-          'e-time':     keepFields.time,
+          'e-type':    keepFields.type,
+          'e-season':  keepFields.season,
+          'e-league':  keepFields.league,
+          'e-level':   keepFields.level,
+          'e-surface': keepFields.surface,
         };
         Object.entries(fields).forEach(([id, val]) => {
           const el = document.getElementById(id);
@@ -9042,14 +9075,11 @@ function anotherMatchYes() {
   // Use requestAnimationFrame to wait for renderEntry to finish painting
   requestAnimationFrame(() => {
     const fields = {
-      'e-type':     keep.type,
-      'e-season':   keep.season,
-      'e-league':   keep.league,
-      'e-level':    keep.level,
-      'e-line':     keep.line,
-      'e-homeaway': keep.homeaway,
-      'e-surface':  keep.surface,
-      'e-time':     keep.time,
+      'e-type':    keep.type,
+      'e-season':  keep.season,
+      'e-league':  keep.league,
+      'e-level':   keep.level,
+      'e-surface': keep.surface,
     };
     Object.entries(fields).forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -9104,6 +9134,13 @@ function resetEntryForm() {
   if (ta1) { ta1.value = ''; ta1.style.display = 'block'; }
   if (ta2) { ta2.value = ''; ta2.style.display = 'none'; }
   _entryScoutActive = 'opp1';
+  // Clear partner and level combos, hide their X buttons
+  ['partner', 'level'].forEach(f => {
+    const el = document.getElementById('e-' + f);
+    if (el) el.value = '';
+    comboClose(f);
+    comboClearUpdate(f);
+  });
 }
 
 // 
