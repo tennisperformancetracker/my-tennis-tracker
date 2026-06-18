@@ -1048,7 +1048,7 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
   .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
   #kpi-desktop-bar { display: none !important; }
-  .kpi-toggle-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }  .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
+  .kpi-toggle-btn { display: flex !important; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }  .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
   .kpi-toggle-btn .kpi-toggle-arrow { transform: rotate(180deg); }
   .kpi-toggle-btn.collapsed .kpi-toggle-arrow { transform: rotate(0deg); }
   .kpi-card { padding: 12px 14px; }
@@ -2889,6 +2889,8 @@ function initKpiCollapse() {
   if (wasCollapsed) grid.classList.add('kpi-collapsed');
   // Mobile toggle button
   if (!btn) return;
+  if (window.innerWidth > 768) { btn.style.display = 'none'; return; }
+  btn.style.display = 'flex';
   if (wasCollapsed) btn.classList.add('collapsed');
   var mobileLabel = document.getElementById('kpi-toggle-label');
   if (mobileLabel) mobileLabel.textContent = text;
