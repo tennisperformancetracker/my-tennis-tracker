@@ -214,6 +214,36 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .kpi2-bar { height: 4px; border-radius: 100px; transition: width 0.3s; }
 .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
 .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
+
+.kpi2-ghost {
+  background: transparent; border: 1.5px dashed var(--border); border-radius: 12px;
+  min-height: 160px; box-sizing: border-box; padding: 16px 18px 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; position: relative; cursor: pointer; color: var(--muted);
+  font-family: var(--font); transition: border-color 0.15s, color 0.15s;
+}
+.kpi2-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+.kpi2-ghost-icon { font-size: 22px; font-weight: 700; line-height: 1; }
+.kpi2-ghost-label { font-size: 12px; font-weight: 600; }
+.kpi2-ghost-dismiss {
+  position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
+  border-radius: 50%; border: none; background: transparent; color: var(--muted);
+  display: none; align-items: center; justify-content: center; font-size: 13px;
+  cursor: pointer; line-height: 1;
+}
+.kpi2-ghost:hover .kpi2-ghost-dismiss { display: flex; }
+.kpi2-ghost-dismiss:hover { background: var(--surface2); color: var(--text); }
+@media (max-width: 768px) { .kpi2-ghost { display: none !important; } }
+
+.kpi-add-strip {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1.5px dashed var(--border); border-radius: 10px; padding: 10px 16px;
+  margin-bottom: 24px; cursor: pointer; color: var(--muted); font-family: var(--font);
+  font-size: 12px; font-weight: 600; transition: border-color 0.15s, color 0.15s;
+}
+.kpi-add-strip:hover { border-color: var(--accent2); color: var(--accent2); }
+@media (max-width: 768px) { .kpi-add-strip { display: none !important; } }
+
 .kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
 .kpi2-mini-row {
   display: flex; gap: 0; border-top: 1px solid var(--border);
@@ -1742,6 +1772,16 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   </div>
 </div>
 
+<div class="confirm-overlay" id="ghost-dismiss-overlay">
+  <div class="confirm-box" style="max-width:340px">
+    <div class="confirm-title" style="color:var(--text)">Card slots hidden</div>
+    <div class="confirm-body">To add cards at any point, click the pencil icon below the stat cards.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-primary" onclick="closeGhostDismissInfo()">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -2381,6 +2421,25 @@ function getDashboardCardOrder() {
   return KPI_DEFAULT_ORDER;
 }
 
+// ── Ghost card (empty KPI slot) state ───────────────────────────────────────
+function ghostsAreDismissed() {
+  return localStorage.getItem('kpiGhostsDismissed') === '1';
+}
+function dismissKpiGhosts() {
+  localStorage.setItem('kpiGhostsDismissed', '1');
+  renderDashboard();
+  var seen = localStorage.getItem('kpiGhostDismissInfoSeen') === '1';
+  if (!seen) {
+    localStorage.setItem('kpiGhostDismissInfoSeen', '1');
+    var overlay = document.getElementById('ghost-dismiss-overlay');
+    if (overlay) overlay.classList.add('visible');
+  }
+}
+function closeGhostDismissInfo() {
+  var overlay = document.getElementById('ghost-dismiss-overlay');
+  if (overlay) overlay.classList.remove('visible');
+}
+
 // Helpers for card building
 function kpiThreshColor(r, great, poor) {
   if (r === null || isNaN(r)) return 'var(--text)';
@@ -2765,9 +2824,22 @@ function buildKPIs(matches, curYearMatches) {
   }
 
   var cardOrder = getDashboardCardOrder();
-  if (cardOrder.length === 0) return '';
   var colCount  = 4;
-  var cardHtml  = cardOrder.map(buildCard).join('');
+  var dismissed = ghostsAreDismissed();
+
+  if (cardOrder.length === 0) {
+    if (dismissed) {
+      return '<div class="kpi-add-strip" onclick="navigateToSettingsSection(\'sec-appearance\')"><span style="font-size:14px;font-weight:700">+</span><span>Add stat cards</span></div>';
+    }
+    var ghostsOnly = '';
+    for (var g = 0; g < colCount; g++) { ghostsOnly += kpiGhostCard(); }
+    return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)">' + ghostsOnly + '</div>';
+  }
+
+  var cardHtml = cardOrder.map(buildCard).join('');
+  var ghostCount = dismissed ? 0 : ((colCount - (cardOrder.length % colCount)) % colCount);
+  for (var i = 0; i < ghostCount; i++) { cardHtml += kpiGhostCard(); }
+
   var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
   return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
     + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '')
@@ -2777,6 +2849,14 @@ function buildKPIs(matches, curYearMatches) {
     + '<div style="width:1px;background:var(--border);align-self:stretch;flex-shrink:0"></div>'
     + '<button onclick="navigateToSettingsSection(\'sec-appearance\')" style="background:none;border:none;padding:4px 10px;cursor:pointer;font-size:12px;line-height:1.4;color:var(--muted)" title="Edit cards" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>'
     + '</div></div>';
+}
+
+function kpiGhostCard() {
+  return '<div class="kpi2-ghost" onclick="navigateToSettingsSection(\'sec-appearance\')">'
+    + '<button class="kpi2-ghost-dismiss" onclick="event.stopPropagation();dismissKpiGhosts()" title="Dismiss" aria-label="Dismiss add-card slot">&times;</button>'
+    + '<div class="kpi2-ghost-icon">+</div>'
+    + '<div class="kpi2-ghost-label">Add card</div>'
+    + '</div>';
 }
 
 // KPI collapse toggle (mobile only)
@@ -7001,6 +7081,7 @@ async function saveDashboardCards(silent) {
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const sel = window._pickerSelected !== undefined ? window._pickerSelected : getDashboardCardOrder();
   localStorage.setItem('dashboardCards', JSON.stringify(sel));
+  if (sel.length > 0) localStorage.removeItem('kpiGhostsDismissed');
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:{dashboardCards: sel.length > 0 ? sel.join(',') : '__empty__'}})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
   if (!silent) { settingsDirty = false; showToast('✓ Dashboard cards saved!'); }
