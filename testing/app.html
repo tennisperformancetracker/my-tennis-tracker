@@ -233,9 +233,8 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 }
 .kpi2-ghost:hover .kpi2-ghost-dismiss { display: flex; }
 .kpi2-ghost-dismiss:hover { background: var(--surface2); color: var(--text); }
-@media (max-width: 768px) { .kpi2-ghost { min-height: 60px; flex-direction: row; justify-content: flex-start; gap: 10px; border-radius: 10px; } }
-@media (max-width: 768px) { .kpi2-ghost-dismiss { display: flex !important; position: static; width: 20px; height: 20px; margin-left: auto; } }
-@media (max-width: 768px) { .kpi-grid-ghosts-only { grid-template-columns: 1fr !important; margin-bottom: 14px; } }
+@media (max-width: 768px) { .kpi2-ghost { display: none !important; } }
+@media (max-width: 768px) { .kpi-grid-ghosts-only { display: none !important; } }
 
 .kpi-add-strip {
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -244,6 +243,8 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
   font-size: 12px; font-weight: 600; transition: border-color 0.15s, color 0.15s;
 }
 .kpi-add-strip:hover { border-color: var(--accent2); color: var(--accent2); }
+.kpi-add-strip-mobile { display: none; }
+@media (max-width: 768px) { .kpi-add-strip-mobile { display: flex; } }
 .kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
 .kpi2-mini-row {
   display: flex; gap: 0; border-top: 1px solid var(--border);
@@ -2834,7 +2835,8 @@ function buildKPIs(matches, curYearMatches) {
     }
     var ghostsOnly = '';
     for (var g = 0; g < colCount; g++) { ghostsOnly += kpiGhostCard(); }
-    return '<div class="kpi-grid kpi-grid-ghosts-only" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)">' + ghostsOnly + '</div>';
+    return '<div class="kpi-grid kpi-grid-ghosts-only" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)">' + ghostsOnly + '</div>'
+      + '<div class="kpi-add-strip kpi-add-strip-mobile" onclick="navigateToSettingsSection(\'sec-appearance\')"><span style="font-size:14px;font-weight:700">+</span><span>Add stat cards</span></div>';
   }
 
   var cardHtml = cardOrder.map(buildCard).join('');
