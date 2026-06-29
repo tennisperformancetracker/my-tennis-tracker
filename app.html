@@ -461,7 +461,7 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .match-opponent { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
 .match-meta { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
 .match-scores { display: flex; gap: 5px; flex-wrap: wrap; }
-.set-score { background: var(--surface2); border-radius: 4px; padding: 2px 7px; font-size: 12px; font-weight: 600; color: var(--label); }
+.set-score { background: var(--surface2); border-radius: 4px; padding: 2px 7px; font-size: 12px; font-weight: 600; color: var(--label); white-space: nowrap; flex-shrink: 0; }
 .set-score.set-win  { color: var(--win); }
 .set-score.set-loss { color: var(--loss); }
 .match-date-col { flex-shrink: 0; font-size: 11px; color: var(--muted); text-align: right; white-space: nowrap; }
@@ -4368,7 +4368,11 @@ function renderHistory(page, preFilterPartner) {
           oninput="onHistPartnerInput(this.value)"
           style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-opponent" placeholder="🔍 Opponent…" value="${escHtml(opponentDisplay)}"
-          oninput="onHistOpponentInput(this.value)"
+          oninput="onHistOpponentInput(this.value);histOppComboRender()"
+          onfocus="histOppComboRender()"
+          onblur="setTimeout(histOppComboClose,150)"
+          onkeydown="histOppComboKeydown(event)"
+          autocomplete="off"
           style="flex:1 1 100px;min-width:0">
         <input class="search-input" id="hist-notes" placeholder="🔍 Notes…" value="${escHtml(filterState.history.notes||'')}"
           oninput="onHistNotesInput(this.value)"
@@ -4408,11 +4412,17 @@ function renderHistory(page, preFilterPartner) {
   content.insertAdjacentHTML('beforeend', `<div id="hist-results" style="max-width:100%;overflow:hidden;width:100%">${buildHistoryResults(filtered, sortOrder)}</div>`);
   autoOpenHistFilters();
   if (window.innerWidth > 768 && histInsightsWasCollapsed) {
-    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    });
     histInsightsWasCollapsed = false;
+    setTimeout(function() {
+      ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+        var bodyEl = document.getElementById(id);
+        if (bodyEl) { var card = bodyEl.parentElement; if (card) card.style.display = 'none'; }
+      });
+      var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+      }
+    }, 0);
   }
 }
 
@@ -4700,9 +4710,9 @@ function buildHistoryResults(filtered, sortOrder) {
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text);max-width:200px"><span class="tip" data-tip="' + opponent + '" style="max-width:200px">' + opponent + '</span>' + playoffStar + '</td>'
-      + '<td style="font-size:13px;color:var(--muted);max-width:160px">' + (partner ? '<span class="tip" data-tip="' + partnerFull + '" style="max-width:160px">' + partner + '</span>' : '—') + '</td>'
-      + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text)"><span class="tip" data-tip="' + opponent + '">' + opponent + '</span>' + playoffStar + '</td>'
+      + '<td style="font-size:13px;color:var(--muted);max-width:115px">' + (partner ? '<span class="tip" data-tip="' + partnerFull + '" style="max-width:115px">' + partner + '</span>' : '—') + '</td>'
+      + '<td style="min-width:165px;max-width:165px"><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
   }).join('');
 
@@ -4752,22 +4762,218 @@ function buildHistoryResults(filtered, sortOrder) {
     + '<table class="history-table" style="width:100%">'
     + (isMob
       ? '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent / Score</th></tr></thead>'
-      : '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent</th><th>Partner</th><th>Score</th></tr></thead>'
+      : '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent</th><th style="max-width:115px">Partner</th><th style="min-width:165px;max-width:165px">Score</th></tr></thead>'
     )
     + '<tbody>' + tableRows + '</tbody>'
     + '</table></div>'
-    + buildPagination(historyPage, pages);
+    + buildPagination(historyPage, pages)
+    + buildScoutingNotesSection(filtered);
 }
 
 
 
 
+function buildScoutingNotesSection(filtered) {
+  // Only show when a single specific opponent is selected via the opponent filter
+  const oppFilter = (filterState.history.opponent || '').trim();
+  if (!oppFilter) return '';
+
+  // Collect notes attributed to this specific opponent from all matching matches
+  // Each match row: determine which side the filtered opponent was on, pull that notes field
+  const noteItems = [];
+  allMatches.forEach(function(m) {
+    const opp1 = (m.opp1 || '').trim();
+    const opp2 = (m.opp2 || '').trim();
+    const opp1Match = opp1.toLowerCase() === oppFilter.toLowerCase();
+    const opp2Match = opp2.toLowerCase() === oppFilter.toLowerCase();
+    if (!opp1Match && !opp2Match) return;
+    const note = opp1Match ? (m.opp1Notes || '') : (m.opp2Notes || '');
+    if (!note.trim()) return;
+    noteItems.push({ note: note.trim(), date: m.date, result: m.result,
+      s1w: m.s1w, s1l: m.s1l, s2w: m.s2w, s2l: m.s2l, s3w: m.s3w, s3l: m.s3l });
+  });
+
+  // Sort newest first
+  noteItems.sort(function(a, b) { return parseDate(b.date) - parseDate(a.date); });
+
+  if (!noteItems.length) return '';
+
+  const SHOW = 2;
+  const hasMore = noteItems.length > SHOW;
+  const visible = noteItems.slice(0, SHOW);
+  const hidden  = noteItems.slice(SHOW);
+
+  function scoreStr(item) {
+    var parts = [];
+    [[item.s1w, item.s1l],[item.s2w, item.s2l],[item.s3w, item.s3l]].forEach(function(p) {
+      if (p[0] !== '' && p[0] !== null && p[0] !== undefined && p[1] !== '' && p[1] !== null && p[1] !== undefined)
+        parts.push(p[0] + '–' + p[1]);
+    });
+    return parts.join(', ');
+  }
+
+  function noteHtml(item, isLast) {
+    var scoreTag = '';
+    var sc = scoreStr(item);
+    if (item.result === 'W') scoreTag = '<span style="background:var(--green-bg,#e8f5ee);color:var(--win,#2e7d52);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap">W ' + escHtml(sc) + '</span>';
+    else if (item.result === 'L') scoreTag = '<span style="background:var(--loss-bg,#fdf0ee);color:var(--loss,#c0392b);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap">L ' + escHtml(sc) + '</span>';
+    return '<div style="padding-bottom:' + (isLast?'0':'12px') + ';margin-bottom:' + (isLast?'0':'12px') + ';border-bottom:' + (isLast?'none':'1px solid var(--border)') + '">'
+      + '<div style="font-size:13px;color:var(--text);line-height:1.55;margin-bottom:5px">' + escHtml(item.note) + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--muted)">'
+      + (item.date ? '<span>' + escHtml(item.date) + '</span>' : '')
+      + scoreTag
+      + '</div></div>';
+  }
+
+  var visibleHtml = visible.map(function(item, i) {
+    return noteHtml(item, i === visible.length - 1 && !hasMore);
+  }).join('');
+
+  var hiddenHtml = '';
+  var moreToggle = '';
+  if (hasMore) {
+    hiddenHtml = hidden.map(function(item, i) {
+      return noteHtml(item, i === hidden.length - 1);
+    }).join('');
+    moreToggle = '<div style="margin-top:12px">'
+      + '<button id="scout-more-btn" onclick="toggleScoutMore()" '
+      + 'style="background:var(--surface2);border:0.5px solid var(--border);border-radius:20px;padding:4px 16px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:5px">'
+      + '<svg id="scout-more-chev" width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
+      + '<span id="scout-more-label">' + hidden.length + ' more note' + (hidden.length !== 1 ? 's' : '') + '</span>'
+      + '</button></div>';
+  }
+
+  return '<div id="scout-section" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);margin-top:14px;overflow:hidden">'
+    + '<div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px">'
+    + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--slate,#6385a2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><line x1="9" y1="9" x2="10" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>'
+    + '<span style="font-size:12px;color:var(--muted)">Scouting notes —</span>'
+    + '<span style="font-size:12px;font-weight:600;color:var(--navy,#2f4157)">' + escHtml(oppFilter) + '</span>'
+    + '</div>'
+    + '<div style="padding:14px 16px">'
+    + visibleHtml
+    + (hasMore ? '<div id="scout-hidden" style="display:none">' + hiddenHtml + '</div>' : '')
+    + moreToggle
+    + '</div></div>';
+}
+
+function toggleScoutMore() {
+  var hidden = document.getElementById('scout-hidden');
+  var btn    = document.getElementById('scout-more-btn');
+  var label  = document.getElementById('scout-more-label');
+  var chev   = document.getElementById('scout-more-chev');
+  if (!hidden) return;
+  var isOpen = hidden.style.display !== 'none';
+  hidden.style.display = isOpen ? 'none' : 'block';
+  if (label) label.textContent = isOpen ? (hidden.querySelectorAll('[style*="padding-bottom"]').length || '?') + ' more note' + (hidden.querySelectorAll('[style*="padding-bottom"]').length !== 1 ? 's' : '') : 'Show less';
+  if (chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
 
 var _histTimer = null;
 var histFiltersOpen = false; // persists across re-renders
 var histInsightsCollapsed = false; // set true when navigating from dashboard links
 var histInsightsWasCollapsed = false; // preserved after reset for post-render DOM use
 var dashboardReturnState = null; // stores scroll + drill state for back-to-dashboard
+
+// ── Match History opponent combo ─────────────────────────────
+function histOppGetOptions(query) {
+  const oppSet = new Set();
+  (allMatches || []).forEach(function(m) {
+    if (m.opp1 && m.opp1.trim()) oppSet.add(m.opp1.trim());
+    if (m.opp2 && m.opp2.trim()) oppSet.add(m.opp2.trim());
+  });
+  const all = Array.from(oppSet).sort(function(a,b){ return a.localeCompare(b); });
+  if (!query) return all;
+  const q = query.toLowerCase();
+  return all.filter(function(o){ return o.toLowerCase().includes(q); });
+}
+
+var _histOppHighlighted = -1;
+
+function histOppComboRender() {
+  const input = document.getElementById('hist-opponent');
+  if (!input) return;
+
+  // Lazily create the dropdown on document.body so it is never clipped by a flex/overflow parent
+  let drop = document.getElementById('hist-opp-drop');
+  if (!drop) {
+    drop = document.createElement('div');
+    drop.id = 'hist-opp-drop';
+    drop.style.cssText = 'display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:9999;max-height:220px;overflow-y:auto;min-width:160px';
+    document.body.appendChild(drop);
+  }
+
+  // Position directly under the input using its viewport rect
+  const rect = input.getBoundingClientRect();
+  drop.style.left     = rect.left + 'px';
+  drop.style.top      = (rect.bottom + 2) + 'px';
+  drop.style.minWidth = rect.width + 'px';
+
+  const query   = input.value.trim();
+  const options = histOppGetOptions(query);
+
+  if (options.length === 0) { histOppComboClose(); return; }
+
+  _histOppHighlighted = -1;
+  drop.innerHTML = '';
+  options.forEach(function(opt) {
+    const el = document.createElement('div');
+    el.className = 'combo-option';
+    el.style.cssText = 'padding:8px 12px;font-size:13px;cursor:pointer;color:var(--text)';
+    if (query) {
+      const idx = opt.toLowerCase().indexOf(query.toLowerCase());
+      el.innerHTML = escHtml(opt.slice(0, idx))
+        + '<strong>' + escHtml(opt.slice(idx, idx + query.length)) + '</strong>'
+        + escHtml(opt.slice(idx + query.length));
+    } else {
+      el.textContent = opt;
+    }
+    el.onmousedown = function(e) {
+      e.preventDefault();
+      input.value = opt;
+      filterState.history.opponent = opt;
+      collapseHistInsightCards();
+      histOppComboClose();
+      clearTimeout(_histTimer);
+      _histTimer = setTimeout(applyHistoryFilter, 0);
+    };
+    drop.appendChild(el);
+  });
+  drop.style.display = 'block';
+}
+
+function histOppComboClose() {
+  const drop = document.getElementById('hist-opp-drop');
+  if (drop) drop.style.display = 'none';
+  _histOppHighlighted = -1;
+}
+
+function histOppComboKeydown(e) {
+  const drop = document.getElementById('hist-opp-drop');
+  const isOpen = drop && drop.style.display !== 'none';
+  const opts = drop ? Array.from(drop.querySelectorAll('.combo-option')) : [];
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!isOpen) { histOppComboRender(); return; }
+    _histOppHighlighted = Math.min(_histOppHighlighted + 1, opts.length - 1);
+    opts.forEach(function(o,i){ o.classList.toggle('highlighted', i === _histOppHighlighted); });
+    if (opts[_histOppHighlighted]) opts[_histOppHighlighted].scrollIntoView({block:'nearest'});
+    return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _histOppHighlighted = Math.max(_histOppHighlighted - 1, 0);
+    opts.forEach(function(o,i){ o.classList.toggle('highlighted', i === _histOppHighlighted); });
+    if (opts[_histOppHighlighted]) opts[_histOppHighlighted].scrollIntoView({block:'nearest'});
+    return;
+  }
+  if (e.key === 'Enter' && isOpen && _histOppHighlighted >= 0 && opts[_histOppHighlighted]) {
+    e.preventDefault();
+    opts[_histOppHighlighted].onmousedown(e);
+    return;
+  }
+  if (e.key === 'Escape') { histOppComboClose(); return; }
+}
 
 function onHistOpponentInput(val) {
   filterState.history.opponent = val.trim();
@@ -4779,6 +4985,13 @@ function onHistPartnerInput(val) {
   filterState.history.partner = val.trim();
   clearTimeout(_histTimer);
   _histTimer = setTimeout(applyHistoryFilter, 400);
+}
+
+function collapseHistInsightCards() {
+  if (window.innerWidth <= 768) return;
+  // Set flag BEFORE applyHistoryFilter re-renders — buildHistoryResults reads this
+  // and passes it through histInsightsWasCollapsed so cards are hidden post-render
+  histInsightsCollapsed = true;
 }
 
 function onHistNotesInput(val) {
@@ -4794,7 +5007,26 @@ function renderHistoryFiltered() {
 
 function applyHistoryFilter() {
   var resultsEl = document.getElementById('hist-results');
-  if (!resultsEl) { renderHistory(1); return; }
+  if (!resultsEl) {
+    var _collapseAfterRender = histInsightsCollapsed;
+    renderHistory(1);
+    if (_collapseAfterRender && window.innerWidth > 768) {
+      histInsightsCollapsed = false;
+      setTimeout(function() {
+        ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+          var bodyEl = document.getElementById(id);
+          if (bodyEl) bodyEl.style.display = 'none';
+          var ctrl = document.getElementById(id + '-ctrl');
+          if (ctrl) ctrl.style.display = 'none';
+        });
+        var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+        if (toggleBtn) {
+          toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+        }
+      }, 0);
+    }
+    return;
+  }
 
   var opp  = filterState.history.opponent  || '';
   var par  = filterState.history.partner   || '';
@@ -4846,6 +5078,7 @@ function applyHistoryFilter() {
   // Preserve mobile insights open/closed state before re-render
   var insightsEl = document.getElementById('hc-insights');
   var insightsWasOpen = insightsEl ? insightsEl.style.display !== 'none' : false;
+  var shouldCollapseCards = histInsightsCollapsed || histInsightsWasCollapsed;
   resultsEl.innerHTML = buildHistoryResults(filtered, srt);
   // Restore mobile insights open state after re-render
   var insightsElNew = document.getElementById('hc-insights');
@@ -4857,13 +5090,22 @@ function applyHistoryFilter() {
     var chev = document.getElementById('hc-insights-chev');
     if (chev) chev.textContent = '▲';
   }
-  // Collapse insight cards via DOM after render — avoids fragile string replace
-  if (!isMob && histInsightsWasCollapsed) {
-    ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    });
+  // Collapse insight cards post-render — use setTimeout to ensure paint is complete
+  if (shouldCollapseCards && window.innerWidth > 768) {
     histInsightsWasCollapsed = false;
+    histInsightsCollapsed = false;
+    setTimeout(function() {
+      ['hc-record','hc-perf','hc-partner'].forEach(function(id) {
+        var bodyEl = document.getElementById(id);
+        if (bodyEl) bodyEl.style.display = 'none';
+        var ctrl = document.getElementById(id + '-ctrl');
+        if (ctrl) ctrl.style.display = 'none';
+      });
+      var toggleBtn = document.getElementById('hist-cards-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<svg width="9" height="5" viewBox="0 0 9 5" fill="none"><path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>More';
+      }
+    }, 0);
   }
 }
 
@@ -4951,6 +5193,7 @@ function clearHistoryFilters() {
   if (oppEl) oppEl.value = '';
   if (parEl) parEl.value = '';
   if (notEl) notEl.value = '';
+  histOppComboClose();
   const poEl = document.getElementById('hist-playoff');
   if (poEl) poEl.checked = false;
   renderHistory(1);
@@ -4987,7 +5230,7 @@ function openMatchDetail(idx) {
   document.getElementById('modal-header').innerHTML = `
     <div style="flex:1;min-width:0;overflow:hidden">
       <div class="detail-date-header">Match Details</div>
-      ${hasPartner ? `<div class="detail-partner-line" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">w/ <span class="tip" data-tip="${escHtml(m.partner)}" style="max-width:calc(100% - 24px)">${escHtml(m.partner)}</span></div>` : ''}
+      <div class="detail-partner-line" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${hasPartner ? `w/ <span class="tip" data-tip="${escHtml(m.partner)}" style="max-width:calc(100% - 24px)">${escHtml(m.partner)}</span>` : ''}<span style="color:var(--muted);font-size:12px${hasPartner ? ';margin-left:6px' : ''}">${m.date ? 'on ' + escHtml(m.date) : ''}</span></div>
     </div>
     <div class="detail-result-word ${m.result||'unknown'}">${resultWord}</div>
     <button class="btn btn-ghost" style="padding:4px 8px;font-size:16px;line-height:1;margin-left:10px" onclick="closeModal()">✕</button>
@@ -5048,9 +5291,21 @@ function openMatchDetail(idx) {
     </div>
     <hr class="detail-divider">
     <div style="padding:14px 20px">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Notes</div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Match Notes</div>
       <textarea class="note-textarea" id="detail-notes-input">${escHtml(m.notes || '')}</textarea>
     </div>
+    ${(m.opp1Notes || m.opp2Notes) ? `
+    <hr class="detail-divider">
+    <div style="padding:14px 20px">
+      ${m.opp1Notes ? `<div style="margin-bottom:${m.opp2Notes ? '14px' : '0'}">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Scouting — ${escHtml(m.opp1)}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px">${escHtml(m.opp1Notes)}</div>
+      </div>` : ''}
+      ${m.opp2Notes ? `<div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Scouting — ${escHtml(m.opp2)}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px">${escHtml(m.opp2Notes)}</div>
+      </div>` : ''}
+    </div>` : ''}
     <hr class="detail-divider">
     <div class="detail-modal-footer">
       <button class="btn btn-modal-delete" onclick="openConfirmDelete(${idx})">🗑 Delete</button>
@@ -5377,13 +5632,28 @@ function openEditMode(idx) {
           ${sel('playoffround', validEntries.playoffround||[], m.playoffround)}
         </div>
 
-        <div class="section-title" style="margin-top:14px">Notes</div>
+        <div class="section-title" style="margin-top:14px">Match Notes</div>
         <div class="field">
           <textarea id="edit-notes" rows="4"
             style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
             onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
             placeholder="Add any notes about this match…">${escHtml(m.notes || '')}</textarea>
         </div>
+        <div class="section-title" style="margin-top:14px">Scouting Notes — <span>${escHtml(m.opp1 || 'Opponent 1')}</span></div>
+        <div class="field">
+          <textarea id="edit-opp1notes" rows="3"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
+            placeholder="Notes about this opponent — strategy, tendencies, weaknesses…">${escHtml(m.opp1Notes || '')}</textarea>
+        </div>
+        ${m.opp2 ? `
+        <div class="section-title" style="margin-top:14px">Scouting Notes — <span>${escHtml(m.opp2)}</span></div>
+        <div class="field">
+          <textarea id="edit-opp2notes" rows="3"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
+            placeholder="Notes about this opponent…">${escHtml(m.opp2Notes || '')}</textarea>
+        </div>` : ''}
       </div>
     </div>
     <div class="edit-modal-footer">
@@ -5421,7 +5691,9 @@ async function saveEdit(idx) {
     tb3wins: getCheck('mtb-check') ? get('tb3w') : get('tb3stdw'),
     tb3losses: getCheck('mtb-check') ? get('tb3l') : get('tb3stdl'),
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
-    notes: (document.getElementById('edit-notes')?.value || '').trim()
+    notes: (document.getElementById('edit-notes')?.value || '').trim(),
+    opp1Notes: (document.getElementById('edit-opp1notes')?.value || '').trim(),
+    opp2Notes: (document.getElementById('edit-opp2notes')?.value || '').trim()
   };
 
   // Find the actual sheet row — we need to identify which row this is
@@ -5457,7 +5729,8 @@ async function saveEdit(idx) {
         tb2w: updated.tb2wins, tb2l: updated.tb2losses,
         tb3w: updated.tb3wins, tb3l: updated.tb3losses,
         oppRet: updated.opponentretired, weRet: updated.weretired,
-        result: eu_result, notes: updated.notes
+        result: eu_result, notes: updated.notes,
+        opp1Notes: updated.opp1Notes || '', opp2Notes: updated.opp2Notes || ''
       }};
       hideSaving();
       closeModal();
@@ -7032,13 +7305,29 @@ function renderEntry() {
         <div style="margin-top:10px">
           <div class="field">
             <div class="field-label">Opponent 1 <span class="required-dot"></span></div>
-            <input type="text" id="e-opp1" placeholder="First Last">
+            <div class="combo-wrap" id="combo-wrap-opp1">
+              <input type="text" class="combo-input" id="e-opp1" placeholder="First Last" autocomplete="off"
+                oninput="onComboInput('opp1');onEntryOppInput()"
+                onfocus="onComboFocus('opp1')"
+                onblur="onComboBlur('opp1');onEntryOppBlur()"
+                onkeydown="onComboKeydown(event,'opp1')">
+              <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <div class="combo-dropdown" id="combo-drop-opp1"></div>
+            </div>
             <div class="field-error" id="err-opp1">Required</div>
           </div>
           <div id="e-opp2-field" class="cond cond-hidden">
             <div class="field">
               <div class="field-label">Opponent 2 <span class="required-dot"></span></div>
-              <input type="text" id="e-opp2" placeholder="First Last" tabindex="-1">
+              <div class="combo-wrap" id="combo-wrap-opp2">
+                <input type="text" class="combo-input" id="e-opp2" placeholder="First Last" autocomplete="off" tabindex="-1"
+                  oninput="onComboInput('opp2');onEntryOppInput()"
+                  onfocus="onComboFocus('opp2')"
+                  onblur="onComboBlur('opp2');onEntryOppBlur()"
+                  onkeydown="onComboKeydown(event,'opp2')">
+                <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="combo-dropdown" id="combo-drop-opp2"></div>
+              </div>
               <div class="field-error" id="err-opp2">Opponent 2 is required for doubles</div>
             </div>
           </div>
@@ -7056,7 +7345,7 @@ function renderEntry() {
                 onfocus="onComboFocus('partner')"
                 onblur="onComboBlur('partner')"
                 onkeydown="onComboKeydown(event,'partner')">
-              <span class="combo-clear" id="combo-clear-partner" onmousedown="event.preventDefault();comboClearPartner()">✕</span>
+              <span class="combo-clear" id="combo-clear-partner" onmousedown="event.preventDefault();comboClearField('partner')">✕</span>
               <svg class="combo-arrow" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#6385a2" stroke-width="1.5" stroke-linecap="round"/></svg>
               <div class="combo-dropdown" id="combo-drop-partner"></div>
             </div>
@@ -7229,10 +7518,32 @@ function renderEntry() {
           
         </div>
 
-        <!-- Notes -->
-        <div class="section-title" style="margin-top:14px">Notes</div>
+        <!-- Match Notes + Scouting Notes -->
+        <div class="section-title" style="margin-top:14px">Match Notes</div>
         <div class="field">
           <textarea id="e-notes" rows="3" placeholder="Add any notes about this match…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+        </div>
+
+        <!-- Scouting Notes — hidden until an opponent is selected from combo -->
+        <div id="e-scout-section" style="display:none;margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div class="section-title" style="margin-top:0">Scouting Notes</div>
+            <!-- Pill toggle: only shown for doubles -->
+            <div id="e-scout-pill-wrap" style="display:none;gap:0;border:1px solid var(--border);border-radius:100px;overflow:hidden;flex-shrink:0">
+              <button id="e-scout-pill-opp1" onclick="entryScoutSwitch('opp1')"
+                style="font-size:11px;font-weight:500;padding:3px 12px;border:none;cursor:pointer;font-family:var(--font);background:var(--navy,#2f4157);color:#fff;border-radius:100px 0 0 100px;white-space:nowrap" id="e-scout-pill-opp1"></button>
+              <button id="e-scout-pill-opp2" onclick="entryScoutSwitch('opp2')"
+                style="font-size:11px;font-weight:500;padding:3px 12px;border:none;cursor:pointer;font-family:var(--font);background:var(--surface2);color:var(--muted);border-radius:0 100px 100px 0;white-space:nowrap" id="e-scout-pill-opp2"></button>
+            </div>
+          </div>
+          <div class="field">
+            <textarea id="e-opp1notes" rows="3"
+              placeholder="Add a note about this opponent…"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+            <textarea id="e-opp2notes" rows="3"
+              placeholder="Add a note about this opponent…"
+              style="display:none;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;line-height:1.5;box-sizing:border-box"></textarea>
+          </div>
         </div>
       </div>
 
@@ -7326,6 +7637,78 @@ function onRetireToggle(which) {
   }
 }
 
+// ── Entry scouting notes logic ────────────────────────────────
+// Called on opp input/blur — decides whether to show scouting section
+var _entryScoutActive = 'opp1'; // which pill is active
+
+function onEntryOppInput() {
+  // Defer so combo select has time to set value
+  setTimeout(updateEntryScouting, 0);
+}
+
+function onEntryOppBlur() {
+  setTimeout(updateEntryScouting, 200);
+}
+
+function updateEntryScouting() {
+  const opp1 = (document.getElementById('e-opp1')?.value || '').trim();
+  const opp2 = (document.getElementById('e-opp2')?.value || '').trim();
+  const section = document.getElementById('e-scout-section');
+  const pillWrap = document.getElementById('e-scout-pill-wrap');
+  if (!section) return;
+
+  const typeEl = document.getElementById('e-type');
+  const type = (typeEl ? typeEl.value : '').toLowerCase();
+  const isDb = type.includes('doubles') || type.includes('mixed');
+
+  // Show section only when opp1 has a value
+  if (!opp1) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+
+  // Pills: only show for doubles AND when opp2 also has a value
+  const showPills = isDb && !!opp2;
+  if (pillWrap) pillWrap.style.display = showPills ? 'flex' : 'none';
+
+  // Update pill labels
+  const pill1 = document.getElementById('e-scout-pill-opp1');
+  const pill2 = document.getElementById('e-scout-pill-opp2');
+  if (pill1) pill1.textContent = opp1.split(' ')[0] || opp1;
+  if (pill2) pill2.textContent = opp2.split(' ')[0] || opp2;
+
+  // If we switched from doubles to singles, force back to opp1
+  if (!showPills) {
+    _entryScoutActive = 'opp1';
+    entryScoutSwitch('opp1');
+  }
+
+  // Update placeholder to show the name
+  const ta1 = document.getElementById('e-opp1notes');
+  const ta2 = document.getElementById('e-opp2notes');
+  if (ta1) ta1.placeholder = opp1 ? 'Add a note about ' + opp1 + '…' : 'Add a note about this opponent…';
+  if (ta2) ta2.placeholder = opp2 ? 'Add a note about ' + opp2 + '…' : 'Add a note about this opponent…';
+}
+
+function entryScoutSwitch(which) {
+  _entryScoutActive = which;
+  const ta1 = document.getElementById('e-opp1notes');
+  const ta2 = document.getElementById('e-opp2notes');
+  const pill1 = document.getElementById('e-scout-pill-opp1');
+  const pill2 = document.getElementById('e-scout-pill-opp2');
+  if (ta1) ta1.style.display = which === 'opp1' ? 'block' : 'none';
+  if (ta2) ta2.style.display = which === 'opp2' ? 'block' : 'none';
+  if (pill1) {
+    pill1.style.background = which === 'opp1' ? 'var(--navy,#2f4157)' : 'var(--surface2)';
+    pill1.style.color = which === 'opp1' ? '#fff' : 'var(--muted)';
+  }
+  if (pill2) {
+    pill2.style.background = which === 'opp2' ? 'var(--navy,#2f4157)' : 'var(--surface2)';
+    pill2.style.color = which === 'opp2' ? '#fff' : 'var(--muted)';
+  }
+}
+
 function onEntryTypeChange() {
   const type = document.getElementById('e-type')?.value.toLowerCase() || '';
   const isDb = type.includes('doubles') || type.includes('mixed');
@@ -7356,6 +7739,8 @@ function onEntryTypeChange() {
     setErr('opp2', false);
   }
   applyDefaultPartner();
+  // Refresh scouting section pills when type changes (singles↔doubles)
+  updateEntryScouting();
 }
 function onEntryPlayoffChange() {
   const checked = document.getElementById('e-playoff')?.checked;
@@ -8067,6 +8452,15 @@ const comboState = {};
 function comboGetOptions(field) {
   if (field === 'partner') return sortedPartners(validEntries.partner || []);
   if (field === 'level')   return sortedLevels(validEntries.level || []);
+  if (field === 'opp1' || field === 'opp2') {
+    // Build sorted unique opponent list from all match history
+    const oppSet = new Set();
+    (allMatches || []).forEach(m => {
+      if (m.opp1 && m.opp1.trim()) oppSet.add(m.opp1.trim());
+      if (m.opp2 && m.opp2.trim()) oppSet.add(m.opp2.trim());
+    });
+    return Array.from(oppSet).sort((a, b) => a.localeCompare(b));
+  }
   return [];
 }
 
@@ -8080,6 +8474,10 @@ function comboSetValue(field, value) {
   if (el) el.value = value;
   // Do NOT set entryNewValues here — only comboTriggerAddNew should do that
   // for genuinely new entries that need to be persisted to the sheet.
+  if (field === 'opp1' || field === 'opp2') {
+    // Trigger scouting section update after selection
+    setTimeout(updateEntryScouting, 0);
+  }
 }
 
 function comboPositionDropdown(field) {
@@ -8109,20 +8507,26 @@ function comboRenderDropdown(field, filterText) {
   state.highlighted = -1;
   comboState[field] = state;
 
-  if (filtered.length === 0 && query.length >= 1) {
-    // No matches — show add option only
-    const addOpt = document.createElement('div');
-    addOpt.className = 'combo-option add-new';
-    addOpt.textContent = '+ Add "' + filterText + '"';
-    addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
-    drop.appendChild(addOpt);
+  // Opponent fields: no "Add new" — just show matches, nothing if empty
+  const isOppField = field === 'opp1' || field === 'opp2';
+
+  if (filtered.length === 0) {
+    if (!isOppField && query.length >= 1) {
+      const addOpt = document.createElement('div');
+      addOpt.className = 'combo-option add-new';
+      addOpt.textContent = '+ Add "' + filterText + '"';
+      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
+      drop.appendChild(addOpt);
+    } else {
+      drop.classList.remove('open');
+      return;
+    }
   } else {
     filtered.forEach((opt, i) => {
       const el = document.createElement('div');
       el.className = 'combo-option';
       el.dataset.value = opt;
       el.dataset.index = i;
-      // Bold matching portion
       if (query.length >= 1) {
         const idx = opt.toLowerCase().indexOf(query);
         el.innerHTML = escHtml(opt.slice(0, idx))
@@ -8134,17 +8538,19 @@ function comboRenderDropdown(field, filterText) {
       el.onmousedown = (e) => { e.preventDefault(); comboSelectOption(field, opt); };
       drop.appendChild(el);
     });
-    // Always append + Add new at bottom
-    const addOpt = document.createElement('div');
-    addOpt.className = 'combo-option add-new';
-    if (query.length >= 1 && !filtered.some(o => o.toLowerCase() === query)) {
-      addOpt.textContent = '+ Add "' + filterText + '"';
-      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
-    } else {
-      addOpt.textContent = '+ Add new…';
-      addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, ''); };
+    // Add new option — not for opponent fields
+    if (!isOppField) {
+      const addOpt = document.createElement('div');
+      addOpt.className = 'combo-option add-new';
+      if (query.length >= 1 && !filtered.some(o => o.toLowerCase() === query)) {
+        addOpt.textContent = '+ Add "' + filterText + '"';
+        addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, filterText); };
+      } else {
+        addOpt.textContent = '+ Add new…';
+        addOpt.onmousedown = (e) => { e.preventDefault(); comboTriggerAddNew(field, ''); };
+      }
+      drop.appendChild(addOpt);
     }
-    drop.appendChild(addOpt);
   }
   drop.classList.add('open');
 }
@@ -8152,6 +8558,7 @@ function comboRenderDropdown(field, filterText) {
 function comboSelectOption(field, value) {
   comboSetValue(field, value);
   comboClose(field);
+  comboClearUpdate(field);
   // clear error
   const errEl = document.getElementById('err-' + field);
   if (errEl) { errEl.style.display = 'none'; }
@@ -8278,6 +8685,15 @@ async function comboTriggerAddNew(field, prefill) {
   if (comboTriggerAddNew._busy) return;
   comboTriggerAddNew._busy = true;
   const input = document.getElementById('e-' + field);
+  // Opponent fields are free-text — just accept the typed name directly, no modal
+  if (field === 'opp1' || field === 'opp2') {
+    comboTriggerAddNew._busy = false;
+    if (prefill && input) {
+      input.value = prefill;
+      setTimeout(updateEntryScouting, 0);
+    }
+    return;
+  }
   const value = await showEntryNewModal(field, prefill);
   comboTriggerAddNew._busy = false;
   if (!value) {
@@ -8538,7 +8954,9 @@ async function submitEntry() {
     tb3wins: entryMTBOn() ? get('tb3w') : get('tb3stdw'),
     tb3losses: entryMTBOn() ? get('tb3l') : get('tb3stdl'),
     opponentretired: getCheck('opp-ret'), weretired: getCheck('we-ret'),
-    notes: document.getElementById('e-notes')?.value?.trim() || ''
+    notes: document.getElementById('e-notes')?.value?.trim() || '',
+    opp1Notes: document.getElementById('e-opp1notes')?.value?.trim() || '',
+    opp2Notes: document.getElementById('e-opp2notes')?.value?.trim() || ''
   };
 
   showSaving('Saving match…');
@@ -8589,7 +9007,8 @@ async function submitEntry() {
         tb2w: match.tb2wins, tb2l: match.tb2losses,
         tb3w: match.tb3wins, tb3l: match.tb3losses,
         oppRet: match.opponentretired, weRet: match.weretired,
-        result, notes: match.notes || ''
+        result, notes: match.notes || '',
+        opp1Notes: match.opp1Notes || '', opp2Notes: match.opp2Notes || ''
       });
       showToast('Match submitted!');
       const _newBadges = await computeBadges(allMatches);
@@ -8726,6 +9145,17 @@ function resetEntryForm() {
   const playoffCheck = document.getElementById('e-playoff');
   if (playoffCheck) playoffCheck.checked = false;
   document.getElementById('e-playoff-row')?.classList.add('cond-hidden');
+  // Hide scouting section and reset scouting note textareas
+  const scoutSection = document.getElementById('e-scout-section');
+  if (scoutSection) scoutSection.style.display = 'none';
+  const ta1 = document.getElementById('e-opp1notes');
+  const ta2 = document.getElementById('e-opp2notes');
+  if (ta1) { ta1.value = ''; ta1.style.display = 'block'; }
+  if (ta2) { ta2.value = ''; ta2.style.display = 'none'; }
+  _entryScoutActive = 'opp1';
+  // Close opponent combo dropdowns
+  comboClose('opp1');
+  comboClose('opp2');
   // Reset type-dependent UI
   onEntryTypeChange();
 }
