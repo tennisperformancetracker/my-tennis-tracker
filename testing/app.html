@@ -214,37 +214,6 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .kpi2-bar { height: 4px; border-radius: 100px; transition: width 0.3s; }
 .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
 .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
-
-.kpi2-ghost {
-  background: transparent; border: 1.5px dashed var(--border); border-radius: 12px;
-  min-height: 160px; box-sizing: border-box; padding: 16px 18px 14px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px; position: relative; cursor: pointer; color: var(--muted);
-  font-family: var(--font); transition: border-color 0.15s, color 0.15s;
-}
-.kpi2-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
-.kpi2-ghost-icon { font-size: 22px; font-weight: 700; line-height: 1; }
-.kpi2-ghost-label { font-size: 12px; font-weight: 600; }
-.kpi2-ghost-dismiss {
-  position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
-  border-radius: 50%; border: none; background: transparent; color: var(--muted);
-  display: none; align-items: center; justify-content: center; font-size: 13px;
-  cursor: pointer; line-height: 1;
-}
-.kpi2-ghost:hover .kpi2-ghost-dismiss { display: flex; }
-.kpi2-ghost-dismiss:hover { background: var(--surface2); color: var(--text); }
-@media (max-width: 768px) { .kpi2-ghost { display: none !important; } }
-@media (max-width: 768px) { .kpi-grid-ghosts-only { display: none !important; } }
-
-.kpi-add-strip {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  border: 1.5px dashed var(--border); border-radius: 10px; padding: 10px 16px;
-  margin-bottom: 24px; cursor: pointer; color: var(--muted); font-family: var(--font);
-  font-size: 12px; font-weight: 600; transition: border-color 0.15s, color 0.15s;
-}
-.kpi-add-strip:hover { border-color: var(--accent2); color: var(--accent2); }
-.kpi-add-strip-mobile { display: none; }
-@media (max-width: 768px) { .kpi-add-strip-mobile { display: flex; } }
 .kpi2-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
 .kpi2-mini-row {
   display: flex; gap: 0; border-top: 1px solid var(--border);
@@ -492,7 +461,7 @@ body.dark .kpi2-badge-navy   { background: rgba(255,255,255,0.08); color: var(--
 .match-opponent { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
 .match-meta { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
 .match-scores { display: flex; gap: 5px; flex-wrap: wrap; }
-.set-score { background: var(--surface2); border-radius: 4px; padding: 2px 7px; font-size: 12px; font-weight: 600; color: var(--label); }
+.set-score { background: var(--surface2); border-radius: 4px; padding: 2px 7px; font-size: 12px; font-weight: 600; color: var(--label); white-space: nowrap; flex-shrink: 0; }
 .set-score.set-win  { color: var(--win); }
 .set-score.set-loss { color: var(--loss); }
 .match-date-col { flex-shrink: 0; font-size: 11px; color: var(--muted); text-align: right; white-space: nowrap; }
@@ -1016,8 +985,6 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%236385a2' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 7px center;
 }
-/* Mobile-only toggle pill — hidden on desktop via CSS, shown on mobile by media query */
-.kpi-toggle-btn { display: none; }
 @media (max-width: 768px) {
   /* Sidebar: slide-in drawer */
   .po-card-header { flex-wrap: wrap; }
@@ -1049,7 +1016,8 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   .kpi-grid.kpi-collapsed .kpi2-card { display: none; }
   .kpi-grid.kpi-collapsed .kpi2-card-last10 { display: none; }
   #kpi-desktop-bar { display: none !important; }
-  .kpi-toggle-btn { display: flex !important; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }  .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
+  .kpi-toggle-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; margin-bottom: 10px; }
+  .kpi-toggle-btn .kpi-toggle-arrow { font-size: 10px; transition: transform 0.2s; }
   .kpi-toggle-btn .kpi-toggle-arrow { transform: rotate(180deg); }
   .kpi-toggle-btn.collapsed .kpi-toggle-arrow { transform: rotate(0deg); }
   .kpi-card { padding: 12px 14px; }
@@ -1774,16 +1742,6 @@ body.dark .fsel-dropdown { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   </div>
 </div>
 
-<div class="confirm-overlay" id="ghost-dismiss-overlay">
-  <div class="confirm-box" style="max-width:340px">
-    <div class="confirm-title" style="color:var(--text)">Card slots hidden</div>
-    <div class="confirm-body">To add cards at any point, click the pencil icon below the stat cards.</div>
-    <div class="confirm-actions">
-      <button class="btn btn-primary" onclick="closeGhostDismissInfo()">OK</button>
-    </div>
-  </div>
-</div>
-
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -2423,25 +2381,6 @@ function getDashboardCardOrder() {
   return KPI_DEFAULT_ORDER;
 }
 
-// ── Ghost card (empty KPI slot) state ───────────────────────────────────────
-function ghostsAreDismissed() {
-  return localStorage.getItem('kpiGhostsDismissed') === '1';
-}
-function dismissKpiGhosts() {
-  localStorage.setItem('kpiGhostsDismissed', '1');
-  renderDashboard();
-  var seen = localStorage.getItem('kpiGhostDismissInfoSeen') === '1';
-  if (!seen) {
-    localStorage.setItem('kpiGhostDismissInfoSeen', '1');
-    var overlay = document.getElementById('ghost-dismiss-overlay');
-    if (overlay) overlay.classList.add('visible');
-  }
-}
-function closeGhostDismissInfo() {
-  var overlay = document.getElementById('ghost-dismiss-overlay');
-  if (overlay) overlay.classList.remove('visible');
-}
-
 // Helpers for card building
 function kpiThreshColor(r, great, poor) {
   if (r === null || isNaN(r)) return 'var(--text)';
@@ -2826,40 +2765,18 @@ function buildKPIs(matches, curYearMatches) {
   }
 
   var cardOrder = getDashboardCardOrder();
+  if (cardOrder.length === 0) return '';
   var colCount  = 4;
-  var dismissed = ghostsAreDismissed();
-
-  if (cardOrder.length === 0) {
-    if (dismissed) {
-      return '<div class="kpi-add-strip" onclick="navigateToSettingsSection(\'sec-appearance\')"><span style="font-size:14px;font-weight:700">+</span><span>Add stat cards</span></div>';
-    }
-    var ghostsOnly = '';
-    for (var g = 0; g < colCount; g++) { ghostsOnly += kpiGhostCard(); }
-    return '<div class="kpi-grid kpi-grid-ghosts-only" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)">' + ghostsOnly + '</div>'
-      + '<div class="kpi-add-strip kpi-add-strip-mobile" onclick="navigateToSettingsSection(\'sec-appearance\')"><span style="font-size:14px;font-weight:700">+</span><span>Add stat cards</span></div>';
-  }
-
-  var cardHtml = cardOrder.map(buildCard).join('');
-  var ghostCount = dismissed ? 0 : ((colCount - (cardOrder.length % colCount)) % colCount);
-  for (var i = 0; i < ghostCount; i++) { cardHtml += kpiGhostCard(); }
-
-  var collapsible = cardOrder.length >= 1 ? ' data-collapsible="true"' : '';
+  var cardHtml  = cardOrder.map(buildCard).join('');
+  var collapsible = cardOrder.length >= 3 ? ' data-collapsible="true"' : '';
   return '<div class="kpi-grid" id="kpi-grid-main" style="grid-template-columns:repeat(' + colCount + ',1fr)"' + collapsible + '>' + cardHtml + '</div>'
-    + (cardOrder.length >= 1 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '')
+    + (cardOrder.length >= 3 ? '<button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpiCollapse()" style="display:none"><span id="kpi-toggle-label">Stats</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span onclick="event.stopPropagation();navigateToSettingsSection(\'sec-appearance\')" style="font-size:14px;line-height:1;color:var(--muted);cursor:pointer" title="Edit dashboard cards">✏️</span><span class="kpi-toggle-arrow">▼</span></div></button>' : '')
     + '<div id="kpi-desktop-bar" style="display:flex;justify-content:center;margin:-4px 0 14px">'
     + '<div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">'
     + '<button id="kpi-desktop-toggle" onclick="toggleKpiCollapse()" style="background:none;border:none;padding:4px 14px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;line-height:1.4" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'"><span id="kpi-desktop-label">Hide stat cards</span></button>'
     + '<div style="width:1px;background:var(--border);align-self:stretch;flex-shrink:0"></div>'
     + '<button onclick="navigateToSettingsSection(\'sec-appearance\')" style="background:none;border:none;padding:4px 10px;cursor:pointer;font-size:12px;line-height:1.4;color:var(--muted)" title="Edit cards" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--muted)\'">✏️</button>'
     + '</div></div>';
-}
-
-function kpiGhostCard() {
-  return '<div class="kpi2-ghost" onclick="navigateToSettingsSection(\'sec-appearance\')">'
-    + '<button class="kpi2-ghost-dismiss" onclick="event.stopPropagation();dismissKpiGhosts()" title="Dismiss" aria-label="Dismiss add-card slot">&times;</button>'
-    + '<div class="kpi2-ghost-icon">+</div>'
-    + '<div class="kpi2-ghost-label">Add card</div>'
-    + '</div>';
 }
 
 // KPI collapse toggle (mobile only)
@@ -2892,6 +2809,7 @@ function initKpiCollapse() {
   // Mobile toggle button
   if (!btn) return;
   if (window.innerWidth > 768) { btn.style.display = 'none'; return; }
+  if (!grid.hasAttribute('data-collapsible')) return;
   btn.style.display = 'flex';
   if (wasCollapsed) btn.classList.add('collapsed');
   var mobileLabel = document.getElementById('kpi-toggle-label');
@@ -4792,9 +4710,9 @@ function buildHistoryResults(filtered, sortOrder) {
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text);max-width:0;width:60%"><span class="tip" data-tip="' + opponent + '" style="display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">' + opponent + '</span>' + playoffStar + '</td>'
-      + '<td style="font-size:13px;color:var(--muted);max-width:160px">' + (partner ? '<span class="tip" data-tip="' + partnerFull + '" style="max-width:160px">' + partner + '</span>' : '—') + '</td>'
-      + '<td><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text);max-width:145px"><span class="tip" data-tip="' + opponent + '" style="max-width:145px">' + opponent + '</span>' + playoffStar + '</td>'
+      + '<td style="font-size:13px;color:var(--muted);max-width:115px">' + (partner ? '<span class="tip" data-tip="' + partnerFull + '" style="max-width:115px">' + partner + '</span>' : '—') + '</td>'
+      + '<td style="min-width:150px"><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
   }).join('');
 
@@ -4844,14 +4762,13 @@ function buildHistoryResults(filtered, sortOrder) {
     + '<table class="history-table" style="width:100%">'
     + (isMob
       ? '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent / Score</th></tr></thead>'
-      : '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent</th><th>Partner</th><th>Score</th></tr></thead>'
+      : '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th style="max-width:145px">Opponent</th><th style="max-width:115px">Partner</th><th style="min-width:150px">Score</th></tr></thead>'
     )
     + '<tbody>' + tableRows + '</tbody>'
     + '</table></div>'
     + buildPagination(historyPage, pages)
     + buildScoutingNotesSection(filtered);
 }
-
 
 
 
@@ -7083,7 +7000,6 @@ async function saveDashboardCards(silent) {
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
   const sel = window._pickerSelected !== undefined ? window._pickerSelected : getDashboardCardOrder();
   localStorage.setItem('dashboardCards', JSON.stringify(sel));
-  if (sel.length > 0) localStorage.removeItem('kpiGhostsDismissed');
   try { await fetch(webAppUrl, {method:'POST', body:JSON.stringify({action:'saveSettings', settings:{dashboardCards: sel.length > 0 ? sel.join(',') : '__empty__'}})}); } catch(e) {}
   if (btn) { btn.textContent = 'Save'; btn.disabled = false; }
   if (!silent) { settingsDirty = false; showToast('✓ Dashboard cards saved!'); }
@@ -8766,9 +8682,12 @@ function comboHighlight(field, options, idx) {
 }
 
 async function comboTriggerAddNew(field, prefill) {
+  if (comboTriggerAddNew._busy) return;
+  comboTriggerAddNew._busy = true;
   const input = document.getElementById('e-' + field);
   // Opponent fields are free-text — just accept the typed name directly, no modal
   if (field === 'opp1' || field === 'opp2') {
+    comboTriggerAddNew._busy = false;
     if (prefill && input) {
       input.value = prefill;
       setTimeout(updateEntryScouting, 0);
@@ -8776,21 +8695,26 @@ async function comboTriggerAddNew(field, prefill) {
     return;
   }
   const value = await showEntryNewModal(field, prefill);
+  comboTriggerAddNew._busy = false;
   if (!value) {
+    // Cancelled — clear the input
     if (input) input.value = '';
     return;
   }
+  // Add to validEntries if not already there
   const arr = field === 'partner' ? (validEntries.partner || []) : (validEntries.level || []);
   if (!arr.find(v => v.toLowerCase() === value.toLowerCase())) {
     arr.push(value);
     if (field === 'partner') validEntries.partner = arr;
     if (field === 'level') validEntries.level = arr;
+    // Persist to veEntries too
     if (!veEntries[field]) veEntries[field] = [];
     if (!veEntries[field].find(v => v.toLowerCase() === value.toLowerCase())) {
       veEntries[field].push(value);
     }
   }
   comboSelectOption(field, value);
+  // Save to sheet via existing mechanism
   entryNewValues[field] = value;
 }
 
@@ -9209,6 +9133,18 @@ function resetEntryForm() {
   // Reset Set 3 label
   const s3label = document.getElementById('e-s3-label');
   if (s3label) s3label.innerHTML = 'Set 3';
+  // Reset all ssel trigger displays (native selects are cleared above but visuals need updating)
+  Object.keys(sselConfig).forEach(f => sselSetTriggerText(f));
+  // Close all ssel dropdowns
+  Object.keys(sselState).forEach(f => sselClose(f));
+  // Clear partner combo input and close its dropdown
+  const partnerInput = document.getElementById('e-partner');
+  if (partnerInput) partnerInput.value = '';
+  comboClose('partner');
+  // Hide playoff toggle (clear may have left it on)
+  const playoffCheck = document.getElementById('e-playoff');
+  if (playoffCheck) playoffCheck.checked = false;
+  document.getElementById('e-playoff-row')?.classList.add('cond-hidden');
   // Hide scouting section and reset scouting note textareas
   const scoutSection = document.getElementById('e-scout-section');
   if (scoutSection) scoutSection.style.display = 'none';
@@ -9217,13 +9153,11 @@ function resetEntryForm() {
   if (ta1) { ta1.value = ''; ta1.style.display = 'block'; }
   if (ta2) { ta2.value = ''; ta2.style.display = 'none'; }
   _entryScoutActive = 'opp1';
-  // Clear partner and level combos, hide their X buttons
-  ['partner', 'level'].forEach(f => {
-    const el = document.getElementById('e-' + f);
-    if (el) el.value = '';
-    comboClose(f);
-    comboClearUpdate(f);
-  });
+  // Close opponent combo dropdowns
+  comboClose('opp1');
+  comboClose('opp2');
+  // Reset type-dependent UI
+  onEntryTypeChange();
 }
 
 // 
