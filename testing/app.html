@@ -4710,9 +4710,9 @@ function buildHistoryResults(filtered, sortOrder) {
     return '<tr onclick="openMatchDetail(' + globalIdx + ')" style="cursor:pointer">'
       + '<td class="hist-date">' + (m.date || '') + '</td>'
       + '<td><span class="result-pill ' + (m.result || '') + '">' + (m.result || '—') + '</span></td>'
-      + '<td style="font-weight:600;font-size:13px;color:var(--text);max-width:145px"><span class="tip" data-tip="' + opponent + '" style="max-width:145px">' + opponent + '</span>' + playoffStar + '</td>'
+      + '<td style="font-weight:600;font-size:13px;color:var(--text)"><span class="tip" data-tip="' + opponent + '">' + opponent + '</span>' + playoffStar + '</td>'
       + '<td style="font-size:13px;color:var(--muted);max-width:115px">' + (partner ? '<span class="tip" data-tip="' + partnerFull + '" style="max-width:115px">' + partner + '</span>' : '—') + '</td>'
-      + '<td style="min-width:150px"><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
+      + '<td style="min-width:165px;max-width:165px"><div class="hist-scores">' + scoresHtml + retired + noteInd + '</div></td>'
       + '</tr>';
   }).join('');
 
@@ -4762,7 +4762,7 @@ function buildHistoryResults(filtered, sortOrder) {
     + '<table class="history-table" style="width:100%">'
     + (isMob
       ? '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent / Score</th></tr></thead>'
-      : '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th style="max-width:145px">Opponent</th><th style="max-width:115px">Partner</th><th style="min-width:150px">Score</th></tr></thead>'
+      : '<thead><tr><th style="width:90px">Date</th><th style="width:44px"></th><th>Opponent</th><th style="max-width:115px">Partner</th><th style="min-width:165px;max-width:165px">Score</th></tr></thead>'
     )
     + '<tbody>' + tableRows + '</tbody>'
     + '</table></div>'
